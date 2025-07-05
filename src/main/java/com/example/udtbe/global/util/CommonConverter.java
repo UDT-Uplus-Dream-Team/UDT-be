@@ -1,4 +1,4 @@
-package com.example.udtbe.global.service;
+package com.example.udtbe.global.util;
 
 import static com.example.udtbe.global.exception.CommonErrorCode.INVALID_PARAMETER;
 

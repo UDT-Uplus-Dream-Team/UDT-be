@@ -1,4 +1,4 @@
-package com.example.udtbe.global.service;
+package com.example.udtbe.global.util;
 
 import com.example.udtbe.entity.enums.Gender;
 import jakarta.persistence.AttributeConverter;
