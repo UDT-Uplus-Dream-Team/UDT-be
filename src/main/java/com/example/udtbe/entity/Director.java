@@ -1,9 +1,9 @@
 package com.example.udtbe.entity;
 
-import static lombok.AccessLevel.*;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,27 +20,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PROTECTED)
 public class Director extends TimeBaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "director_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "director_id")
+    private Long id;
 
-	@Column(name = "director_name", nullable = false)
-	private String directorName;
+    @Column(name = "director_name", nullable = false)
+    private String directorName;
 
-	@Column(name = "is_deleted", nullable = false)
-	private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted;
 
-	@Builder(access = PRIVATE)
-	private Director(String directorName, boolean isDeleted) {
-		this.directorName = directorName;
-		this.isDeleted = isDeleted;
-	}
+    @Builder(access = PRIVATE)
+    private Director(String directorName, boolean isDeleted) {
+        this.directorName = directorName;
+        this.isDeleted = isDeleted;
+    }
 
-	public static Director of(String directorName, boolean isDeleted) {
-		return Director.builder()
-			.directorName(directorName)
-			.isDeleted(isDeleted)
-			.build();
-	}
+    public static Director of(String directorName, boolean isDeleted) {
+        return Director.builder()
+                .directorName(directorName)
+                .isDeleted(isDeleted)
+                .build();
+    }
 }

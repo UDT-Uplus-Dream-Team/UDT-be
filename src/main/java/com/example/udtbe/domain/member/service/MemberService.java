@@ -1,12 +1,11 @@
 package com.example.udtbe.domain.member.service;
 
-import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
 
-	private final MemberQuery memberQuery;
+    private final MemberQuery memberQuery;
 }

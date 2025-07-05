@@ -1,40 +1,37 @@
 package com.example.udtbe.global.exception;
 
-import java.util.List;
-
-import org.springframework.validation.FieldError;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.FieldError;
 
 @Getter
 @Builder
 @RequiredArgsConstructor
 public class ErrorResponseDto {
 
-	private final String code;
-	private final String message;
+    private final String code;
+    private final String message;
 
-	@JsonInclude(JsonInclude.Include.NON_EMPTY)
-	private final List<ValidationError> errors;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private final List<ValidationError> errors;
 
 
-	@Getter
-	@Builder
-	@RequiredArgsConstructor
-	public static class ValidationError {
+    @Getter
+    @Builder
+    @RequiredArgsConstructor
+    public static class ValidationError {
 
-		private final String field;
-		private final String message;
+        private final String field;
+        private final String message;
 
-		public static ValidationError of(final FieldError fieldError) {
-			return ValidationError.builder()
-				.field(fieldError.getField())
-				.message(fieldError.getDefaultMessage())
-				.build();
-		}
-	}
+        public static ValidationError of(final FieldError fieldError) {
+            return ValidationError.builder()
+                    .field(fieldError.getField())
+                    .message(fieldError.getDefaultMessage())
+                    .build();
+        }
+    }
 }

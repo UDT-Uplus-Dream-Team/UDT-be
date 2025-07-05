@@ -1,12 +1,11 @@
 package com.example.udtbe.domain.auth.service;
 
-import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-	private final AuthQuery authQuery;
+    private final AuthQuery authQuery;
 }

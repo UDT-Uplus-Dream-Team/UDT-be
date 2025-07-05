@@ -1,11 +1,11 @@
 package com.example.udtbe.entity;
 
-import static jakarta.persistence.ConstraintMode.*;
-import static jakarta.persistence.FetchType.*;
-import static lombok.AccessLevel.*;
+import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
+import static jakarta.persistence.FetchType.LAZY;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
@@ -25,38 +25,38 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PROTECTED)
 public class ContentCategory extends TimeBaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "content_category_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "content_category_id")
+    private Long id;
 
-	@Column(name = "is_deleted", nullable = false)
-	private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted;
 
-	@ManyToOne(fetch = LAZY)
-	@JoinColumn(name = "category_id",
-		nullable = false,
-		foreignKey = @ForeignKey(NO_CONSTRAINT))
-	private Category category;
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "category_id",
+            nullable = false,
+            foreignKey = @ForeignKey(NO_CONSTRAINT))
+    private Category category;
 
-	@ManyToOne(fetch = LAZY)
-	@JoinColumn(name = "content_id",
-		nullable = false,
-		foreignKey = @ForeignKey(NO_CONSTRAINT))
-	private Content content;
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "content_id",
+            nullable = false,
+            foreignKey = @ForeignKey(NO_CONSTRAINT))
+    private Content content;
 
-	@Builder(access = PRIVATE)
-	private ContentCategory(boolean isDeleted, Category category, Content content) {
-		this.isDeleted = isDeleted;
-		this.category = category;
-		this.content = content;
-	}
+    @Builder(access = PRIVATE)
+    private ContentCategory(boolean isDeleted, Category category, Content content) {
+        this.isDeleted = isDeleted;
+        this.category = category;
+        this.content = content;
+    }
 
-	public static ContentCategory of(boolean isDeleted, Category category, Content content) {
-		return ContentCategory.builder()
-			.isDeleted(isDeleted)
-			.category(category)
-			.content(content)
-			.build();
-	}
+    public static ContentCategory of(boolean isDeleted, Category category, Content content) {
+        return ContentCategory.builder()
+                .isDeleted(isDeleted)
+                .category(category)
+                .content(content)
+                .build();
+    }
 }

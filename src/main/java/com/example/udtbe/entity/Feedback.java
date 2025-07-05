@@ -1,13 +1,13 @@
 package com.example.udtbe.entity;
 
-import static jakarta.persistence.ConstraintMode.*;
-import static jakarta.persistence.EnumType.*;
-import static jakarta.persistence.FetchType.*;
-import static lombok.AccessLevel.*;
+import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.FetchType.LAZY;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.entity.enums.FeedbackType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -28,44 +28,45 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PROTECTED)
 public class Feedback extends TimeBaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "feedback_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "feedback_id")
+    private Long id;
 
-	@Enumerated(value = STRING)
-	@Column(name = "feedback_type", nullable = false)
-	private FeedbackType feedbackType;
+    @Enumerated(value = STRING)
+    @Column(name = "feedback_type", nullable = false)
+    private FeedbackType feedbackType;
 
-	@Column(name = "is_deleted", nullable = false)
-	private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted;
 
-	@ManyToOne(fetch = LAZY)
-	@JoinColumn(name = "member_id",
-		nullable = false,
-		foreignKey = @ForeignKey(NO_CONSTRAINT))
-	private Member member;
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "member_id",
+            nullable = false,
+            foreignKey = @ForeignKey(NO_CONSTRAINT))
+    private Member member;
 
-	@ManyToOne(fetch = LAZY)
-	@JoinColumn(name = "content_id",
-		nullable = false,
-		foreignKey = @ForeignKey(NO_CONSTRAINT))
-	private Content content;
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "content_id",
+            nullable = false,
+            foreignKey = @ForeignKey(NO_CONSTRAINT))
+    private Content content;
 
-	@Builder(access = PRIVATE)
-	private Feedback(FeedbackType feedbackType, boolean isDeleted, Member member, Content content) {
-		this.feedbackType = feedbackType;
-		this.isDeleted = isDeleted;
-		this.member = member;
-		this.content = content;
-	}
+    @Builder(access = PRIVATE)
+    private Feedback(FeedbackType feedbackType, boolean isDeleted, Member member, Content content) {
+        this.feedbackType = feedbackType;
+        this.isDeleted = isDeleted;
+        this.member = member;
+        this.content = content;
+    }
 
-	public static Feedback of(FeedbackType feedbackType, boolean isDeleted, Member member, Content content) {
-		return Feedback.builder()
-			.feedbackType(feedbackType)
-			.isDeleted(isDeleted)
-			.member(member)
-			.content(content)
-			.build();
-	}
+    public static Feedback of(FeedbackType feedbackType, boolean isDeleted, Member member,
+            Content content) {
+        return Feedback.builder()
+                .feedbackType(feedbackType)
+                .isDeleted(isDeleted)
+                .member(member)
+                .content(content)
+                .build();
+    }
 }

@@ -1,12 +1,11 @@
 package com.example.udtbe.domain.survey.service;
 
-import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class SurveyService {
 
-	private final SurveyQuery surveyQuery;
+    private final SurveyQuery surveyQuery;
 }

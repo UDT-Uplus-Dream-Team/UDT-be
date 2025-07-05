@@ -1,8 +1,8 @@
 package com.example.udtbe.domain.content.repository;
 
+import com.example.udtbe.entity.Genre;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.udtbe.entity.Genre;
-
 public interface GenreRepository extends JpaRepository<Genre, Long> {
+
 }

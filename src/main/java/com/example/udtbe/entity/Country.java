@@ -1,9 +1,9 @@
 package com.example.udtbe.entity;
 
-import static lombok.AccessLevel.*;
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,27 +20,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PROTECTED)
 public class Country extends TimeBaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "country_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "country_id")
+    private Long id;
 
-	@Column(name = "country_name", nullable = false)
-	private String countryName;
+    @Column(name = "country_name", nullable = false)
+    private String countryName;
 
-	@Column(name = "is_deleted", nullable = false)
-	private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted;
 
-	@Builder(access = PRIVATE)
-	private Country(String countryName, boolean isDeleted) {
-		this.countryName = countryName;
-		this.isDeleted = isDeleted;
-	}
+    @Builder(access = PRIVATE)
+    private Country(String countryName, boolean isDeleted) {
+        this.countryName = countryName;
+        this.isDeleted = isDeleted;
+    }
 
-	public static Country of(String countryName, boolean isDeleted) {
-		return Country.builder()
-			.countryName(countryName)
-			.isDeleted(isDeleted)
-			.build();
-	}
+    public static Country of(String countryName, boolean isDeleted) {
+        return Country.builder()
+                .countryName(countryName)
+                .isDeleted(isDeleted)
+                .build();
+    }
 }
