@@ -1,9 +1,9 @@
 package com.example.udtbe.common.support;
 
 import com.example.udtbe.common.fixture.MemberFixture;
+import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
-import com.example.udtbe.entity.Member;
-import com.example.udtbe.entity.enums.Role;
+import com.example.udtbe.domain.member.entity.enums.Role;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

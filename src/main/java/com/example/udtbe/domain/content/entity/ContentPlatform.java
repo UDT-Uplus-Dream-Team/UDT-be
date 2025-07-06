@@ -1,4 +1,4 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;

@@ -1,4 +1,4 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
@@ -20,24 +20,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "curated_content")
+@Table(name = "content_category")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class CuratedContent extends TimeBaseEntity {
+public class ContentCategory extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "curated_content_id")
+    @Column(name = "content_category_id")
     private Long id;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "member_id",
+    @JoinColumn(name = "category_id",
             nullable = false,
             foreignKey = @ForeignKey(NO_CONSTRAINT))
-    private Member member;
+    private Category category;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "content_id",
@@ -46,16 +46,16 @@ public class CuratedContent extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private CuratedContent(boolean isDeleted, Member member, Content content) {
+    private ContentCategory(boolean isDeleted, Category category, Content content) {
         this.isDeleted = isDeleted;
-        this.member = member;
+        this.category = category;
         this.content = content;
     }
 
-    public static CuratedContent of(boolean isDeleted, Member member, Content content) {
-        return CuratedContent.builder()
+    public static ContentCategory of(boolean isDeleted, Category category, Content content) {
+        return ContentCategory.builder()
                 .isDeleted(isDeleted)
-                .member(member)
+                .category(category)
                 .content(content)
                 .build();
     }

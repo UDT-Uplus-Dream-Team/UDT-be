@@ -1,6 +1,6 @@
 package com.example.udtbe.global.util;
 
-import com.example.udtbe.entity.enums.FeedbackType;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

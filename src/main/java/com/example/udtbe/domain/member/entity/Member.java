@@ -1,11 +1,11 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.member.entity;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
-import com.example.udtbe.entity.enums.Gender;
-import com.example.udtbe.entity.enums.Role;
+import com.example.udtbe.domain.member.entity.enums.Gender;
+import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

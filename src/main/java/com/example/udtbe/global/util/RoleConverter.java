@@ -1,6 +1,6 @@
 package com.example.udtbe.global.util;
 
-import com.example.udtbe.entity.enums.Role;
+import com.example.udtbe.domain.member.entity.enums.Role;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

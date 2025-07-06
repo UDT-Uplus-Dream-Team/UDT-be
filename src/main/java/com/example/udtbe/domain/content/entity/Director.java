@@ -1,4 +1,4 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
@@ -15,31 +15,31 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "platform")
+@Table(name = "director")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class Platform extends TimeBaseEntity {
+public class Director extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "platform_id")
+    @Column(name = "director_id")
     private Long id;
 
-    @Column(name = "platform_name", nullable = false)
-    private String platformName;
+    @Column(name = "director_name", nullable = false)
+    private String directorName;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @Builder(access = PRIVATE)
-    private Platform(String platformName, boolean isDeleted) {
-        this.platformName = platformName;
+    private Director(String directorName, boolean isDeleted) {
+        this.directorName = directorName;
         this.isDeleted = isDeleted;
     }
 
-    public static Platform of(String platformName, boolean isDeleted) {
-        return Platform.builder()
-                .platformName(platformName)
+    public static Director of(String directorName, boolean isDeleted) {
+        return Director.builder()
+                .directorName(directorName)
                 .isDeleted(isDeleted)
                 .build();
     }

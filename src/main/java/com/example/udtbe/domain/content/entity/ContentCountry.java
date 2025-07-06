@@ -1,4 +1,4 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
@@ -20,24 +20,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "content_category")
+@Table(name = "content_country")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class ContentCategory extends TimeBaseEntity {
+public class ContentCountry extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "content_category_id")
+    @Column(name = "content_country_id")
     private Long id;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "category_id",
+    @JoinColumn(name = "country_id",
             nullable = false,
             foreignKey = @ForeignKey(NO_CONSTRAINT))
-    private Category category;
+    private Country country;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "content_id",
@@ -46,16 +46,16 @@ public class ContentCategory extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentCategory(boolean isDeleted, Category category, Content content) {
+    private ContentCountry(boolean isDeleted, Country country, Content content) {
         this.isDeleted = isDeleted;
-        this.category = category;
+        this.country = country;
         this.content = content;
     }
 
-    public static ContentCategory of(boolean isDeleted, Category category, Content content) {
-        return ContentCategory.builder()
+    public static ContentCountry of(boolean isDeleted, Country country, Content content) {
+        return ContentCountry.builder()
                 .isDeleted(isDeleted)
-                .category(category)
+                .country(country)
                 .content(content)
                 .build();
     }

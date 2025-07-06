@@ -1,6 +1,6 @@
 package com.example.udtbe.global.util;
 
-import com.example.udtbe.entity.enums.GenreType;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

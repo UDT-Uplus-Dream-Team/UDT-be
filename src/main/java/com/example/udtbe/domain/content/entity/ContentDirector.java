@@ -1,4 +1,4 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
@@ -20,24 +20,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "content_cast")
+@Table(name = "content_director")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class ContentCast extends TimeBaseEntity {
+public class ContentDirector extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "content_cast_id")
+    @Column(name = "content_director_id")
     private Long id;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "cast_id",
+    @JoinColumn(name = "director_id",
             nullable = false,
             foreignKey = @ForeignKey(NO_CONSTRAINT))
-    private Cast cast;
+    private Director director;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "content_id",
@@ -46,16 +46,16 @@ public class ContentCast extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentCast(boolean isDeleted, Cast cast, Content content) {
+    private ContentDirector(boolean isDeleted, Director director, Content content) {
         this.isDeleted = isDeleted;
-        this.cast = cast;
+        this.director = director;
         this.content = content;
     }
 
-    public static ContentCast of(boolean isDeleted, Cast cast, Content content) {
-        return ContentCast.builder()
+    public static ContentDirector of(boolean isDeleted, Director director, Content content) {
+        return ContentDirector.builder()
                 .isDeleted(isDeleted)
-                .cast(cast)
+                .director(director)
                 .content(content)
                 .build();
     }

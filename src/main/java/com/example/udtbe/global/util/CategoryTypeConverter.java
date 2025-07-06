@@ -1,6 +1,6 @@
 package com.example.udtbe.global.util;
 
-import com.example.udtbe.entity.enums.CategoryType;
+import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

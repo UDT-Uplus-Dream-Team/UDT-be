@@ -1,4 +1,4 @@
-package com.example.udtbe.entity.enums;
+package com.example.udtbe.domain.content.entity.enums;
 
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;

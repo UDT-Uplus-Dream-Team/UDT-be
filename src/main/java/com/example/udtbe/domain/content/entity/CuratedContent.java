@@ -1,10 +1,11 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
+import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,24 +21,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "content_director")
+@Table(name = "curated_content")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class ContentDirector extends TimeBaseEntity {
+public class CuratedContent extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "content_director_id")
+    @Column(name = "curated_content_id")
     private Long id;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "director_id",
+    @JoinColumn(name = "member_id",
             nullable = false,
             foreignKey = @ForeignKey(NO_CONSTRAINT))
-    private Director director;
+    private Member member;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "content_id",
@@ -46,16 +47,16 @@ public class ContentDirector extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentDirector(boolean isDeleted, Director director, Content content) {
+    private CuratedContent(boolean isDeleted, Member member, Content content) {
         this.isDeleted = isDeleted;
-        this.director = director;
+        this.member = member;
         this.content = content;
     }
 
-    public static ContentDirector of(boolean isDeleted, Director director, Content content) {
-        return ContentDirector.builder()
+    public static CuratedContent of(boolean isDeleted, Member member, Content content) {
+        return CuratedContent.builder()
                 .isDeleted(isDeleted)
-                .director(director)
+                .member(member)
                 .content(content)
                 .build();
     }

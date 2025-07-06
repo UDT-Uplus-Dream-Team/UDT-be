@@ -1,6 +1,6 @@
 package com.example.udtbe.global.util;
 
-import com.example.udtbe.entity.enums.Gender;
+import com.example.udtbe.domain.member.entity.enums.Gender;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

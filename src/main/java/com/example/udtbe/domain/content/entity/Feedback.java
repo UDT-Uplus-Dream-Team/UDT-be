@@ -1,4 +1,4 @@
-package com.example.udtbe.entity;
+package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.EnumType.STRING;
@@ -6,7 +6,8 @@ import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
-import com.example.udtbe.entity.enums.GenreType;
+import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,41 +24,50 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "genre")
+@Table(name = "feedback")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class Genre extends TimeBaseEntity {
+public class Feedback extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "genre_id")
+    @Column(name = "feedback_id")
     private Long id;
 
     @Enumerated(value = STRING)
-    @Column(name = "genre_type", nullable = false)
-    private GenreType genreType;
+    @Column(name = "feedback_type", nullable = false)
+    private FeedbackType feedbackType;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "category_id",
+    @JoinColumn(name = "member_id",
             nullable = false,
             foreignKey = @ForeignKey(NO_CONSTRAINT))
-    private Category category;
+    private Member member;
+
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "content_id",
+            nullable = false,
+            foreignKey = @ForeignKey(NO_CONSTRAINT))
+    private Content content;
 
     @Builder(access = PRIVATE)
-    private Genre(GenreType genreType, boolean isDeleted, Category category) {
-        this.genreType = genreType;
+    private Feedback(FeedbackType feedbackType, boolean isDeleted, Member member, Content content) {
+        this.feedbackType = feedbackType;
         this.isDeleted = isDeleted;
-        this.category = category;
+        this.member = member;
+        this.content = content;
     }
 
-    public static Genre of(GenreType genreType, boolean isDeleted, Category category) {
-        return Genre.builder()
-                .genreType(genreType)
+    public static Feedback of(FeedbackType feedbackType, boolean isDeleted, Member member,
+            Content content) {
+        return Feedback.builder()
+                .feedbackType(feedbackType)
                 .isDeleted(isDeleted)
-                .category(category)
+                .member(member)
+                .content(content)
                 .build();
     }
 }
