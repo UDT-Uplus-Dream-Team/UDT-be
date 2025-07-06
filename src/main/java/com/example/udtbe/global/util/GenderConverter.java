@@ -16,6 +16,6 @@ public class GenderConverter extends CommonConverter implements AttributeConvert
     @Override
     public String convertToDatabaseColumn(Gender gender) {
         validateNotNull(gender);
-        return gender.getGender();
+        return gender.name();
     }
 }

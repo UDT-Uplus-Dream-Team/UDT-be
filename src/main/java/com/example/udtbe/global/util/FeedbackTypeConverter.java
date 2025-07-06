@@ -17,6 +17,6 @@ public class FeedbackTypeConverter extends CommonConverter implements
     @Override
     public String convertToDatabaseColumn(FeedbackType feedbackType) {
         validateNotNull(feedbackType);
-        return feedbackType.getType();
+        return feedbackType.name();
     }
 }

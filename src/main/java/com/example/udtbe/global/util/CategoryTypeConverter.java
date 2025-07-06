@@ -17,6 +17,6 @@ public class CategoryTypeConverter extends CommonConverter implements
     @Override
     public String convertToDatabaseColumn(CategoryType categoryType) {
         validateNotNull(categoryType);
-        return categoryType.getType();
+        return categoryType.name();
     }
 }

@@ -16,6 +16,6 @@ public class RoleConverter extends CommonConverter implements AttributeConverter
     @Override
     public String convertToDatabaseColumn(Role role) {
         validateNotNull(role);
-        return role.getRole();
+        return role.name();
     }
 }

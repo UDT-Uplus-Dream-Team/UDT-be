@@ -17,6 +17,6 @@ public class GenreTypeConverter extends CommonConverter implements
     @Override
     public String convertToDatabaseColumn(GenreType genreType) {
         validateNotNull(genreType);
-        return genreType.getType();
+        return genreType.name();
     }
 }
