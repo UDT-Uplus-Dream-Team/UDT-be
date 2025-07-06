@@ -59,4 +59,8 @@ public class ContentDirector extends TimeBaseEntity {
                 .content(content)
                 .build();
     }
+
+    public void addContent(Content content) {
+        this.content = content;
+    }
 }

@@ -60,4 +60,8 @@ public class Genre extends TimeBaseEntity {
                 .category(category)
                 .build();
     }
+
+    public void addCategory(Category category) {
+        this.category = category;
+    }
 }

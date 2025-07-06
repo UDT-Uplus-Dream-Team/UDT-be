@@ -71,4 +71,12 @@ public class ContentPlatform extends TimeBaseEntity {
                 .content(content)
                 .build();
     }
+
+    public void addContent(Content content) {
+        this.content = content;
+    }
+
+    public void addPlatform(Platform platform) {
+        this.platform = platform;
+    }
 }

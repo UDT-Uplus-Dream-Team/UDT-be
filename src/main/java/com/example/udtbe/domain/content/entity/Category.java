@@ -1,19 +1,21 @@
 package com.example.udtbe.domain.content.entity;
 
-import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import com.example.udtbe.global.util.CategoryTypeConverter;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Builder;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,16 +37,23 @@ public class Category extends TimeBaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
-    @Builder(access = PRIVATE)
-    private Category(CategoryType categoryType, boolean isDeleted) {
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Genre> genres = new ArrayList<>();
+
+    private Category(CategoryType categoryType, boolean isDeleted, List<Genre> genres) {
         this.categoryType = categoryType;
         this.isDeleted = isDeleted;
+        initGenres(genres);
     }
 
-    public static Category of(CategoryType categoryType, boolean isDeleted) {
-        return Category.builder()
-                .categoryType(categoryType)
-                .isDeleted(isDeleted)
-                .build();
+    public static Category of(CategoryType categoryType, boolean isDeleted, List<Genre> genres) {
+        return new Category(categoryType, isDeleted, genres);
+    }
+
+    private void initGenres(List<Genre> genres) {
+        genres.forEach(genre -> {
+            this.genres.add(genre);
+            genre.addCategory(this);
+        });
     }
 }
