@@ -7,10 +7,11 @@ import static lombok.AccessLevel.PROTECTED;
 import com.example.udtbe.domain.member.entity.enums.Gender;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.GenderConverter;
+import com.example.udtbe.global.util.RoleConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -39,11 +40,11 @@ public class Member extends TimeBaseEntity {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Enumerated(value = EnumType.STRING)
+    @Convert(converter = RoleConverter.class)
     @Column(name = "role", nullable = false)
     private Role role;
 
-    @Enumerated(value = EnumType.STRING)
+    @Convert(converter = GenderConverter.class)
     @Column(name = "gender", nullable = false)
     private Gender gender;
 

@@ -1,16 +1,16 @@
 package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
-import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.GenreTypeConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,7 +33,7 @@ public class Genre extends TimeBaseEntity {
     @Column(name = "genre_id")
     private Long id;
 
-    @Enumerated(value = STRING)
+    @Convert(converter = GenreTypeConverter.class)
     @Column(name = "genre_type", nullable = false)
     private GenreType genreType;
 

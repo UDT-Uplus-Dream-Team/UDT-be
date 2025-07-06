@@ -1,14 +1,14 @@
 package com.example.udtbe.domain.content.entity;
 
-import static jakarta.persistence.EnumType.STRING;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.CategoryTypeConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,7 +28,7 @@ public class Category extends TimeBaseEntity {
     @Column(name = "category_id")
     private Long id;
 
-    @Enumerated(value = STRING)
+    @Convert(converter = CategoryTypeConverter.class)
     @Column(name = "category_type", nullable = false)
     private CategoryType categoryType;
 

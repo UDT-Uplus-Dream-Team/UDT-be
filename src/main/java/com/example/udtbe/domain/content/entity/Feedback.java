@@ -1,17 +1,17 @@
 package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
-import static jakarta.persistence.EnumType.STRING;
 import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
-import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
+import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.FeedbackTypeConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,7 +34,7 @@ public class Feedback extends TimeBaseEntity {
     @Column(name = "feedback_id")
     private Long id;
 
-    @Enumerated(value = STRING)
+    @Convert(converter = FeedbackTypeConverter.class)
     @Column(name = "feedback_type", nullable = false)
     private FeedbackType feedbackType;
 
