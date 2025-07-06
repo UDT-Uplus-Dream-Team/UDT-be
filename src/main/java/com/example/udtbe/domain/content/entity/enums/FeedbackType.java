@@ -12,6 +12,7 @@ public enum FeedbackType {
 
     LIKE("좋아요"),
     DISLIKE("싫어요"),
+    UNINTERESTED("관심없음"),
     ;
 
     private final String type;
