@@ -19,7 +19,7 @@ public enum FeedbackType {
 
     public static FeedbackType from(String value) {
         return Arrays.stream(values())
-                .filter(r -> r.getType().equals(value))
+                .filter(f -> f.name().equals(value))
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.FEEDBACK_TYPE_NOT_FOUND));
     }

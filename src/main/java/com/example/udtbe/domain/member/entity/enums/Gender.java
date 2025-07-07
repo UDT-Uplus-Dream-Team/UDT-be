@@ -18,7 +18,7 @@ public enum Gender {
 
     public static Gender from(String value) {
         return Arrays.stream(values())
-                .filter(r -> r.getGender().equals(value))
+                .filter(g -> g.name().equals(value))
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.GENDER_NOT_FOUND));
     }

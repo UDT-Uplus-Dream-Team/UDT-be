@@ -40,7 +40,7 @@ public enum GenreType {
 
     public static GenreType from(String value) {
         return Arrays.stream(values())
-                .filter(r -> r.getType().equals(value))
+                .filter(g -> g.name().equals(value))
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.GENRE_TYPE_NOT_FOUND));
     }
