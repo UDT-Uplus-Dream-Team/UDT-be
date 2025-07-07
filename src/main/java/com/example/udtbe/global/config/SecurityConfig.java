@@ -44,7 +44,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         (auth) -> auth
-                                .requestMatchers("/").permitAll()
+                                .requestMatchers("/**").permitAll()
                 )
                 .oauth2Login(
                         (oauth2) -> oauth2
@@ -72,7 +72,8 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring()
                 .requestMatchers(
-                        "/error", "/favicon.ico", "/swagger-ui/**", "/v3/api-docs/**",
+                        "/error", "/favicon.ico", "/api/auth/temp-signup",
+                        "/api/auth/temp-signin", "/swagger-ui/**", "/v3/api-docs/**",
                         "/swagger-ui.html"
                 );
     }
