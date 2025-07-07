@@ -3,6 +3,7 @@ package com.example.udtbe.common.support;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.auth.service.AuthQuery;
 import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.security.dto.AuthInfo;
 import com.example.udtbe.global.security.dto.CustomOauth2User;
 import com.example.udtbe.global.token.cookie.CookieUtil;
@@ -52,8 +53,8 @@ public abstract class ApiSupport extends TestContainerSupport {
             return;
         }
 
-        this.loginAdmin = authQuery.save(MemberFixture.member("admin@naver.com", "관리자"));
-        this.loginUser = authQuery.save(MemberFixture.member("user@naver.com", "일반회원"));
+        this.loginAdmin = authQuery.save(MemberFixture.member("admin@naver.com", Role.ROLE_ADMIN));
+        this.loginUser = authQuery.save(MemberFixture.member("user@naver.com", Role.ROLE_USER));
 
         AuthInfo authInfoOfAdmin = getAuthInfo(loginAdmin);
         AuthInfo authInfoOfUser = getAuthInfo(loginUser);
