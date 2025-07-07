@@ -46,7 +46,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        String accessToken = resolveToken(request);
+        String accessToken = cookieUtil.getCookieValue(request);
 
         if (tokenProvider.validateToken(accessToken, new Date())) {
             // accessToken logout 여부 확인

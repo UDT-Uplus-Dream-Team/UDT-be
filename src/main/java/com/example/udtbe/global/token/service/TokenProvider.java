@@ -36,7 +36,6 @@ import org.springframework.util.StringUtils;
 public class TokenProvider {
 
     private static final String ROLE_KEY = "ROLE";
-    private static final String TOKEN_PREFIX = "Bearer ";
     private static final String[] BLACKLIST = new String[]{"false", "delete"};
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 90L;
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24L;
@@ -72,7 +71,7 @@ public class TokenProvider {
         Date expiredTime = createExpiredDateWithTokenType(now, tokenExpireTime);
         String authorities = getAuthorities(authentication);
 
-        return TOKEN_PREFIX + Jwts.builder()
+        return Jwts.builder()
                 .subject(String.valueOf(findMember.getId()))
                 .claim(ROLE_KEY, authorities)
                 .issuedAt(now)
