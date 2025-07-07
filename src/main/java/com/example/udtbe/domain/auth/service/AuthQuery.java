@@ -31,4 +31,9 @@ public class AuthQuery {
         return memberRepository.findById(id)
                 .orElseThrow(() -> new RestApiException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
+
+    public void deleteAll() {
+        memberRepository.deleteAll();
+    }
+
 }
