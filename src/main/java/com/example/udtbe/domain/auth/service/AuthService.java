@@ -1,8 +1,11 @@
 package com.example.udtbe.domain.auth.service;
 
+import static com.example.udtbe.domain.member.entity.enums.Gender.MAN;
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_ADMIN;
+
+import com.example.udtbe.domain.auth.dto.request.TempAuthRequest;
 import com.example.udtbe.domain.auth.exception.AuthErrorCode;
 import com.example.udtbe.domain.member.entity.Member;
-import com.example.udtbe.domain.member.entity.enums.Gender;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.security.dto.AuthInfo;
@@ -52,7 +55,7 @@ public class AuthService {
 
     private Member createMemberFromOauth2Response(Oauth2Response oauth2Response) {
         return Member.of(oauth2Response.getEmail(), oauth2Response.getName(), Role.ROLE_GUEST,
-                oauth2Response.getProfileImageUrl(), Gender.MAN, LocalDateTime.now(), false);
+                oauth2Response.getProfileImageUrl(), MAN, LocalDateTime.now(), false);
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
@@ -140,5 +143,31 @@ public class AuthService {
 
     private String getRefreshTokenPrefix(String email) {
         return REFRESH_TOKEN_PREFIX + email;
+    }
+
+    public void tempSignUp(TempAuthRequest request) {
+        if (authQuery.existsByEmail(request.email())) {
+            throw new RestApiException(AuthErrorCode.DUPLICATED_EMAIL);
+        }
+
+        Member member = Member.of(request.email(), "홍길동", ROLE_ADMIN, null, MAN,
+                LocalDateTime.now(), false);
+
+        authQuery.save(member);
+    }
+
+    public void tempSignIn(TempAuthRequest request, HttpServletResponse response) {
+        Date now = new Date();
+
+        Member findMember = authQuery.getMemberByEmail(request.email());
+
+        AuthInfo authInfo = AuthInfo.of(
+                findMember.getName(), findMember.getEmail(), findMember.getRole().getRole()
+        );
+        CustomOauth2User customOauth2User = new CustomOauth2User(authInfo);
+
+        tokenProvider.generateRefreshToken(findMember, customOauth2User, now);
+        String accessToken = tokenProvider.generateAccessToken(findMember, customOauth2User, now);
+        response.addCookie(cookieUtil.createCookie(accessToken));
     }
 }

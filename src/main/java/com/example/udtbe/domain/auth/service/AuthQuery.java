@@ -36,4 +36,7 @@ public class AuthQuery {
         memberRepository.deleteAll();
     }
 
+    public boolean existsByEmail(String email) {
+        return memberRepository.existsByEmail(email);
+    }
 }
