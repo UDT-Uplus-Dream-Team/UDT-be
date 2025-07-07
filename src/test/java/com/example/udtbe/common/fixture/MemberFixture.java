@@ -4,14 +4,13 @@ import static com.example.udtbe.domain.member.entity.enums.Gender.MAN;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.member.entity.Member;
-import com.example.udtbe.domain.member.entity.enums.Role;
 import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
 public class MemberFixture {
 
-    public static Member member(String email, Role role) {
+    public static Member member(String email, String role) {
         return Member.of(
                 email,
                 "홍길동",

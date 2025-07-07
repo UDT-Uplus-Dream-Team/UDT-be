@@ -3,7 +3,6 @@ package com.example.udtbe.common.support;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
-import com.example.udtbe.domain.member.entity.enums.Role;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,9 +37,9 @@ public abstract class ApiSupport extends TestContainerSupport {
         }
 
         this.loginAdmin = memberRepository.save(
-                MemberFixture.member("admin@naver.com", Role.ROLE_ADMIN));
+                MemberFixture.member("admin@naver.com", "관리자"));
         this.loginUser = memberRepository.save(
-                MemberFixture.member("user@naver.com", Role.ROLE_USER));
+                MemberFixture.member("user@naver.com", "일반회원"));
 
         this.accessTokenOfAdmin = BEARER + "tmpToken";
         this.accessTokenOfUser = BEARER + "tmpToken";
