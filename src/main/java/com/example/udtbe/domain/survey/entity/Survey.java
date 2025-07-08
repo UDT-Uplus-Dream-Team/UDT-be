@@ -46,9 +46,6 @@ public class Survey extends TimeBaseEntity {
     @Column(name = "content_tag")
     private List<String> contentTag;
 
-    @Column(name = "is_age_rating_limit", nullable = false)
-    private boolean isAgeRatingLimit;
-
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
@@ -62,23 +59,20 @@ public class Survey extends TimeBaseEntity {
 
     @Builder(access = PRIVATE)
     private Survey(List<String> platformTag, List<String> genreTag, List<String> contentTag,
-            boolean isAgeRatingLimit, boolean isDeleted, Member member) {
+            boolean isDeleted, Member member) {
         this.platformTag = platformTag;
         this.genreTag = genreTag;
         this.contentTag = contentTag;
-        this.isAgeRatingLimit = isAgeRatingLimit;
         this.isDeleted = isDeleted;
         this.member = member;
     }
 
     public static Survey of(List<String> platformTag, List<String> genreTag,
-            List<String> contentTag,
-            boolean isAgeRatingLimit, boolean isDeleted, Member member) {
+            List<String> contentTag, boolean isDeleted, Member member) {
         return Survey.builder()
                 .platformTag(platformTag)
                 .genreTag(genreTag)
                 .contentTag(contentTag)
-                .isAgeRatingLimit(isAgeRatingLimit)
                 .isDeleted(isDeleted)
                 .member(member)
                 .build();
