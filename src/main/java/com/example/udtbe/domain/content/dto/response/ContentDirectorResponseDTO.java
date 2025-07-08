@@ -1,4 +1,8 @@
 package com.example.udtbe.domain.content.dto.response;
 
-public record ContentDirectorResponseDTO() {
+public record ContentDirectorResponseDTO(
+        Long id,
+        String name
+) {
+
 }

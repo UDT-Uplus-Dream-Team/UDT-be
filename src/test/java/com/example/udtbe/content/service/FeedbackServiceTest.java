@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackRequest;
-import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponse;
+import com.example.udtbe.domain.content.dto.response.FeedbackBulkResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
@@ -102,7 +102,7 @@ public class FeedbackServiceTest {
                 eq(member), eq(FeedbackType.LIKE), any(Pageable.class)))
                 .thenReturn(feedbacks);
 
-        BulkFeedbackResponse result = feedbackService.getFeedbackList(
+        FeedbackBulkResponse result = feedbackService.getFeedbackList(
                 null, size, FeedbackType.LIKE, member
         );
 

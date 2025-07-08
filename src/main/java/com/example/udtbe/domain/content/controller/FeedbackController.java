@@ -1,9 +1,8 @@
 package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
-import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponse;
+import com.example.udtbe.domain.content.dto.response.FeedbackBulkResponse;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
-import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FeedbackController implements FeedbackControllerApiSpec {
 
-    private final FeedbackQuery feedbackQuery;
     private final FeedbackService feedbackService;
 
     @Override
@@ -25,9 +23,9 @@ public class FeedbackController implements FeedbackControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<BulkFeedbackResponse> getFeedbackByCursor(
+    public ResponseEntity<FeedbackBulkResponse> getFeedbackByCursor(
             String cursor, int size, FeedbackType feedbackType, Member member) {
-        BulkFeedbackResponse response = feedbackService.getFeedbackList(
+        FeedbackBulkResponse response = feedbackService.getFeedbackList(
                 cursor, size, feedbackType, member);
 
         return ResponseEntity.ok(response);
