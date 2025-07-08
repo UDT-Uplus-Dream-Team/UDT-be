@@ -18,7 +18,7 @@ public enum Role {
 
     public static Role from(String value) {
         return Arrays.stream(values())
-                .filter(r -> r.getRole().equals(value))
+                .filter(r -> r.name().equals(value))
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.ROLE_NOT_FOUND));
     }

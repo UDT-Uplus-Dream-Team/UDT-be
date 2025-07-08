@@ -15,8 +15,8 @@ public class MemberFixture {
         return Member.of(
                 email,
                 "홍길동",
-                null,
                 role,
+                null,
                 MAN,
                 LocalDateTime.of(2025, 7, 6, 1, 20),
                 false

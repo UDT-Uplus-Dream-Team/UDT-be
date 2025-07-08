@@ -20,7 +20,7 @@ public enum CategoryType {
 
     public static CategoryType from(String value) {
         return Arrays.stream(values())
-                .filter(r -> r.getType().equals(value))
+                .filter(c -> c.name().equals(value))
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.CATEGORY_TYPE_NOT_FOUND));
     }

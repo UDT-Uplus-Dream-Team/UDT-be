@@ -33,7 +33,7 @@ public class Platform extends TimeBaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
-    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "platform", cascade = CascadeType.ALL)
     private List<ContentPlatform> contentPlatforms = new ArrayList<>();
 
     private Platform(String platformName, boolean isDeleted,
