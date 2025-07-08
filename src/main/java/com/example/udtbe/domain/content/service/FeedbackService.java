@@ -1,8 +1,8 @@
 package com.example.udtbe.domain.content.service;
 
 import com.example.udtbe.domain.content.dto.request.FeedbackRequest;
-import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
-import com.example.udtbe.domain.content.dto.response.FeedbackResponseDto;
+import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponse;
+import com.example.udtbe.domain.content.dto.response.FeedbackResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
@@ -33,21 +33,21 @@ public class FeedbackService {
         feedbackRepository.saveAll(feedbacks);
     }
 
-    public BulkFeedbackResponseDto getFeedbackList(String cursor, int size,
+    public BulkFeedbackResponse getFeedbackList(String cursor, int size,
             FeedbackType feedbackType,
             Member member) {
         List<Feedback> feedbacks = feedbackQuery.getFeedbacksByCursor(member, feedbackType, cursor,
                 size);
 
-        List<FeedbackResponseDto> dtoList = feedbacks.stream()
-                .map(FeedbackResponseDto::from)
+        List<FeedbackResponse> dtoList = feedbacks.stream()
+                .map(FeedbackResponse::from)
                 .toList();
 
         String nextCursor =
                 feedbacks.isEmpty() ? null : feedbacks.get(feedbacks.size() - 1).getId().toString();
         boolean hasNext = feedbacks.size() == size;
 
-        return new BulkFeedbackResponseDto(dtoList, nextCursor, hasNext);
+        return new BulkFeedbackResponse(dtoList, nextCursor, hasNext);
     }
 
     @Transactional

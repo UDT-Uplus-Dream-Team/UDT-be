@@ -2,8 +2,8 @@ package com.example.udtbe.domain.content.dto.response;
 
 import java.util.List;
 
-public record BulkFeedbackResponseDto(
-        List<FeedbackResponseDto> feedbacks,
+public record BulkFeedbackResponse(
+        List<FeedbackResponse> feedbacks,
         String nextCursor,
         Boolean hasNext
 ) {

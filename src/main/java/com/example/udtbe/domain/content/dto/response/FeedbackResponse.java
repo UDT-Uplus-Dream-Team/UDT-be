@@ -8,7 +8,7 @@ import com.example.udtbe.domain.content.entity.Feedback;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record FeedbackResponseDto(
+public record FeedbackResponse(
         Long contentId,
         String title,
         String description,
@@ -22,16 +22,16 @@ public record FeedbackResponseDto(
         List<ContentPlatform> platforms
 ) {
 
-    public static FeedbackResponseDto from(Feedback feedback) {
+    public static FeedbackResponse from(Feedback feedback) {
         Content content = feedback.getContent();
-        return new FeedbackResponseDto(
+        return new FeedbackResponse(
                 content.getId(),
                 content.getTitle(),
                 content.getDescription(),
                 content.getPosterUrl(),
                 content.getBackdropUrl(),
                 content.getOpenDate(),
-                content.getRuntimeTime(),
+                content.getRunningTime(),
                 content.getRating(),
                 content.getContentCategories(),
                 content.getContentDirectors(),

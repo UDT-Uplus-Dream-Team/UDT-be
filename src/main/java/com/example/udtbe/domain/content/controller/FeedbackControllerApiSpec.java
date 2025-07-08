@@ -1,7 +1,7 @@
 package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
-import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
+import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponse;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +32,7 @@ public interface FeedbackControllerApiSpec {
     @Operation(summary = "Feedback한 Content 조회 API", description = "좋아요/싫어요 한 컨텐츠들을 조회한다")
     @ApiResponse(useReturnTypeSchema = true)
     @GetMapping("/users/me/feedbacks")
-    ResponseEntity<BulkFeedbackResponseDto> getFeedbackByCursor(
+    ResponseEntity<BulkFeedbackResponse> getFeedbackByCursor(
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam FeedbackType feedbackType,
