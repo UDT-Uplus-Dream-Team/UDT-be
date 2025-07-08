@@ -1,11 +1,15 @@
 package com.example.udtbe.content.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 import com.example.udtbe.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.content.controller.FeedbackController;
 import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequestDto;
 import com.example.udtbe.domain.content.dto.request.FeedbackRequestDto;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.Feedback;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
@@ -46,16 +50,41 @@ public class FeedbackControllerTest {
 
         BulkFeedbackRequestDto requestDto = new BulkFeedbackRequestDto(feedbacks);
 
-        Member mockMember = Member.of(
+        Member member = Member.of(
                 "test@example.com", "test", Role.ROLE_USER, null,
                 Gender.MAN, LocalDateTime.now(), false
         );
 
         // when
-        feedbackController.saveFeedback(requestDto, mockMember);
+        feedbackController.saveFeedback(requestDto, member);
 
         // then
-        verify(feedbackService).saveFeedbacks(requestDto.feedbacks(), mockMember);
+        verify(feedbackService).saveFeedbacks(requestDto.feedbacks(), member);
 
+    }
+
+    @DisplayName("회원은 피드백을 삭제할 수 있다.")
+    @Test
+    void deleteFeedback() {
+        // given
+        Member member = Member.of(
+                "test@example.com", "test", Role.ROLE_USER, null,
+                Gender.MAN, LocalDateTime.now(), false
+        );
+
+        Content content = Content.of(
+                "test", "test_description", "www.https://poster-url/", "www.https://backdrop-url/",
+                "www.https://trailer-url/", LocalDateTime.now(),
+                120, 0, null, false, List.of(), List.of(), List.of(), List.of(), List.of());
+
+        Feedback feedback = Feedback.of(
+                FeedbackType.LIKE, false, member, content
+        );
+
+        // when
+        feedback.softDeleted();
+
+        // then
+        assertThat(feedback.isDeleted()).isTrue();
     }
 }
