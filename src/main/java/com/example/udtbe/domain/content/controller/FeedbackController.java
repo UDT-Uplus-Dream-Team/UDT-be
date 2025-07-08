@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.content.controller;
 
-import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequestDto;
+import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
 import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
@@ -18,9 +18,9 @@ public class FeedbackController implements FeedbackControllerApiSpec {
     private final FeedbackService feedbackService;
 
     @Override
-    public ResponseEntity<Void> saveFeedback(BulkFeedbackRequestDto bulkFeedbackRequestDto,
+    public ResponseEntity<Void> saveFeedback(BulkFeedbackRequest bulkFeedbackRequest,
             Member member) {
-        feedbackService.saveFeedbacks(bulkFeedbackRequestDto.feedbacks(), member);
+        feedbackService.saveFeedbacks(bulkFeedbackRequest.feedbacks(), member);
         return ResponseEntity.ok().build();
     }
 

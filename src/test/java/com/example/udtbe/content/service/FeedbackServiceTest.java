@@ -9,8 +9,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequestDto;
-import com.example.udtbe.domain.content.dto.request.FeedbackRequestDto;
+import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
+import com.example.udtbe.domain.content.dto.request.FeedbackRequest;
 import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
@@ -48,12 +48,12 @@ public class FeedbackServiceTest {
     @Test
     void saveFeedback() {
         // given
-        List<FeedbackRequestDto> feedbacks = List.of(
-                new FeedbackRequestDto(1L, true),
-                new FeedbackRequestDto(2L, false)
+        List<FeedbackRequest> feedbacks = List.of(
+                new FeedbackRequest(1L, true),
+                new FeedbackRequest(2L, false)
         );
 
-        BulkFeedbackRequestDto requestDto = new BulkFeedbackRequestDto(feedbacks);
+        BulkFeedbackRequest requestDto = new BulkFeedbackRequest(feedbacks);
 
         Member member = Member.of(
                 "test@example.com", "test", Role.ROLE_USER, null,

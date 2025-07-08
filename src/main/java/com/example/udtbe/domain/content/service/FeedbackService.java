@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.content.service;
 
-import com.example.udtbe.domain.content.dto.request.FeedbackRequestDto;
+import com.example.udtbe.domain.content.dto.request.FeedbackRequest;
 import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
 import com.example.udtbe.domain.content.dto.response.FeedbackResponseDto;
 import com.example.udtbe.domain.content.entity.Content;
@@ -23,7 +23,7 @@ public class FeedbackService {
     private final FeedbackRepository feedbackRepository;
 
     @Transactional
-    public void saveFeedbacks(List<FeedbackRequestDto> requests, Member member) {
+    public void saveFeedbacks(List<FeedbackRequest> requests, Member member) {
         List<Feedback> feedbacks = requests.stream().map(req -> {
             Content content = feedbackQuery.getContentById(req.contentId());
             FeedbackType type = req.feedback() ? FeedbackType.LIKE : FeedbackType.DISLIKE;

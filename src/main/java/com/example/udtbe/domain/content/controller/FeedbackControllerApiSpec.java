@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.content.controller;
 
-import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequestDto;
+import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
 import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.member.entity.Member;
@@ -25,7 +25,7 @@ public interface FeedbackControllerApiSpec {
     @ApiResponse(useReturnTypeSchema = true)
     @PostMapping("/recommend/contents/feedbacks")
     ResponseEntity<Void> saveFeedback(
-            @RequestBody BulkFeedbackRequestDto bulkFeedbackRequestDto,
+            @RequestBody BulkFeedbackRequest bulkFeedbackRequest,
             @AuthenticationPrincipal Member member);
 
 
