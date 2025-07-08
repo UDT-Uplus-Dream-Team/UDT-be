@@ -70,7 +70,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             } else if (!matchAuthenticationFromRole(authentication, ROLE_ADMIN)) {
                 // ROLE_GUEST 권한이 없는 경우
                 log.info(SecurityErrorCode.FORBIDDEN_GUEST.getMessage());
-                setUpResponse(response, SecurityErrorCode.FORBIDDEN_GUEST);
+                setUpResponse(response, SecurityErrorCode.FORBIDDEN_ADMIN);
             } else {
                 // 기타 권한이 없는 경우
                 log.info(SecurityErrorCode.FORBIDDEN_MISMATCH.getMessage());
