@@ -24,9 +24,11 @@ import org.springframework.test.web.servlet.MockMvc;
 public abstract class ApiSupport extends TestContainerSupport {
 
     protected Member loginAdmin;
-    protected Member loginUser;
-    protected Cookie accessTokenOfUser;
+    protected Member loginMember;
+    protected Member loginTempMember;
     protected Cookie accessTokenOfAdmin;
+    protected Cookie accessTokenOfMember;
+    protected Cookie accessTokenOfTempMember;
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
@@ -49,21 +51,28 @@ public abstract class ApiSupport extends TestContainerSupport {
     }
 
     public void setUpMembers() {
-        if (Objects.isNull(loginAdmin) && Objects.isNull(loginUser)) {
+        if (!Objects.isNull(loginAdmin) && !Objects.isNull(loginMember) && Objects.isNull(
+                loginTempMember)) {
             return;
         }
 
         this.loginAdmin = authQuery.save(MemberFixture.member("admin@naver.com", Role.ROLE_ADMIN));
-        this.loginUser = authQuery.save(MemberFixture.member("user@naver.com", Role.ROLE_USER));
+        this.loginMember = authQuery.save(MemberFixture.member("user@naver.com", Role.ROLE_USER));
+        this.loginTempMember = authQuery.save(
+                MemberFixture.member("tempuser@naver.com", Role.ROLE_GUEST));
 
         AuthInfo authInfoOfAdmin = getAuthInfo(loginAdmin);
-        AuthInfo authInfoOfUser = getAuthInfo(loginUser);
+        AuthInfo authInfoOfMember = getAuthInfo(loginMember);
+        AuthInfo authInfoOfTempMember = getAuthInfo(loginTempMember);
 
         this.accessTokenOfAdmin = cookieUtil.createCookie(
                 generateTokens(loginAdmin, authInfoOfAdmin)
         );
-        this.accessTokenOfUser = cookieUtil.createCookie(
-                generateTokens(loginUser, authInfoOfUser)
+        this.accessTokenOfMember = cookieUtil.createCookie(
+                generateTokens(loginMember, authInfoOfMember)
+        );
+        this.accessTokenOfTempMember = cookieUtil.createCookie(
+                generateTokens(loginTempMember, authInfoOfTempMember)
         );
     }
 
