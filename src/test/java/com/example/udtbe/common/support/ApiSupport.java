@@ -79,7 +79,7 @@ public abstract class ApiSupport extends TestContainerSupport {
         return AuthInfo.of(
                 member.getName(),
                 member.getEmail(),
-                member.getRole().getRole()
+                member.getRole()
         );
     }
 
