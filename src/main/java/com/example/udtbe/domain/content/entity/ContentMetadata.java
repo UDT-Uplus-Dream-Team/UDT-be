@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,13 +41,13 @@ public class ContentMetadata extends TimeBaseEntity {
     private boolean isDeleted;
 
     @Column(name = "genre_tag")
-    private String genreTag;
+    private List<String> genreTag;
 
     @Column(name = "platform_tag")
-    private String platformTag;
+    private List<String> platformTag;
 
     @Column(name = "director_tag")
-    private String directorTag;
+    private List<String> directorTag;
 
     @OneToOne(fetch = LAZY, optional = false)
     @JoinColumn(
@@ -58,7 +59,8 @@ public class ContentMetadata extends TimeBaseEntity {
 
     @Builder(access = PRIVATE)
     private ContentMetadata(String title, String rating, boolean isDeleted,
-            String genreTag, String platformTag, String directorTag, Content content) {
+            List<String> genreTag, List<String> platformTag, List<String> directorTag,
+            Content content) {
         this.title = title;
         this.rating = rating;
         this.isDeleted = isDeleted;
@@ -69,7 +71,8 @@ public class ContentMetadata extends TimeBaseEntity {
     }
 
     public static ContentMetadata of(String title, String rating, boolean isDeleted,
-            String genreTag, String platformTag, String directorTag, Content content) {
+            List<String> genreTag, List<String> platformTag, List<String> directorTag,
+            Content content) {
         return ContentMetadata.builder()
                 .title(title)
                 .rating(rating)
