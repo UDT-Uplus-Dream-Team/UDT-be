@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -18,38 +18,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
+    private final ObjectMapper objectMapper;
     private static final String ROLE_GUEST = "ROLE_GUEST";
     private static final String ROLE_USER = "ROLE_USER";
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
-
-    private static boolean matchAuthenticationFromRole(Authentication authentication, String role) {
-        String authRole = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining());
-
-        return Objects.equals(authRole, role);
-    }
-
-    private static void setUpResponse(
-            HttpServletResponse response,
-            SecurityErrorCode securityErrorCode
-    ) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                securityErrorCode.getMessage(),
-                securityErrorCode.getHttpStatus().name()
-        );
-
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonResponse = mapper.writeValueAsString(errorResponse);
-
-        response.getWriter().write(jsonResponse);
-    }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -80,5 +55,29 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             log.info(SecurityErrorCode.FORBIDDEN_MISMATCH.getMessage());
             setUpResponse(response, SecurityErrorCode.FORBIDDEN_MISMATCH);
         }
+    }
+
+    private boolean matchAuthenticationFromRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(auth -> auth.equals(role));
+    }
+
+    private void setUpResponse(
+            HttpServletResponse response,
+            SecurityErrorCode securityErrorCode
+    ) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                securityErrorCode.getMessage(),
+                securityErrorCode.getHttpStatus().name()
+        );
+
+        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+
+        response.getWriter().write(jsonResponse);
     }
 }

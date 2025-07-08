@@ -1,18 +1,22 @@
 package com.example.udtbe.global.token.filter;
 
+import com.example.udtbe.global.exception.ErrorResponse;
+import com.example.udtbe.global.token.exception.TokenErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
+@RequiredArgsConstructor
 public class TokenExceptionFilter extends OncePerRequestFilter {
+
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -27,12 +31,11 @@ public class TokenExceptionFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", e.getMessage());
-            errorResponse.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+            ErrorResponse errorResponse = new ErrorResponse(
+                    TokenErrorCode.INVALID_TOKEN.getMessage(),
+                    TokenErrorCode.INVALID_TOKEN.getHttpStatus().name());
 
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonResponse = mapper.writeValueAsString(errorResponse);
+            String jsonResponse = objectMapper.writeValueAsString(errorResponse);
 
             response.getWriter().write(jsonResponse);
         }
