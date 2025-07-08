@@ -6,8 +6,10 @@ import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.TagConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -16,6 +18,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,14 +34,17 @@ public class Survey extends TimeBaseEntity {
     @Column(name = "survey_id")
     private Long id;
 
+    @Convert(converter = TagConverter.class)
     @Column(name = "platform_tag", nullable = false)
-    private String platformTag;
+    private List<String> platformTag;
 
+    @Convert(converter = TagConverter.class)
     @Column(name = "genre_tag", nullable = false)
-    private String genreTag;
+    private List<String> genreTag;
 
+    @Convert(converter = TagConverter.class)
     @Column(name = "content_tag")
-    private String contentTag;
+    private List<String> contentTag;
 
     @Column(name = "is_age_rating_limit", nullable = false)
     private boolean isAgeRatingLimit;
@@ -55,7 +61,7 @@ public class Survey extends TimeBaseEntity {
     private Member member;
 
     @Builder(access = PRIVATE)
-    private Survey(String platformTag, String genreTag, String contentTag,
+    private Survey(List<String> platformTag, List<String> genreTag, List<String> contentTag,
             boolean isAgeRatingLimit, boolean isDeleted, Member member) {
         this.platformTag = platformTag;
         this.genreTag = genreTag;
@@ -65,7 +71,8 @@ public class Survey extends TimeBaseEntity {
         this.member = member;
     }
 
-    public static Survey of(String platformTag, String genreTag, String contentTag,
+    public static Survey of(List<String> platformTag, List<String> genreTag,
+            List<String> contentTag,
             boolean isAgeRatingLimit, boolean isDeleted, Member member) {
         return Survey.builder()
                 .platformTag(platformTag)
