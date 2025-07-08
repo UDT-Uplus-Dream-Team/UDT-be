@@ -70,4 +70,8 @@ public class Feedback extends TimeBaseEntity {
                 .content(content)
                 .build();
     }
+
+    public boolean softDeleted() {
+        return isDeleted = true;
+    }
 }

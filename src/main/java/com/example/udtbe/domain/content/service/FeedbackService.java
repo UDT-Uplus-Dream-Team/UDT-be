@@ -8,6 +8,7 @@ import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.member.exception.MemberErrorCode;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,18 @@ public class FeedbackService {
                 }
         ).toList();
         feedbackRepository.saveAll(feedbacks);
+    }
+
+    @Transactional
+    public void deleteFeedback(Long feedbackId, Member member) {
+        Feedback feedback = feedbackRepository.getFeedbackById(feedbackId)
+                .orElseThrow(() -> new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND));
+
+        if (!feedback.getMember().getId().equals(member.getId())) {
+            throw new RestApiException(MemberErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        feedback.softDeleted();
     }
 
 }
