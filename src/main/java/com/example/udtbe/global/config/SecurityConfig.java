@@ -7,6 +7,7 @@ import com.example.udtbe.global.security.handler.CustomOauth2SuccessHandler;
 import com.example.udtbe.global.security.service.CustomOauth2UserService;
 import com.example.udtbe.global.token.filter.TokenAuthenticationFilter;
 import com.example.udtbe.global.token.filter.TokenExceptionFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final CustomOauth2FailureHandler customOauth2FailureHandler;
     private final TokenAuthenticationFilter tokenAuthenticationFilter;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -58,10 +60,11 @@ public class SecurityConfig {
 
                 .addFilterBefore(tokenAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new TokenExceptionFilter(), tokenAuthenticationFilter.getClass())
+                .addFilterBefore(new TokenExceptionFilter(objectMapper),
+                        tokenAuthenticationFilter.getClass())
 
                 .exceptionHandling((exception) -> exception
-                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper))
                         .accessDeniedHandler(customAccessDeniedHandler)
                 );
 
