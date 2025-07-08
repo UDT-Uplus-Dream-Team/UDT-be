@@ -2,9 +2,12 @@ package com.example.udtbe.domain.content.entity;
 
 import static lombok.AccessLevel.PROTECTED;
 
+import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.PlatformTypeConverter;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,6 +32,10 @@ public class Platform extends TimeBaseEntity {
 
     @Column(name = "platform_name", nullable = false)
     private String platformName;
+
+    @Convert(converter = PlatformTypeConverter.class)
+    @Column(name = "platform_type", nullable = false)
+    private PlatformType platformType;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;

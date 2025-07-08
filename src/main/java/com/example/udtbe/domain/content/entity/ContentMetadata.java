@@ -58,7 +58,8 @@ public class ContentMetadata extends TimeBaseEntity {
 
     @Builder(access = PRIVATE)
     private ContentMetadata(String title, String rating, boolean isDeleted,
-            String genreTag, String platformTag, String directorTag, Content content) {
+            String genreTag, String platformTag, String directorTag,
+            Content content) {
         this.title = title;
         this.rating = rating;
         this.isDeleted = isDeleted;
@@ -69,7 +70,8 @@ public class ContentMetadata extends TimeBaseEntity {
     }
 
     public static ContentMetadata of(String title, String rating, boolean isDeleted,
-            String genreTag, String platformTag, String directorTag, Content content) {
+            String genreTag, String platformTag, String directorTag,
+            Content content) {
         return ContentMetadata.builder()
                 .title(title)
                 .rating(rating)

@@ -14,6 +14,7 @@ public enum EnumErrorCode implements ErrorCode {
     FEEDBACK_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "피드백 타입을 찾을 수 없습니다."),
     CATEGORY_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "분류 타입을 찾을 수 없습니다."),
     GENRE_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "장르 타입을 찾을 수 없습니다."),
+    PLATFORM_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "플랫폼 타입을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;

@@ -46,8 +46,8 @@ public class Content extends TimeBaseEntity {
     @Column(name = "open_date")
     private LocalDateTime openDate;
 
-    @Column(name = "runtime_time")
-    private int runtimeTime;
+    @Column(name = "running_time")
+    private int runningTime;
 
     @Column(name = "episode")
     private int episode;
@@ -74,7 +74,7 @@ public class Content extends TimeBaseEntity {
     private List<ContentCategory> contentCategories = new ArrayList<>();
 
     private Content(String title, String description, String posterUrl, String backdropUrl,
-            String trailerUrl, LocalDateTime openDate, int runtimeTime, int episode, String rating,
+            String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             boolean isDeleted, List<ContentPlatform> contentPlatforms,
             List<ContentCast> contentCasts, List<ContentDirector> contentDirectors,
             List<ContentCountry> contentCountries, List<ContentCategory> contentCategories) {
@@ -84,7 +84,7 @@ public class Content extends TimeBaseEntity {
         this.backdropUrl = backdropUrl;
         this.trailerUrl = trailerUrl;
         this.openDate = openDate;
-        this.runtimeTime = runtimeTime;
+        this.runningTime = runningTime;
         this.episode = episode;
         this.rating = rating;
         this.isDeleted = isDeleted;
