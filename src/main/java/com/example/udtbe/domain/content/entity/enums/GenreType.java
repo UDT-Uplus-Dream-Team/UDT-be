@@ -3,6 +3,7 @@ package com.example.udtbe.domain.content.entity.enums;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
 import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -43,5 +44,17 @@ public enum GenreType {
                 .filter(g -> g.name().equals(value))
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.GENRE_TYPE_NOT_FOUND));
+    }
+
+    public static List<String> toGenreTypes(List<String> types) {
+        return types.stream()
+                .map(type -> Arrays.stream(values())
+                        .filter(g -> g.getType().equals(type))
+                        .findFirst()
+                        .orElseThrow(
+                                () -> new RestApiException(EnumErrorCode.GENRE_TYPE_NOT_FOUND)
+                        )
+                        .name()
+                ).toList();
     }
 }
