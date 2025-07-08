@@ -1,6 +1,5 @@
 package com.example.udtbe.domain.survey.entity;
 
-import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
@@ -8,13 +7,14 @@ import static lombok.AccessLevel.PROTECTED;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,10 +46,12 @@ public class Survey extends TimeBaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "member_id",
+    @OneToOne(fetch = LAZY, optional = false)
+    @JoinColumn(
+            name = "member_id",
             nullable = false,
-            foreignKey = @ForeignKey(NO_CONSTRAINT))
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
     private Member member;
 
     @Builder(access = PRIVATE)
