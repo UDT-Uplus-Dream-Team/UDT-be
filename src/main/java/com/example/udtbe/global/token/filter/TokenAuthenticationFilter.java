@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,22 +28,15 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final List<String> SKIP_URLS = Arrays.asList(
-            "/error", "/favicon.ico", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"
+            "/error", "/favicon.ico", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html",
+            "/api/auth/temp-signin", "/api/auth/temp-signup"
     );
-    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final TokenProvider tokenProvider;
     private final CookieUtil cookieUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-
-        for (String pattern : SKIP_URLS) {
-            if (pathMatcher.match(pattern, request.getRequestURI())) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
 
         String accessToken = cookieUtil.getCookieValue(request);
 
@@ -56,6 +48,12 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return SKIP_URLS.stream()
+                .anyMatch(e -> e.equals(request.getRequestURI()));
     }
 
     private void saveAuthentication(String accessToken) {
