@@ -47,7 +47,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         AuthInfo authInfo = AuthInfo.of(
                 savedMember.getName(),
                 savedMember.getEmail(),
-                savedMember.getRole().getRole()
+                savedMember.getRole()
         );
         return new CustomOauth2User(authInfo);
     }

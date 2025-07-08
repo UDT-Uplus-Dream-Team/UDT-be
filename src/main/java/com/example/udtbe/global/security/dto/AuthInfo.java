@@ -1,5 +1,6 @@
 package com.example.udtbe.global.security.dto;
 
+import com.example.udtbe.domain.member.entity.enums.Role;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +11,10 @@ public class AuthInfo {
 
     private String socialName;
     private String socialEmail;
-    private String role;
+    private Role role;
 
     @Builder
-    private AuthInfo(String socialName, String socialEmail, String role) {
+    private AuthInfo(String socialName, String socialEmail, Role role) {
         this.socialName = socialName;
         this.socialEmail = socialEmail;
         this.role = role;
@@ -32,7 +33,7 @@ public class AuthInfo {
                 .build();
     }
 
-    public static AuthInfo of(String socialName, String socialEmail, String role) {
+    public static AuthInfo of(String socialName, String socialEmail, Role role) {
         return AuthInfo.builder()
                 .socialName(socialName)
                 .socialEmail(socialEmail)

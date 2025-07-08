@@ -130,8 +130,8 @@ public class AuthService {
 
     private void reissueTokens(HttpServletResponse response, Member findMember) {
         CustomOauth2User customUser = new CustomOauth2User(
-                AuthInfo.of(findMember.getName(), findMember.getEmail(),
-                        findMember.getRole().getRole()));
+                AuthInfo.of(findMember.getName(), findMember.getEmail(), findMember.getRole())
+        );
 
         String reissuedAccessToken = tokenProvider.generateAccessToken(findMember, customUser,
                 new Date());
@@ -162,7 +162,7 @@ public class AuthService {
         Member findMember = authQuery.getMemberByEmail(request.email());
 
         AuthInfo authInfo = AuthInfo.of(
-                findMember.getName(), findMember.getEmail(), findMember.getRole().getRole()
+                findMember.getName(), findMember.getEmail(), findMember.getRole()
         );
         CustomOauth2User customOauth2User = new CustomOauth2User(authInfo);
 
