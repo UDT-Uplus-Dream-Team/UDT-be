@@ -16,6 +16,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
             FeedbackType feedbackType, Pageable pageable);
 
     List<Feedback> findTopByMemberAndFeedbackTypeAndIdLessThanOrderByIdDesc(
-            Member member, FeedbackType feedbackType, Long cursor, Pageable pageable);
+            Member member, FeedbackType feedbackType, String cursor, Pageable pageable);
 
 }

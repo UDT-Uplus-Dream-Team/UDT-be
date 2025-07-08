@@ -4,7 +4,7 @@ import java.util.List;
 
 public record BulkFeedbackResponseDto(
         List<FeedbackResponseDto> feedbacks,
-        Long nextCursor,
+        String nextCursor,
         Boolean hasNext
 ) {
 

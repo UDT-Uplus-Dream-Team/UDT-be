@@ -1,6 +1,7 @@
 package com.example.udtbe.content.service;
 
 import static com.example.udtbe.common.fixture.ContentFixture.content;
+import static com.example.udtbe.common.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -74,25 +75,11 @@ public class FeedbackServiceTest {
     @Test
     void getFeedbacks() {
         // given
-        Member member = Member.of(
-                "test@example.com", "test", Role.ROLE_USER, null,
-                Gender.MAN, LocalDateTime.now(), false
-        );
+        Member member = member("test@example.com", Role.ROLE_USER);
 
-        Content content1 = Content.of(
-                "test_content1", "test_description", "www.https://poster-url/",
-                "www.https://backdrop-url/", "www.https://trailer-url/", LocalDateTime.now(),
-                120, 0, null, false, List.of(), List.of(), List.of(), List.of(), List.of());
-
-        Content content2 = Content.of(
-                "test_content2", "test_description", "www.https://poster-url/",
-                "www.https://backdrop-url/", "www.https://trailer-url/", LocalDateTime.now(),
-                120, 0, null, false, List.of(), List.of(), List.of(), List.of(), List.of());
-
-        Content content3 = Content.of(
-                "test_content3", "test_description", "www.https://poster-url/",
-                "www.https://backdrop-url/", "www.https://trailer-url/", LocalDateTime.now(),
-                120, 0, null, false, List.of(), List.of(), List.of(), List.of(), List.of());
+        Content content1 = content("test_content1");
+        Content content2 = content("test_content2");
+        Content content3 = content("test_content3");
 
         Feedback feedback1 = Feedback.of(
                 FeedbackType.LIKE, false, member, content1
@@ -103,7 +90,7 @@ public class FeedbackServiceTest {
         );
 
         Feedback feedback3 = Feedback.of(
-                FeedbackType.LIKE, false, member, content2
+                FeedbackType.LIKE, false, member, content3
         );
 
         List<Feedback> feedbacks = List.of(feedback1, feedback3);
@@ -129,19 +116,11 @@ public class FeedbackServiceTest {
     @Test
     void deleteFeedback() {
         // given
-        Member member = Member.of(
-                "test@example.com", "test", Role.ROLE_USER, null,
-                Gender.MAN, LocalDateTime.now(), false
-        );
+        Member member = member("test@example.com", Role.ROLE_USER);
 
-        Content content = Content.of(
-                "test", "test_description", "www.https://poster-url/", "www.https://backdrop-url/",
-                "www.https://trailer-url/", LocalDateTime.now(),
-                120, 0, null, false, List.of(), List.of(), List.of(), List.of(), List.of());
+        Content content = content("test_content");
 
-        Feedback feedback = Feedback.of(
-                FeedbackType.LIKE, false, member, content
-        );
+        Feedback feedback = Feedback.of(FeedbackType.LIKE, false, member, content);
 
         // when
         feedback.softDeleted();

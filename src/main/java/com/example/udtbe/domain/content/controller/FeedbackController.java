@@ -3,51 +3,38 @@ package com.example.udtbe.domain.content.controller;
 import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequestDto;
 import com.example.udtbe.domain.content.dto.response.BulkFeedbackResponseDto;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
+import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
-public class FeedbackController {
+public class FeedbackController implements FeedbackControllerApiSpec {
 
+    private final FeedbackQuery feedbackQuery;
     private final FeedbackService feedbackService;
 
-    @PostMapping("/recommend/contents/feedbacks")
-    public ResponseEntity<Void> saveFeedback(
-            @RequestBody BulkFeedbackRequestDto bulkFeedbackRequestDto,
-            @AuthenticationPrincipal Member member) {
+    @Override
+    public ResponseEntity<Void> saveFeedback(BulkFeedbackRequestDto bulkFeedbackRequestDto,
+            Member member) {
         feedbackService.saveFeedbacks(bulkFeedbackRequestDto.feedbacks(), member);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/users/me/feedbacks")
+    @Override
     public ResponseEntity<BulkFeedbackResponseDto> getFeedbackByCursor(
-            @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam FeedbackType feedbackType,
-            @AuthenticationPrincipal Member member) {
-
+            String cursor, int size, FeedbackType feedbackType, Member member) {
         BulkFeedbackResponseDto response = feedbackService.getFeedbackList(
                 cursor, size, feedbackType, member);
 
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/users/me/feedbacks/{feedbackId}")
-    public ResponseEntity<Void> deleteFeedback(@PathVariable Long feedbackId,
-            @AuthenticationPrincipal Member member) {
+    @Override
+    public ResponseEntity<Void> deleteFeedback(Long feedbackId, Member member) {
         feedbackService.deleteFeedback(feedbackId, member);
         return ResponseEntity.ok().build();
     }
