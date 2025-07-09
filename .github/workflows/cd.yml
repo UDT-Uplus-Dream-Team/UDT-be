@@ -7,7 +7,7 @@ on:
     branches: [ "prod" ]
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/udtZ:latest
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/udt:latest
 
 jobs:
   ############################################################
