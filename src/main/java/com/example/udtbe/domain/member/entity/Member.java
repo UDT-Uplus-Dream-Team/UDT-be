@@ -78,4 +78,8 @@ public class Member extends TimeBaseEntity {
                 .isDeleted(isDeleted)
                 .build();
     }
+
+    public void updateLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
+    }
 }

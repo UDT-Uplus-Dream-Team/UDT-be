@@ -43,6 +43,7 @@ public class AuthService {
     public Member saveOrUpdate(Oauth2Response oauth2Response) {
         Member member = authQuery.getOptionalMemberByEmail(oauth2Response.getEmail())
                 .map(m -> {
+                    m.updateLastLoginAt(LocalDateTime.now());
                     tokenStore.deleteRefreshTokenIfExists(m);
                     tokenStore.deleteOauthAccessTokenIfExists(m);
                     tokenStore.saveOauth2AccessToken(oauth2Response, m);
