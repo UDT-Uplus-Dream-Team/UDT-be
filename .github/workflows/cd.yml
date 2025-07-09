@@ -7,8 +7,7 @@ on:
     branches: [ "prod" ]
 
 env:
-  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PR }}
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/ufit:latest
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/udtZ:latest
 
 jobs:
   ############################################################
