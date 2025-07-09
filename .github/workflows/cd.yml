@@ -111,4 +111,5 @@ jobs:
             docker stop ufit_server || true
             docker rm ufit_server || true
             docker-compose pull
+            cd ~/ufit
             docker-compose up -d --force-recreate
