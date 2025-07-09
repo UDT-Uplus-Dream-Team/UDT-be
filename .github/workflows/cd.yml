@@ -106,9 +106,9 @@ jobs:
           port: 22
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-            docker pull ${{ secrets.DOCKER_USERNAME }}/udt:latest
-            docker stop udt_server || true
-            docker rm udt_server || true
-            docker-compose pull
+            docker stop udt_server firefly-redis || true
+            docker rm udt_server firefly-redis || true
             cd ~/udt
+            docker pull ${{ secrets.DOCKER_USERNAME }}/udt:latest
+            docker-compose pull
             docker-compose up -d --force-recreate
