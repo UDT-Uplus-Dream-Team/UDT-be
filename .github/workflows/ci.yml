@@ -1,82 +1,65 @@
-name: Spring Boot CI
+name: Develop CI
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ "develop" ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    name: 🧪 테스트 실행
-    
-    steps:
-      - name: 📂 코드 체크아웃
-        uses: actions/checkout@v4
-
-      - name: ☕ Java 17 설정
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: 🐘 Gradle 캐시 설정
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: 🔧 실행 권한 부여
-        run: chmod +x ./gradlew
-
-      - name: 🧪 테스트 실행 (런타임만)
-        run: ./gradlew build -x test
-
-      - name: 📊 테스트 결과 업로드
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: build/reports/tests/test/
-
   build:
-    runs-on: ubuntu-latest
-    needs: test
-    name: 🏗️ 빌드 이미지 생성
 
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      TZ: 'Asia/Seoul'
     steps:
-      - name: 📂 코드 체크아웃
+
+      - name: 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: ☕ Java 17 설정
+      - name: JDK 17 시작
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 🐘 Gradle 캐시 설정
-        uses: actions/cache@v3
+      - name: test 경로 application.yml 파일 생성
+        run: |
+          mkdir -p ./src/test/resources
+          echo "${{ secrets.APPLICATION_TEST }}" > ./src/test/resources/application.yml
+
+      - name: Gradle 캐시 적용
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            gradle-${{ runner.os }}-
 
-      - name: 🔧 실행 권한 부여
+      - name: Gradle 권한 부여
         run: chmod +x ./gradlew
 
-      - name: 🏗️ JAR 파일 빌드
-        run: ./gradlew bootJar
+      - name: Gradle 빌드 시작 (테스트 제외)
+        run: ./gradlew clean build -x test --no-daemon
 
-      - name: 📦 빌드 결과 업로드
-        uses: actions/upload-artifact@v4
+      - name: Gradle 테스트 시작
+        run: ./gradlew test --no-daemon
+
+      - name: Build 성공🎉
+        if: ${{ success() }}
+        uses: thollander/actions-comment-pull-request@v2
         with:
-          name: jar-artifact
-          path: build/libs/*.jar
+          message: |
+            ${{ github.event.pull_request.head.ref }} 브랜치 빌드 테스트에 성공했습니다! 🎉
+
+      - name: Build 실패❌
+        if: ${{ failure() }}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ${{ github.event.pull_request.head.ref }} 브랜치 빌드 테스트에 실패했습니다! ❌
+            아래 로그를 확인해주세요!
+            [실행 로그](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
