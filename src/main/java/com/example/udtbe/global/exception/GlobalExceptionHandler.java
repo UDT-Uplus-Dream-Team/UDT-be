@@ -5,7 +5,6 @@ import static com.example.udtbe.global.exception.CommonErrorCode.INVALID_PARAMET
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import io.swagger.v3.oas.annotations.Hidden;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@Hidden
 @RequiredArgsConstructor
 @RestControllerAdvice
 @Slf4j

@@ -3,34 +3,33 @@ package com.example.udtbe.content.service;
 import static com.example.udtbe.common.fixture.ContentFixture.content;
 import static com.example.udtbe.common.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.example.udtbe.domain.content.dto.request.BulkFeedbackRequest;
-import com.example.udtbe.domain.content.dto.request.FeedbackRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackBulkResponse;
+import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
+import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
+import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
+import com.example.udtbe.domain.content.dto.response.FeedbackGetBulkResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
+import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
+import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
-import com.example.udtbe.domain.member.entity.enums.Gender;
 import com.example.udtbe.domain.member.entity.enums.Role;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class FeedbackServiceTest {
@@ -41,6 +40,9 @@ public class FeedbackServiceTest {
     @Mock
     private ContentRepository contentRepository;
 
+    @Mock
+    private FeedbackQuery feedbackQuery;
+
     @InjectMocks
     private FeedbackService feedbackService;
 
@@ -48,30 +50,28 @@ public class FeedbackServiceTest {
     @Test
     void saveFeedback() {
         // given
-        List<FeedbackRequest> feedbacks = List.of(
-                new FeedbackRequest(1L, true),
-                new FeedbackRequest(2L, false)
+        List<FeedbackCreateDTO> feedbacks = List.of(
+                new FeedbackCreateDTO(1L, FeedbackType.LIKE),
+                new FeedbackCreateDTO(2L, FeedbackType.DISLIKE)
         );
 
-        BulkFeedbackRequest requestDto = new BulkFeedbackRequest(feedbacks);
+        FeedbackCreateBulkRequest requestDto = new FeedbackCreateBulkRequest(feedbacks);
 
-        Member member = Member.of(
-                "test@example.com", "test", Role.ROLE_USER, null,
-                Gender.MAN, LocalDateTime.now(), false
-        );
+        Member member = member("test@example.com", Role.ROLE_USER);
 
-        when(contentRepository.findById(1L)).thenReturn(Optional.of(content("content1")));
-        when(contentRepository.findById(2L)).thenReturn(Optional.of(content("content2")));
+        given(feedbackQuery.getContentById(1L)).willReturn(content("content1"));
+        given(feedbackQuery.getContentById(2L)).willReturn(content("content2"));
 
         // when
         feedbackService.saveFeedbacks(requestDto.feedbacks(), member);
 
         // then
         verify(feedbackRepository).saveAll(anyList());
+        verify(feedbackRepository, times(1)).saveAll(anyList());
 
     }
 
-    @DisplayName("회원은 좋아요한 피드백들을 조회할 수 있다.")
+    @DisplayName("회원은 피드백들을 무한스크롤로 조회할 수 있다.")
     @Test
     void getFeedbacks() {
         // given
@@ -86,30 +86,28 @@ public class FeedbackServiceTest {
         );
 
         Feedback feedback2 = Feedback.of(
-                FeedbackType.DISLIKE, false, member, content2
+                FeedbackType.LIKE, false, member, content2
         );
 
         Feedback feedback3 = Feedback.of(
                 FeedbackType.LIKE, false, member, content3
         );
 
-        List<Feedback> feedbacks = List.of(feedback1, feedback3);
-
-        int size = 3;
-
-        // when
-        when(feedbackRepository.findTopByMemberAndFeedbackTypeOrderByIdDesc(
-                eq(member), eq(FeedbackType.LIKE), any(Pageable.class)))
-                .thenReturn(feedbacks);
-
-        FeedbackBulkResponse result = feedbackService.getFeedbackList(
-                null, size, FeedbackType.LIKE, member
+        FeedbackContentGetRequest request = new FeedbackContentGetRequest(
+                null, 2, FeedbackType.LIKE, FeedbackSortType.NEWEST
         );
 
-        // then
-        assertThat(result.feedbacks()).hasSize(2);
-        assertThat(result.hasNext()).isFalse();
+        List<Feedback> feedbacks = List.of(feedback1, feedback2, feedback3);
 
+        given(feedbackQuery.getFeedbacksByCursor(member, request)).willReturn(feedbacks);
+
+        // when
+        FeedbackGetBulkResponse result = feedbackService.getFeedbackList(request, member);
+
+        // then
+        assertThat(result.contents()).hasSize(2);
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.nextCursor()).isEqualTo(feedbacks.get(1).getId());
     }
 
     @DisplayName("회원은 피드백을 삭제할 수 있다.")
@@ -122,8 +120,13 @@ public class FeedbackServiceTest {
 
         Feedback feedback = Feedback.of(FeedbackType.LIKE, false, member, content);
 
+        ReflectionTestUtils.setField(feedback, "id", 1L);
+        ReflectionTestUtils.setField(member, "id", 10L);
+
+        given(feedbackQuery.findFeedbackById(1L)).willReturn(feedback);
+
         // when
-        feedback.softDeleted();
+        feedbackService.deleteFeedback(1L, member);
 
         // then
         assertThat(feedback.isDeleted()).isTrue();
