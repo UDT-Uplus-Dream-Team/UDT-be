@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,9 +29,18 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final List<String> SKIP_URLS = Arrays.asList(
-            "/error", "/favicon.ico", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html",
-            "/api/auth/temp-signin", "/api/auth/temp-signup"
+            "/error",
+            "/favicon.ico",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/v3/api-docs/**",
+            "/webjars/**",
+            "/.well-known/**",
+            "/api/auth/temp-signin",
+            "/api/auth/temp-signup"
     );
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final TokenProvider tokenProvider;
     private final CookieUtil cookieUtil;
 
@@ -52,8 +62,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
         return SKIP_URLS.stream()
-                .anyMatch(e -> e.equals(request.getRequestURI()));
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     private void saveAuthentication(String accessToken) {
