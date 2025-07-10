@@ -13,7 +13,7 @@ public class DevCookie implements CookieConfig {
     public Cookie createCookie(String token) {
         Cookie cookie = new Cookie("Authorization", token);
         cookie.setPath("/");
-        cookie.setDomain("yourstie.com");
+        cookie.setDomain("banditbool.com");
         cookie.setMaxAge(60 * 180);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
@@ -25,7 +25,7 @@ public class DevCookie implements CookieConfig {
     public void deleteCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie("Authorization", null);
         cookie.setPath("/");
-        cookie.setDomain("yourstie.com");
+        cookie.setDomain("banditbool.com");
         cookie.setMaxAge(0);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
