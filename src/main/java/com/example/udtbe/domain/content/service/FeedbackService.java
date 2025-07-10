@@ -22,8 +22,11 @@ public class FeedbackService {
     private final FeedbackQuery feedbackQuery;
     private final FeedbackRepository feedbackRepository;
 
+    @Transactional
     public void saveFeedbacks(List<FeedbackCreateDTO> requests, Member member) {
-        FeedbackMapper.saveAllFeedbacks(requests, member, feedbackQuery, feedbackRepository);
+        List<Feedback> feedbacks = FeedbackMapper.mapToFeedbackList(requests, member,
+                feedbackQuery);
+        feedbackRepository.saveAll(feedbacks);
     }
 
     @Transactional(readOnly = true)

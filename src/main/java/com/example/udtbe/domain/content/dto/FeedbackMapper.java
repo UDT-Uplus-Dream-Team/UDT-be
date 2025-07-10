@@ -4,24 +4,23 @@ import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import java.util.List;
 
 public class FeedbackMapper {
 
-    public static void saveAllFeedbacks(List<FeedbackCreateDTO> requests, Member member,
-            FeedbackQuery feedbackQuery, FeedbackRepository feedbackRepository) {
+    private static Feedback createFeedback(FeedbackCreateDTO req, Member member,
+            FeedbackQuery query) {
+        Content content = query.getContentById(req.contentId());
+        return Feedback.of(req.feedback(), false, member, content);
+    }
 
-        List<Feedback> feedbacks = requests.stream()
-                .map(req -> {
-                    Content content = feedbackQuery.getContentById(req.contentId());
-                    return Feedback.of(req.feedback(), false, member, content);
-                })
+    public static List<Feedback> mapToFeedbackList(List<FeedbackCreateDTO> requests, Member member,
+            FeedbackQuery feedbackQuery) {
+        return requests.stream()
+                .map(req -> createFeedback(req, member, feedbackQuery))
                 .toList();
-
-        feedbackRepository.saveAll(feedbacks);
     }
 
     public static FeedbackContentDTO toResponse(Feedback feedback) {
