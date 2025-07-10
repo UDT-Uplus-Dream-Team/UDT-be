@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
                 description = "반딧불 API 명세서",
                 version = "v.1.0"),
         servers = {
-                @Server(url = "https://site.site", description = "Deploy Server URL"),
+                @Server(url = "https://dev.banditbool.com", description = "Deploy Server URL"),
                 @Server(url = "http://localhost:8080", description = "Local Host URL")}
 )
 @Configuration

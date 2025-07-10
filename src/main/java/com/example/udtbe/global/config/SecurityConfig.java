@@ -89,7 +89,11 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(
                 Arrays.asList(
-                        "http://localhost:3000", "http://localhost:8080", "/ws/**"
+                        "https://www.banditbool.com",
+                        "https://banditbool.com",
+                        "https://dev.banditbool.com",
+                        "http://localhost:3000",
+                        "http://localhost:8080"
                 ));
         configuration.setAllowedMethods(
                 Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
