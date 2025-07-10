@@ -16,7 +16,6 @@ import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
-import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
@@ -36,9 +35,6 @@ public class FeedbackServiceTest {
 
     @Mock
     private FeedbackRepository feedbackRepository;
-
-    @Mock
-    private ContentRepository contentRepository;
 
     @Mock
     private FeedbackQuery feedbackQuery;

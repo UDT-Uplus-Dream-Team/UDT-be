@@ -7,6 +7,7 @@ import com.example.udtbe.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,14 +26,14 @@ public interface FeedbackControllerApiSpec {
     @ApiResponse(useReturnTypeSchema = true)
     @PostMapping("/recommend/contents/feedbacks")
     ResponseEntity<Void> saveFeedback(
-            @RequestBody FeedbackCreateBulkRequest bulkFeedbackRequest,
+            @RequestBody @Valid FeedbackCreateBulkRequest bulkFeedbackRequest,
             @AuthenticationPrincipal Member member);
 
     @Operation(summary = "Feedback한 Content 조회 API", description = "좋아요/싫어요 한 컨텐츠들을 조회한다")
     @ApiResponse(useReturnTypeSchema = true)
     @GetMapping("/users/me/feedbacks")
     ResponseEntity<FeedbackGetBulkResponse> getFeedbackByCursor(
-            @ModelAttribute FeedbackContentGetRequest request,
+            @ModelAttribute @Valid FeedbackContentGetRequest request,
             @AuthenticationPrincipal Member member);
 
     @Operation(summary = "Feedback한 Content 삭제 API", description = "좋아요/싫어요 한 컨텐츠들을 삭제한다.")
