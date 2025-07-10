@@ -4,12 +4,12 @@ import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_GUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.udtbe.common.fixture.MemberFixture;
+import com.example.udtbe.common.fixture.SurveyFixture;
 import com.example.udtbe.common.support.DataJpaSupport;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
-import com.example.udtbe.domain.survey.dto.SurveyMapper;
 import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.repository.SurveyRepository;
@@ -43,7 +43,7 @@ class SurveyRepositoryTest extends DataJpaSupport {
         List<String> platformTypes = PlatformType.toPlatformTypes(platforms);
         List<String> genreTypes = GenreType.toGenreTypes(genres);
 
-        Survey survey = SurveyMapper.toEntity(request, savedMember);
+        Survey survey = SurveyFixture.survey(platformTypes, genreTypes, member);
 
         // when
         Survey savedSurvey = surveyRepository.save(survey);
@@ -54,11 +54,28 @@ class SurveyRepositoryTest extends DataJpaSupport {
                         platformTypes.get(0),
                         platformTypes.get(1)
                 ),
+                // given
                 () -> assertThat(savedSurvey.getGenreTag()).containsExactly(
                         genreTypes.get(0),
                         genreTypes.get(1)
                 )
         );
+    }
 
+    @DisplayName("선택된 콘텐츠가 없어도 설문조사를 저장한다.")
+    @Test
+    void saveSurveyWhenContentsIsNull() {
+        final String email = "test@naver.com";
+
+        Member member = MemberFixture.member(email, ROLE_GUEST);
+        Member savedMember = memberRepository.save(member);
+
+        Survey survey = SurveyFixture.survey(null, member);
+
+        // when
+        Survey savedSurvey = surveyRepository.save(survey);
+
+        // then
+        assertThat(savedSurvey.getContentTag()).isNull();
     }
 }
