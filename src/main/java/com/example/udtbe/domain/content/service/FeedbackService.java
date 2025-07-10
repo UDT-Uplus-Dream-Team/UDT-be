@@ -5,7 +5,6 @@ import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.response.FeedbackGetBulkResponse;
-import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
@@ -24,12 +23,7 @@ public class FeedbackService {
     private final FeedbackRepository feedbackRepository;
 
     public void saveFeedbacks(List<FeedbackCreateDTO> requests, Member member) {
-        List<Feedback> feedbacks = requests.stream().map(req -> {
-            Content content = feedbackQuery.getContentById(req.contentId());
-            return Feedback.of(req.feedback(), false, member, content);
-        }).toList();
-
-        feedbackRepository.saveAll(feedbacks);
+        FeedbackMapper.saveAllFeedbacks(requests, member, feedbackQuery, feedbackRepository);
     }
 
     @Transactional(readOnly = true)
@@ -41,7 +35,7 @@ public class FeedbackService {
         List<Feedback> limited = hasNext ? feedbacks.subList(0, request.size()) : feedbacks;
 
         List<FeedbackContentDTO> dtoList = FeedbackMapper.toResponseList(limited);
-        
+
         Long nextCursor = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
 
         return new FeedbackGetBulkResponse(dtoList, nextCursor, hasNext);
