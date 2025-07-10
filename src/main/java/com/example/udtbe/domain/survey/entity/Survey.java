@@ -6,6 +6,7 @@ import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.OptionalTagConverter;
 import com.example.udtbe.global.util.TagConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
@@ -42,7 +43,7 @@ public class Survey extends TimeBaseEntity {
     @Column(name = "genre_tag", nullable = false)
     private List<String> genreTag;
 
-    @Convert(converter = TagConverter.class)
+    @Convert(converter = OptionalTagConverter.class)
     @Column(name = "content_tag")
     private List<String> contentTag;
 
