@@ -41,11 +41,11 @@ public class Cast extends TimeBaseEntity {
         this.isDeleted = isDeleted;
     }
 
-    public static Cast of(String castName, String castImageUrl, boolean isDeleted) {
+    public static Cast of(String castName, String castImageUrl) {
         return Cast.builder()
                 .castName(castName)
                 .castImageUrl(castImageUrl)
-                .isDeleted(isDeleted)
+                .isDeleted(false)
                 .build();
     }
 }

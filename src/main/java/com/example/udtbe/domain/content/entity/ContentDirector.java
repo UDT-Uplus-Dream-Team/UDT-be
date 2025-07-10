@@ -46,21 +46,22 @@ public class ContentDirector extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentDirector(boolean isDeleted, Director director, Content content) {
+    private ContentDirector(boolean isDeleted) {
         this.isDeleted = isDeleted;
-        this.director = director;
-        this.content = content;
     }
-
-    public static ContentDirector of(boolean isDeleted, Director director, Content content) {
+    public static ContentDirector of() {
         return ContentDirector.builder()
-                .isDeleted(isDeleted)
-                .director(director)
-                .content(content)
+                .isDeleted(false)
                 .build();
     }
 
-    public void addContent(Content content) {
+    public void delete(boolean status) {
+        this.isDeleted=status;
+    }
+
+    public void addContentAndDirector(Content content, Director director) {
         this.content = content;
+        content.getContentDirectors().add(this);
+        this.director = director;
     }
 }

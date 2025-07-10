@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.content.entity;
 
+import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
@@ -14,6 +15,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -73,11 +75,13 @@ public class Content extends TimeBaseEntity {
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
     private List<ContentCategory> contentCategories = new ArrayList<>();
 
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    private List<ContentGenre> contentGenres = new ArrayList<>();
+
+    @Builder(access = PRIVATE)
     private Content(String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
-            boolean isDeleted, List<ContentPlatform> contentPlatforms,
-            List<ContentCast> contentCasts, List<ContentDirector> contentDirectors,
-            List<ContentCountry> contentCountries, List<ContentCategory> contentCategories) {
+            boolean isDeleted) {
         this.title = title;
         this.description = description;
         this.posterUrl = posterUrl;
@@ -88,69 +92,47 @@ public class Content extends TimeBaseEntity {
         this.episode = episode;
         this.rating = rating;
         this.isDeleted = isDeleted;
-        initContentPlatforms(contentPlatforms);
-        initContentCasts(contentCasts);
-        initContentDirectors(contentDirectors);
-        initContentCountries(contentCountries);
-        initContentCategories(contentCategories);
     }
 
     public static Content of(String title, String description, String posterUrl, String backdropUrl,
-            String trailerUrl, LocalDateTime openDate, int runtimeTime, int episode, String rating,
-            boolean isDeleted, List<ContentPlatform> contentPlatforms,
-            List<ContentCast> contentCasts, List<ContentDirector> contentDirectors,
-            List<ContentCountry> contentCountries, List<ContentCategory> contentCategories) {
-        return new Content(
-                title,
-                description,
-                posterUrl,
-                backdropUrl,
-                trailerUrl,
-                openDate,
-                runtimeTime,
-                episode,
-                rating,
-                isDeleted,
-                contentPlatforms,
-                contentCasts,
-                contentDirectors,
-                contentCountries,
-                contentCategories
-        );
+            String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating) {
+        return Content.builder()
+                .title(title)
+                .description(description)
+                .posterUrl(posterUrl)
+                .backdropUrl(backdropUrl)
+                .trailerUrl(trailerUrl)
+                .openDate(openDate)
+                .runningTime(runningTime)
+                .episode(episode)
+                .rating(rating)
+                .isDeleted(false)
+                .build();
     }
 
-    private void initContentPlatforms(List<ContentPlatform> contentPlatforms) {
-        contentPlatforms.forEach(contentPlatform -> {
-            this.contentPlatforms.add(contentPlatform);
-            contentPlatform.addContent(this);
-        });
+    public void delete(boolean status) {
+        this.isDeleted=status;
     }
 
-    private void initContentCasts(List<ContentCast> contentCasts) {
-        contentCasts.forEach(contentCast -> {
-            this.contentCasts.add(contentCast);
-            contentCast.addContent(this);
-        });
+    public void update(String title, String description, String posterUrl, String backdropUrl,
+            String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating) {
+        this.title = title;
+        this.description = description;
+        this.posterUrl = posterUrl;
+        this.backdropUrl = backdropUrl;
+        this.trailerUrl = trailerUrl;
+        this.openDate = openDate;
+        this.runningTime = runningTime;
+        this.episode = episode;
+        this.rating = rating;
     }
 
-    private void initContentDirectors(List<ContentDirector> contentDirectors) {
-        contentDirectors.forEach(contentDirector -> {
-            this.contentDirectors.add(contentDirector);
-            contentDirector.addContent(this);
-        });
-    }
-
-    private void initContentCountries(List<ContentCountry> contentCountries) {
-        contentCountries.forEach(contentCountry -> {
-            this.contentCountries.add(contentCountry);
-            contentCountry.addContent(this);
-        });
-    }
-
-    private void initContentCategories(List<ContentCategory> contentCategories) {
-        contentCategories.forEach(contentCategory -> {
-            this.contentCategories.add(contentCategory);
-            contentCategory.addContent(this);
-        });
+    public void clearAllRelations(){
+        this.contentPlatforms.forEach(c -> c.delete(true));
+        this.contentCasts.forEach(c-> c.delete(true));
+        this.contentDirectors.forEach(c-> c.delete(true));
+        this.contentCountries.forEach(c-> c.delete(true));
+        this.contentCategories.forEach(c-> c.delete(true));
+        this.contentGenres.forEach(c-> c.delete(true));
     }
 }

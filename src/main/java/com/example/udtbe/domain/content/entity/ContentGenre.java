@@ -5,7 +5,6 @@ import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
-import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
@@ -20,24 +19,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "content_country")
+@Table(name = "content_genre")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class ContentCountry extends TimeBaseEntity {
+public class ContentGenre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "content_country_id")
+    @Column(name = "content_genre_id")
     private Long id;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "country_id",
+    @JoinColumn(name = "genre_id",
             nullable = false,
             foreignKey = @ForeignKey(NO_CONSTRAINT))
-    private Country country;
+    private Genre genre;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "content_id",
@@ -46,23 +45,24 @@ public class ContentCountry extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentCountry(boolean isDeleted) {
+    private ContentGenre(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
 
-    public static ContentCountry of() {
-        return ContentCountry.builder()
+    public static ContentGenre of() {
+        return ContentGenre.builder()
                 .isDeleted(false)
                 .build();
     }
 
-    public void delete(boolean status) {
-        this.isDeleted=status;
+    public void addContentAndGenre(Content content, Genre genre) {
+        this.content = content;
+        content.getContentGenres().add(this);
+        this.genre = genre;
+        genre.getContentGenres().add(this);
     }
 
-    public void addContentAndCountry(Content content, Country country) {
-        this.content = content;
-        content.getContentCountries().add(this);
-        this.country = country;
+    public void delete(boolean status) {
+        this.isDeleted=status;
     }
 }

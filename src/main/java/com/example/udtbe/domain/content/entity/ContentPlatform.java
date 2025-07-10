@@ -52,31 +52,28 @@ public class ContentPlatform extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentPlatform(String watchUrl, boolean isAvailable, boolean isDeleted,
-            Platform platform, Content content) {
+    private ContentPlatform(String watchUrl, boolean isAvailable, boolean isDeleted) {
         this.watchUrl = watchUrl;
         this.isAvailable = isAvailable;
         this.isDeleted = isDeleted;
-        this.platform = platform;
-        this.content = content;
     }
 
-    public static ContentPlatform of(String watchUrl, boolean isAvailable, boolean isDeleted,
-            Platform platform, Content content) {
+    public static ContentPlatform of(String watchUrl, boolean isAvailable) {
         return ContentPlatform.builder()
                 .watchUrl(watchUrl)
                 .isAvailable(isAvailable)
-                .isDeleted(isDeleted)
-                .platform(platform)
-                .content(content)
+                .isDeleted(false)
                 .build();
     }
 
-    public void addContent(Content content) {
+    public void addContentAndPlatform(Content content, Platform platform) {
         this.content = content;
+        content.getContentPlatforms().add(this);
+        this.platform = platform;
+        platform.getContentPlatforms().add(this);
     }
 
-    public void addPlatform(Platform platform) {
-        this.platform = platform;
+    public void delete(boolean status) {
+        this.isDeleted=status;
     }
 }

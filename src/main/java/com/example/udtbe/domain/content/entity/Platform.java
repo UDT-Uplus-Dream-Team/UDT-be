@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.content.entity;
 
+import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
@@ -16,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,9 +32,6 @@ public class Platform extends TimeBaseEntity {
     @Column(name = "platform_id")
     private Long id;
 
-    @Column(name = "platform_name", nullable = false)
-    private String platformName;
-
     @Convert(converter = PlatformTypeConverter.class)
     @Column(name = "platform_type", nullable = false)
     private PlatformType platformType;
@@ -43,22 +42,16 @@ public class Platform extends TimeBaseEntity {
     @OneToMany(mappedBy = "platform", cascade = CascadeType.ALL)
     private List<ContentPlatform> contentPlatforms = new ArrayList<>();
 
-    private Platform(String platformName, boolean isDeleted,
-            List<ContentPlatform> contentPlatforms) {
-        this.platformName = platformName;
+    @Builder(access = PRIVATE)
+    private Platform(PlatformType platformType, boolean isDeleted) {
+        this.platformType = platformType;
         this.isDeleted = isDeleted;
-        initContentPlatforms(contentPlatforms);
     }
 
-    public static Platform of(String platformName, boolean isDeleted,
-            List<ContentPlatform> contentPlatforms) {
-        return new Platform(platformName, isDeleted, contentPlatforms);
-    }
-
-    private void initContentPlatforms(List<ContentPlatform> contentPlatforms) {
-        contentPlatforms.forEach(contentPlatform -> {
-            this.contentPlatforms.add(contentPlatform);
-            contentPlatform.addPlatform(this);
-        });
+    public static Platform of(PlatformType platformType) {
+        return Platform.builder()
+                .platformType(platformType)
+                .isDeleted(false)
+                .build();
     }
 }

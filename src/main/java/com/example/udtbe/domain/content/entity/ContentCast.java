@@ -46,21 +46,23 @@ public class ContentCast extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentCast(boolean isDeleted, Cast cast, Content content) {
+    private ContentCast(boolean isDeleted) {
         this.isDeleted = isDeleted;
-        this.cast = cast;
-        this.content = content;
     }
 
-    public static ContentCast of(boolean isDeleted, Cast cast, Content content) {
+    public static ContentCast of() {
         return ContentCast.builder()
-                .isDeleted(isDeleted)
-                .cast(cast)
-                .content(content)
+                .isDeleted(false)
                 .build();
     }
 
-    public void addContent(Content content) {
+    public void delete(boolean status) {
+        this.isDeleted=status;
+    }
+
+    public void addContentAndCast(Content content, Cast cast) {
         this.content = content;
+        content.getContentCasts().add(this);
+        this.cast = cast;
     }
 }

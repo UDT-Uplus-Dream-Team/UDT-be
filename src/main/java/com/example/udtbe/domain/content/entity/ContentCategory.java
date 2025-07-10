@@ -46,21 +46,25 @@ public class ContentCategory extends TimeBaseEntity {
     private Content content;
 
     @Builder(access = PRIVATE)
-    private ContentCategory(boolean isDeleted, Category category, Content content) {
+    private ContentCategory(boolean isDeleted) {
         this.isDeleted = isDeleted;
-        this.category = category;
-        this.content = content;
     }
 
-    public static ContentCategory of(boolean isDeleted, Category category, Content content) {
+    public static ContentCategory of() {
         return ContentCategory.builder()
-                .isDeleted(isDeleted)
-                .category(category)
-                .content(content)
+                .isDeleted(false)
                 .build();
     }
 
-    public void addContent(Content content) {
+    public void addContentAndCategory(Content content,Category category) {
         this.content = content;
+        content.getContentCategories().add(this);
+        this.category = category;
+        category.getContentCategories().add(this);
     }
+
+    public void delete(boolean status) {
+        this.isDeleted=status;
+    }
+
 }

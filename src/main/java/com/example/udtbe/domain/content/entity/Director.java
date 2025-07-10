@@ -37,10 +37,10 @@ public class Director extends TimeBaseEntity {
         this.isDeleted = isDeleted;
     }
 
-    public static Director of(String directorName, boolean isDeleted) {
+    public static Director of(String directorName) {
         return Director.builder()
                 .directorName(directorName)
-                .isDeleted(isDeleted)
+                .isDeleted(false)
                 .build();
     }
 }
