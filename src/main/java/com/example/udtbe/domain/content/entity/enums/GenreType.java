@@ -46,6 +46,13 @@ public enum GenreType {
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.GENRE_TYPE_NOT_FOUND));
     }
 
+    public static GenreType fromByType(String value){
+        return Arrays.stream(values())
+                .filter(g -> g.getType().equals(value))
+                .findFirst()
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.CATEGORY_TYPE_NOT_FOUND));
+    }
+
     public static List<String> toGenreTypes(List<String> types) {
         return types.stream()
                 .map(type -> Arrays.stream(values())

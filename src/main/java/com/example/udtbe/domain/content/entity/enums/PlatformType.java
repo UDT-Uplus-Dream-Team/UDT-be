@@ -29,6 +29,14 @@ public enum PlatformType {
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_NOT_FOUND));
     }
 
+    public static PlatformType fromByType(String value) {
+        return Arrays.stream(values())
+                .filter(p -> p.getType().equals(value))
+                .findFirst()
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_NOT_FOUND));
+
+    }
+
     public static List<String> toPlatformTypes(List<String> types) {
         return types.stream()
                 .map(type -> Arrays.stream(values())

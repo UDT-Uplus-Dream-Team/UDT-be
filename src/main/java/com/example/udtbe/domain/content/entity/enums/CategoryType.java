@@ -24,4 +24,11 @@ public enum CategoryType {
                 .findFirst()
                 .orElseThrow(() -> new RestApiException(EnumErrorCode.CATEGORY_TYPE_NOT_FOUND));
     }
+
+    public static CategoryType fromByType(String value){
+        return Arrays.stream(values())
+                .filter(c -> c.getType().equals(value))
+                .findFirst()
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.CATEGORY_TYPE_NOT_FOUND));
+    }
 }
