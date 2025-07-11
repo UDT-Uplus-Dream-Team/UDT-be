@@ -43,6 +43,9 @@ public class ContentMetadata extends TimeBaseEntity {
     private boolean isDeleted;
 
     @Convert(converter = TagConverter.class)
+    private List<String> categoryTag;
+
+    @Convert(converter = TagConverter.class)
     @Column(name = "genre_tag")
     private List<String> genreTag;
 
@@ -54,6 +57,10 @@ public class ContentMetadata extends TimeBaseEntity {
     @Column(name = "director_tag")
     private List<String> directorTag;
 
+    @Convert(converter = TagConverter.class)
+    private List<String> castTag;
+
+
     @OneToOne(fetch = LAZY, optional = false)
     @JoinColumn(
             name = "content_id",
@@ -64,41 +71,50 @@ public class ContentMetadata extends TimeBaseEntity {
 
     @Builder(access = PRIVATE)
     private ContentMetadata(String title, String rating, boolean isDeleted,
+            List<String> categoryTag,
             List<String> genreTag, List<String> platformTag, List<String> directorTag,
+            List<String> castTag,
             Content content) {
         this.title = title;
         this.rating = rating;
         this.isDeleted = isDeleted;
+        this.categoryTag = categoryTag;
         this.genreTag = genreTag;
         this.platformTag = platformTag;
         this.directorTag = directorTag;
+        this.castTag = castTag;
         this.content = content;
     }
 
-    public static ContentMetadata of(String title, String rating, List<String> genreTag,
-            List<String> platformTag, List<String> directorTag,
+    public static ContentMetadata of(String title, String rating, List<String> categoryTag,
+            List<String> genreTag, List<String> platformTag, List<String> directorTag,
+            List<String> castTag,
             Content content) {
         return ContentMetadata.builder()
                 .title(title)
                 .rating(rating)
                 .isDeleted(false)
+                .categoryTag(categoryTag)
                 .genreTag(genreTag)
                 .platformTag(platformTag)
                 .directorTag(directorTag)
+                .castTag(castTag)
                 .content(content)
                 .build();
     }
 
     public void delete(boolean status) {
-        this.isDeleted=status;
+        this.isDeleted = status;
     }
 
-    public void update(String title, String rating,
-            List<String> platformTags, List<String> directorTags, List<String> genreTags) {
+    public void update(String title, String rating, List<String> categoryTag, List<String> genreTag,
+            List<String> platformTag, List<String> directorTag, List<String> castTag) {
         this.title = title;
         this.rating = rating;
-        this.platformTag = platformTags;
-        this.directorTag = directorTags;
-        this.genreTag = genreTags;
+        this.categoryTag = categoryTag;
+        this.genreTag = genreTag;
+        this.platformTag = platformTag;
+        this.directorTag = directorTag;
+        this.castTag = castTag;
     }
 }

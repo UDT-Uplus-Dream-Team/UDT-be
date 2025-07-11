@@ -2,7 +2,6 @@ package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
-import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
@@ -15,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,9 +28,6 @@ public class ContentDirector extends TimeBaseEntity {
     @Column(name = "content_director_id")
     private Long id;
 
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
-
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "director_id",
             nullable = false,
@@ -45,21 +40,15 @@ public class ContentDirector extends TimeBaseEntity {
             foreignKey = @ForeignKey(NO_CONSTRAINT))
     private Content content;
 
-    @Builder(access = PRIVATE)
-    private ContentDirector(boolean isDeleted) {
-        this.isDeleted = isDeleted;
-    }
-    public static ContentDirector of() {
-        return ContentDirector.builder()
-                .isDeleted(false)
-                .build();
+    private ContentDirector(Content content, Director director) {
+        addContentAndDirector(content, director);
     }
 
-    public void delete(boolean status) {
-        this.isDeleted=status;
+    public static ContentDirector of(Content content, Director director) {
+        return new ContentDirector(content, director);
     }
 
-    public void addContentAndDirector(Content content, Director director) {
+    private void addContentAndDirector(Content content, Director director) {
         this.content = content;
         content.getContentDirectors().add(this);
         this.director = director;

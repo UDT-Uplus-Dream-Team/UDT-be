@@ -95,7 +95,8 @@ public class Content extends TimeBaseEntity {
     }
 
     public static Content of(String title, String description, String posterUrl, String backdropUrl,
-            String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating) {
+            String trailerUrl, LocalDateTime openDate, int runningTime, int episode,
+            String rating) {
         return Content.builder()
                 .title(title)
                 .description(description)
@@ -111,11 +112,12 @@ public class Content extends TimeBaseEntity {
     }
 
     public void delete(boolean status) {
-        this.isDeleted=status;
+        this.isDeleted = status;
     }
 
     public void update(String title, String description, String posterUrl, String backdropUrl,
-            String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating) {
+            String trailerUrl, LocalDateTime openDate, int runningTime, int episode,
+            String rating) {
         this.title = title;
         this.description = description;
         this.posterUrl = posterUrl;
@@ -127,12 +129,4 @@ public class Content extends TimeBaseEntity {
         this.rating = rating;
     }
 
-    public void clearAllRelations(){
-        this.contentPlatforms.forEach(c -> c.delete(true));
-        this.contentCasts.forEach(c-> c.delete(true));
-        this.contentDirectors.forEach(c-> c.delete(true));
-        this.contentCountries.forEach(c-> c.delete(true));
-        this.contentCategories.forEach(c-> c.delete(true));
-        this.contentGenres.forEach(c-> c.delete(true));
-    }
 }

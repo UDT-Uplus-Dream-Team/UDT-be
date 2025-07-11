@@ -2,7 +2,6 @@ package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
-import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import jakarta.persistence.Column;
@@ -14,7 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,9 +27,6 @@ public class ContentGenre {
     @Column(name = "content_genre_id")
     private Long id;
 
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
-
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "genre_id",
             nullable = false,
@@ -44,25 +39,20 @@ public class ContentGenre {
             foreignKey = @ForeignKey(NO_CONSTRAINT))
     private Content content;
 
-    @Builder(access = PRIVATE)
-    private ContentGenre(boolean isDeleted) {
-        this.isDeleted = isDeleted;
+    private ContentGenre(Content content, Genre genre) {
+        addContentAndGenre(content, genre);
     }
 
-    public static ContentGenre of() {
-        return ContentGenre.builder()
-                .isDeleted(false)
-                .build();
+    public static ContentGenre of(Content content, Genre genre) {
+        return new ContentGenre(content, genre);
     }
 
-    public void addContentAndGenre(Content content, Genre genre) {
+    private void addContentAndGenre(Content content, Genre genre) {
         this.content = content;
         content.getContentGenres().add(this);
         this.genre = genre;
         genre.getContentGenres().add(this);
     }
 
-    public void delete(boolean status) {
-        this.isDeleted=status;
-    }
+
 }

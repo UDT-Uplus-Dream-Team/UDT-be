@@ -2,7 +2,6 @@ package com.example.udtbe.domain.content.entity;
 
 import static jakarta.persistence.ConstraintMode.NO_CONSTRAINT;
 import static jakarta.persistence.FetchType.LAZY;
-import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
@@ -15,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,9 +28,6 @@ public class ContentCategory extends TimeBaseEntity {
     @Column(name = "content_category_id")
     private Long id;
 
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
-
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "category_id",
             nullable = false,
@@ -45,26 +40,20 @@ public class ContentCategory extends TimeBaseEntity {
             foreignKey = @ForeignKey(NO_CONSTRAINT))
     private Content content;
 
-    @Builder(access = PRIVATE)
-    private ContentCategory(boolean isDeleted) {
-        this.isDeleted = isDeleted;
+    private ContentCategory(Content content, Category category) {
+        addContentAndCategory(content, category);
     }
 
-    public static ContentCategory of() {
-        return ContentCategory.builder()
-                .isDeleted(false)
-                .build();
+    public static ContentCategory of(Content content, Category category) {
+        return new ContentCategory(content, category);
     }
 
-    public void addContentAndCategory(Content content,Category category) {
+    private void addContentAndCategory(Content content, Category category) {
         this.content = content;
         content.getContentCategories().add(this);
         this.category = category;
         category.getContentCategories().add(this);
     }
 
-    public void delete(boolean status) {
-        this.isDeleted=status;
-    }
 
 }
