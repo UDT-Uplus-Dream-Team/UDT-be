@@ -26,14 +26,14 @@ public enum PlatformType {
         return Arrays.stream(values())
                 .filter(p -> p.name().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_NOT_FOUND));
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST));
     }
 
     public static PlatformType fromByType(String value) {
         return Arrays.stream(values())
                 .filter(p -> p.getType().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_NOT_FOUND));
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST));
 
     }
 
@@ -43,7 +43,7 @@ public enum PlatformType {
                         .filter(p -> p.getType().equals(type))
                         .findFirst()
                         .orElseThrow(
-                                () -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_NOT_FOUND)
+                                () -> new RestApiException(EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST)
                         )
                         .name()
                 ).toList();
