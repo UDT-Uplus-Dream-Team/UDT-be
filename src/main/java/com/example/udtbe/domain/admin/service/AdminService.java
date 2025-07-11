@@ -36,7 +36,6 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
-import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.ArrayList;
@@ -55,7 +54,6 @@ public class AdminService {
     private final ContentMetadataRepository contentMetadataRepository;
     private final ContentRepository contentRepository;
     private final AdminQuery adminQuery;
-    private final GenreRepository genreRepository;
     private final ContentGenreRepository contentGenreRepository;
     private final ContentCategoryRepository contentCategoryRepository;
     private final ContentCastRepository contentCastRepository;
@@ -64,7 +62,7 @@ public class AdminService {
     private final ContentDirectorRepository contentDirectorRepository;
 
     @Transactional
-    public ContentRegisterResponse contentRegister(ContentRegisterRequest request) {
+    public ContentRegisterResponse registerContent(ContentRegisterRequest request) {
         Content content = contentRepository.save(ContentMapper.toContentEntity(request));
 
         request.categories().forEach(dto -> {
