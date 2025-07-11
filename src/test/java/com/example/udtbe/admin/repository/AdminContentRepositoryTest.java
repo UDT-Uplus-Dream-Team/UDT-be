@@ -30,7 +30,6 @@ import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +45,6 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
     @Autowired
     private ContentMetadataRepository metadataRepository;
 
-    @BeforeEach
-    void cleanDatabase() {
-        metadataRepository.deleteAllInBatch();
-        contentRepository.deleteAllInBatch();
-    }
 
     @DisplayName("관리자는 콘텐츠를 저장한다.")
     @Test
