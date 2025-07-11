@@ -1,6 +1,9 @@
 package com.example.udtbe.domain.member.service;
 
+import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.member.exception.MemberErrorCode;
 import com.example.udtbe.domain.member.repository.MemberRepository;
+import com.example.udtbe.global.exception.RestApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -9,4 +12,10 @@ import org.springframework.stereotype.Component;
 public class MemberQuery {
 
     private final MemberRepository memberRepository;
+
+    public Member findMemberById(Long memberId) {
+        return memberRepository.findMemberById(memberId)
+                .orElseThrow(() -> new RestApiException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
 }
