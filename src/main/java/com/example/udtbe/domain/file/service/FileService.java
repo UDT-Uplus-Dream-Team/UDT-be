@@ -101,16 +101,13 @@ public class FileService {
     }
 
     private String createFileName(String dir, Member member, String extension) {
-        StringBuilder fileName = new StringBuilder();
-
-        fileName.append(dir)
+        return new StringBuilder()
+                .append(dir)
                 .append(member.getId())
                 .append("/")
                 .append(UUID.randomUUID())
-                .append("/")
-                .append(extension);
-
-        return fileName.toString();
+                .append(extension)
+                .toString();
     }
 
 }
