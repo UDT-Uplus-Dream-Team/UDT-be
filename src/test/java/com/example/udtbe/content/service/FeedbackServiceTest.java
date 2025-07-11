@@ -55,8 +55,8 @@ public class FeedbackServiceTest {
 
         Member member = member("test@example.com", Role.ROLE_USER);
 
-        given(feedbackQuery.getContentById(1L)).willReturn(content("content1"));
-        given(feedbackQuery.getContentById(2L)).willReturn(content("content2"));
+        given(feedbackQuery.getContentById(1L)).willReturn(content("content1", "description1"));
+        given(feedbackQuery.getContentById(2L)).willReturn(content("content2", "description2"));
 
         // when
         feedbackService.saveFeedbacks(requestDto.feedbacks(), member);
@@ -73,9 +73,9 @@ public class FeedbackServiceTest {
         // given
         Member member = member("test@example.com", Role.ROLE_USER);
 
-        Content content1 = content("test_content1");
-        Content content2 = content("test_content2");
-        Content content3 = content("test_content3");
+        Content content1 = content("test_content1", "test_description1");
+        Content content2 = content("test_content2", "test_description2");
+        Content content3 = content("test_content3", "test_description3");
 
         Feedback feedback1 = Feedback.of(
                 FeedbackType.LIKE, false, member, content1
@@ -112,7 +112,7 @@ public class FeedbackServiceTest {
         // given
         Member member = member("test@example.com", Role.ROLE_USER);
 
-        Content content = content("test_content");
+        Content content = content("test_content", "test_description");
 
         Feedback feedback = Feedback.of(FeedbackType.LIKE, false, member, content);
 
