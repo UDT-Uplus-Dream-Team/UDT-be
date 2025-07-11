@@ -24,8 +24,8 @@ public class MemberService {
         return new MemberInfoResponse(
                 member.getName(),
                 member.getEmail(),
-                survey.getGenreTag(),
                 survey.getPlatformTag(),
+                survey.getGenreTag(),
                 member.getProfileImageUrl());
 
     }
