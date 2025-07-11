@@ -27,7 +27,6 @@ import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -47,15 +46,10 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
     @Autowired
     private ContentMetadataRepository metadataRepository;
 
-    @Autowired
-    private EntityManager em;
-
     @BeforeEach
     void cleanDatabase() {
         metadataRepository.deleteAllInBatch();
         contentRepository.deleteAllInBatch();
-        em.flush();
-        em.clear();
     }
 
     @DisplayName("관리자는 콘텐츠를 저장한다.")
@@ -67,21 +61,25 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         // when
         Content save = contentRepository.save(content);
         List<ContentCategory> contentCategories = defaultCategories(content);
-        List<ContentPlatform> contentPlatforms = defaultPlatforms(content,3);
-        List<ContentCountry> contentCountries = defaultCountries(content,3);
-        List<ContentGenre> contentGenres = defaultGenres(contentCategories,content);
-        List<ContentCast> contentCasts = defaultCasts(content,30);
-        List<ContentDirector> contentDirectors = defaultDirectors(content,3);
+        List<ContentPlatform> contentPlatforms = defaultPlatforms(content, 3);
+        List<ContentCountry> contentCountries = defaultCountries(content, 3);
+        List<ContentGenre> contentGenres = defaultGenres(contentCategories, content);
+        List<ContentCast> contentCasts = defaultCasts(content, 30);
+        List<ContentDirector> contentDirectors = defaultDirectors(content, 3);
 
         // then
         assertAll("연관관계까지 함께 저장 및 로딩",
                 () -> assertThat(save.getId()).isNotNull(),
                 () -> assertThat(save.getTitle()).isEqualTo(content.getTitle()),
-                () -> assertThat(save.getContentPlatforms().size()).isEqualTo(contentPlatforms.size()),
-                () -> assertThat(save.getContentDirectors().size()).isEqualTo(contentDirectors.size()),
-                () -> assertThat(save.getContentCategories().size()).isEqualTo(contentCategories.size()),
+                () -> assertThat(save.getContentPlatforms().size()).isEqualTo(
+                        contentPlatforms.size()),
+                () -> assertThat(save.getContentDirectors().size()).isEqualTo(
+                        contentDirectors.size()),
+                () -> assertThat(save.getContentCategories().size()).isEqualTo(
+                        contentCategories.size()),
                 () -> assertThat(save.getContentCasts().size()).isEqualTo(contentCasts.size()),
-                () -> assertThat(save.getContentCountries().size()).isEqualTo(contentCountries.size()),
+                () -> assertThat(save.getContentCountries().size()).isEqualTo(
+                        contentCountries.size()),
                 () -> assertThat(save.getContentGenres().size()).isEqualTo(contentGenres.size())
         );
     }
@@ -94,20 +92,22 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         Content content = ContentFixture.content("인터스텔라", "꿀잼");
         contentRepository.save(content);
 
-        ContentMetadata contentMetadata = ContentFixture.contentMetadata("인터스텔라",content);
+        ContentMetadata contentMetadata = ContentFixture.contentMetadata("인터스텔라", content);
         // when
         ContentMetadata save = metadataRepository.save(contentMetadata);
 
         assertAll("ContentMetadata 저장 및 조회",
                 () -> assertThat(save.getId()).isNotNull(),
-                () -> assertThat(save.getContent().getId()).isEqualTo(contentMetadata.getId()),
+                () -> assertThat(save.getContent().getId()).isEqualTo(
+                        contentMetadata.getContent().getId()),
                 () -> assertThat(save.getTitle()).isEqualTo(contentMetadata.getTitle()),
                 () -> assertThat(save.getRating()).isEqualTo(contentMetadata.getRating()),
                 () -> assertThat(save.isDeleted()).isFalse(),
                 () -> assertThat(save.getGenreTag()).hasSize(3),
                 () -> {
                     assertNotNull(save.getGenreTag());
-                    assertThat(save.getGenreTag().get(1)).isEqualTo(contentMetadata.getGenreTag().get(1));
+                    assertThat(save.getGenreTag().get(1)).isEqualTo(
+                            contentMetadata.getGenreTag().get(1));
                 },
                 () -> assertThat(save.getPlatformTag()).hasSize(3),
                 () -> assertThat(save.getDirectorTag()).hasSize(2)
@@ -117,14 +117,14 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
     @DisplayName("첫 페이지 조회: cursor=null, size=5")
     @Test
     @Rollback
-    void findContentsAdminByCursor_firstPage_hasNextTrue() {
+    void findContentsAdminByCursor() {
         // given
         List<Content> contents = ContentFixture.contents(10);
         contents.forEach(em::persist);
         em.flush();
         em.clear();
         int size = 5;
-        Long lastId = contents.get(contents.size()-1).getId();
+        Long lastId = contents.get(contents.size() - 1).getId();
 
         // when
         CursorPageResponse<ContentDTO> page =
@@ -134,9 +134,10 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         List<ContentDTO> dtos = page.item();
         assertThat(dtos).hasSize(size)
                 .extracting(ContentDTO::contentId)
-                .containsExactly(IntStream.range(0, size).mapToObj(i -> lastId-i).toArray(Long[]::new));
+                .containsExactly(
+                        IntStream.range(0, size).mapToObj(i -> lastId - i).toArray(Long[]::new));
         assertThat(page.hasNext()).isTrue();
-        assertThat(page.nextCursor()).isEqualTo(String.valueOf(lastId-size+1));
+        assertThat(page.nextCursor()).isEqualTo(String.valueOf(lastId - size + 1));
     }
 
 
@@ -144,10 +145,11 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         List<ContentPlatform> list = new ArrayList<>();
 
         IntStream.rangeClosed(1, count).forEach(i -> {
-            Platform p = Platform.of(PlatformType.NETFLIX);
-            ContentPlatform cp = ContentPlatform.of("https://example.com/watch" + i, true);
-            cp.addContentAndPlatform(content, p);
-            list.add(cp);
+            Platform platform = Platform.of(PlatformType.NETFLIX);
+            ContentPlatform contentPlatform = ContentPlatform.of("https://example.com/watch" + i,
+                    true, content,
+                    platform);
+            list.add(contentPlatform);
         });
         return list;
     }
@@ -155,22 +157,20 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
     private List<ContentCast> defaultCasts(Content content, int count) {
         List<ContentCast> list = new ArrayList<>();
 
-        IntStream.rangeClosed(1,count).forEach(i -> {
-            Cast c = Cast.of("박연진"+i, "https://example.com/cast"+i);
-            ContentCast cc = ContentCast.of();
-            cc.addContentAndCast(content, c);
-            list.add(cc);
+        IntStream.rangeClosed(1, count).forEach(i -> {
+            Cast cast = Cast.of("박연진" + i, "https://example.com/cast" + i);
+            ContentCast contentCast = ContentCast.of(content, cast);
+            list.add(contentCast);
         });
         return list;
     }
 
     private List<ContentDirector> defaultDirectors(Content content, int count) {
         List<ContentDirector> list = new ArrayList<>();
-        IntStream.rangeClosed(1,count).forEach(i -> {
-            Director d = Director.of("감스트"+i);
-            ContentDirector cd = ContentDirector.of();
-            cd.addContentAndDirector(content, d);
-            list.add(cd);
+        IntStream.rangeClosed(1, count).forEach(i -> {
+            Director director = Director.of("감스트" + i);
+            ContentDirector contentDirector = ContentDirector.of(content, director);
+            list.add(contentDirector);
         });
         return list;
     }
@@ -178,67 +178,55 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
     private List<ContentCountry> defaultCountries(Content content, int count) {
         List<ContentCountry> list = new ArrayList<>();
 
-        IntStream.rangeClosed(1,count).forEach(i ->{
-            Country c = Country.of("대한민국"+i);
-            ContentCountry cc = ContentCountry.of();
-            cc.addContentAndCountry(content, c);
-            list.add(cc);
+        IntStream.rangeClosed(1, count).forEach(i -> {
+            Country country = Country.of("대한민국" + i);
+            ContentCountry contentCountry = ContentCountry.of(content, country);
+            list.add(contentCountry);
         });
         return list;
     }
 
     private List<ContentCategory> defaultCategories(Content content) {
         List<ContentCategory> list = new ArrayList<>();
-        Category c = Category.of(CategoryType.DRAMA);
-        Category c2 = Category.of(CategoryType.MOVIE);
-        Category c3 = Category.of(CategoryType.ANIMATION);
-        ContentCategory cc = ContentCategory.of();
-        ContentCategory cc2 = ContentCategory.of();
-        ContentCategory cc3 = ContentCategory.of();
+        Category category1 = Category.of(CategoryType.DRAMA);
+        Category category2 = Category.of(CategoryType.MOVIE);
+        Category category3 = Category.of(CategoryType.ANIMATION);
+        ContentCategory contentCategory1 = ContentCategory.of(content, category1);
+        ContentCategory contentCategory2 = ContentCategory.of(content, category2);
+        ContentCategory contentCategory3 = ContentCategory.of(content, category3);
 
-        cc.addContentAndCategory(content, c);
-        cc2.addContentAndCategory(content, c2);
-        cc3.addContentAndCategory(content, c3);
-
-        list.add(cc);
-        list.add(cc2);
-        list.add(cc3);
+        list.add(contentCategory1);
+        list.add(contentCategory2);
+        list.add(contentCategory3);
         return list;
     }
 
-    private List<ContentGenre> defaultGenres(List<ContentCategory> contentCategories, Content content) {
+    private List<ContentGenre> defaultGenres(List<ContentCategory> contentCategories,
+            Content content) {
         List<ContentGenre> list = new ArrayList<>();
 
         contentCategories.forEach(c -> {
-            if(c.getCategory().getCategoryType().equals(CategoryType.DRAMA)){
-                Genre g = Genre.of(GenreType.DRAMA,c.getCategory());
-                Genre g2 = Genre.of(GenreType.ROMANCE,c.getCategory());
-                ContentGenre cg = ContentGenre.of();
-                ContentGenre cg2 = ContentGenre.of();
-                cg.addContentAndGenre(content, g);
-                cg2.addContentAndGenre(content, g2);
-                list.add(cg);
-                list.add(cg2);
-            }
-            else if(c.getCategory().getCategoryType().equals(CategoryType.MOVIE)){
-                Genre g = Genre.of(GenreType.ACTION,c.getCategory());
-                Genre g2 = Genre.of(GenreType.COMEDY,c.getCategory());
-                Genre g3 = Genre.of(GenreType.ROMANCE,c.getCategory());
-                ContentGenre cg = ContentGenre.of();
-                ContentGenre cg2 = ContentGenre.of();
-                ContentGenre cg3 = ContentGenre.of();
-                cg.addContentAndGenre(content, g);
-                cg2.addContentAndGenre(content, g2);
-                cg3.addContentAndGenre(content, g3);
-                list.add(cg);
-                list.add(cg2);
-                list.add(cg3);
-            }
-            else if(c.getCategory().getCategoryType().equals(CategoryType.ANIMATION)){
-                Genre g = Genre.of(GenreType.KIDS,c.getCategory());
-                ContentGenre cg = ContentGenre.of();
-                cg.addContentAndGenre(content, g);
-                list.add(cg);
+            if (c.getCategory().getCategoryType().equals(CategoryType.DRAMA)) {
+                Genre genre1 = Genre.of(GenreType.DRAMA, c.getCategory());
+                Genre genre2 = Genre.of(GenreType.ROMANCE, c.getCategory());
+                ContentGenre contentGenre1 = ContentGenre.of(content, genre1);
+                ContentGenre contentGenre2 = ContentGenre.of(content, genre2);
+                list.add(contentGenre1);
+                list.add(contentGenre2);
+            } else if (c.getCategory().getCategoryType().equals(CategoryType.MOVIE)) {
+                Genre genre1 = Genre.of(GenreType.ACTION, c.getCategory());
+                Genre genre2 = Genre.of(GenreType.COMEDY, c.getCategory());
+                Genre genre3 = Genre.of(GenreType.ROMANCE, c.getCategory());
+                ContentGenre contentGenre1 = ContentGenre.of(content, genre1);
+                ContentGenre contentGenre2 = ContentGenre.of(content, genre2);
+                ContentGenre contentGenre3 = ContentGenre.of(content, genre3);
+                list.add(contentGenre1);
+                list.add(contentGenre2);
+                list.add(contentGenre3);
+            } else if (c.getCategory().getCategoryType().equals(CategoryType.ANIMATION)) {
+                Genre genre1 = Genre.of(GenreType.KIDS, c.getCategory());
+                ContentGenre contentGenre1 = ContentGenre.of(content, genre1);
+                list.add(contentGenre1);
             }
         });
         return list;

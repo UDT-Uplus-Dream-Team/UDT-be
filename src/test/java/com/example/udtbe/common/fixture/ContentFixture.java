@@ -42,7 +42,8 @@ public class ContentFixture {
         );
     }
 
-    public static Content content(String title, String description, String categoryName, String genreName, String platformName) {
+    public static Content content(String title, String description, String categoryName,
+            String genreName, String platformName) {
         Content content = Content.of(
                 title,
                 description,
@@ -55,13 +56,6 @@ public class ContentFixture {
                 "전체관람가"
         );
 
-        ContentCategory cc = ContentCategory.of();
-        ContentGenre cg = ContentGenre.of();
-        ContentDirector cd = ContentDirector.of();
-        ContentCast cc2 = ContentCast.of();
-        ContentCountry cc3 = ContentCountry.of();
-        ContentPlatform cp = ContentPlatform.of("https://example.com/watch", true);
-
         Category category = Category.of(CategoryType.fromByType(categoryName));
         Genre genre = Genre.of(GenreType.fromByType(genreName), category);
         Platform platform = Platform.of(PlatformType.fromByType(platformName));
@@ -69,34 +63,34 @@ public class ContentFixture {
         Cast cast = Cast.of("배우A", "https://example.com/castA");
         Director director = Director.of("감독A");
 
-        cc.addContentAndCategory(content,category);
-        cg.addContentAndGenre(content,genre);
-        cd.addContentAndDirector(content,director);
-        cc2.addContentAndCast(content,cast);
-        cc3.addContentAndCountry(content,country);
-        cp.addContentAndPlatform(content,platform);
+        ContentCategory.of(content, category);
+        ContentGenre.of(content, genre);
+        ContentDirector.of(content, director);
+        ContentCast.of(content, cast);
+        ContentCountry.of(content, country);
+        ContentPlatform.of("https://example.com/watch", true, content, platform);
 
         return content;
     }
 
-
-
-    public static ContentMetadata contentMetadata(String title, Content content){
+    public static ContentMetadata contentMetadata(String title, Content content) {
         return ContentMetadata.of(
                 title,
                 "전체 관람가",
+                List.of("영화"),
                 List.of("장르1", "장르2", "장르3"),
                 List.of("플렛폼1", "플렛폼2", "플렛폼3"),
                 List.of("감스트1", "감스트2"),
+                List.of("김원", "석"),
                 content
         );
     }
 
-    public static List<Content> contents(int count){
+    public static List<Content> contents(int count) {
         List<Content> list = new ArrayList<>();
 
-        IntStream.rangeClosed(1,count).forEach(i ->{
-            Content c = ContentFixture.content("반지의제왕"+i,"설명"+i);
+        IntStream.rangeClosed(1, count).forEach(i -> {
+            Content c = ContentFixture.content("반지의제왕" + i, "설명" + i);
             list.add(c);
         });
 
