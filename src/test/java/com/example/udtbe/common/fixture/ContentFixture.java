@@ -27,7 +27,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
 public class ContentFixture {
-
     public static Content content(String title, String description) {
         return Content.of(
                 title,
