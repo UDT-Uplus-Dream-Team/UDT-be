@@ -5,62 +5,57 @@ import com.example.udtbe.domain.admin.dto.request.ContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.ContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.response.ContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.ContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.ContentUpdateResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class AdminController {
+public class AdminController implements AdminControllerApiSpec {
 
     private final AdminService adminService;
 
-    @PostMapping("/api/admin/contents")
+    @Override
     public ResponseEntity<ContentRegisterResponse> registerContent(
-            @RequestBody @Valid ContentRegisterRequest contentRegisterRequest) {
+            ContentRegisterRequest contentRegisterRequest) {
 
-        ContentRegisterResponse contentRegisterResponse = adminService.contentRegister(contentRegisterRequest);
-        return ResponseEntity.status(201).body(contentRegisterResponse);
+        ContentRegisterResponse contentRegisterResponse = adminService.registerContent(
+                contentRegisterRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(contentRegisterResponse);
     }
 
-    @PatchMapping("/api/admin/contents/{contentId}")
-    public ResponseEntity<Void> updateContent(
-            @PathVariable Long contentId,
-            @RequestBody @Valid ContentUpdateRequest contentUpdateRequest) {
-        adminService.updateContent(contentId, contentUpdateRequest);
-        return ResponseEntity.noContent().build();
+    @Override
+    public ResponseEntity<ContentUpdateResponse> updateContent(
+            Long contentId, ContentUpdateRequest contentUpdateRequest) {
+
+        ContentUpdateResponse contentUpdateResponse = adminService.updateContent(contentId,
+                contentUpdateRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(contentUpdateResponse);
     }
 
-    @GetMapping("/api/admin/contents/{contentId}")
-    public ResponseEntity<ContentGetDetailResponse> getContent(
-            @PathVariable Long contentId) {
+    @Override
+    public ResponseEntity<ContentGetDetailResponse> getContent(Long contentId) {
 
         ContentGetDetailResponse contentGetResponse = adminService.getContent(contentId);
-        return ResponseEntity.ok(contentGetResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(contentGetResponse);
     }
 
-    @DeleteMapping("/api/admin/contents/{contentId}")
-    public ResponseEntity<Void> deleteContent(
-            @PathVariable Long contentId) {
+    @Override
+    public ResponseEntity<Void> deleteContent(Long contentId) {
+
         adminService.deleteContent(contentId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @GetMapping("/api/admin/contents")
-    public ResponseEntity<CursorPageResponse<ContentDTO>> getContents(
-            @RequestParam(required = false) Long cursor, @RequestParam int size
-    ){
-        CursorPageResponse<ContentDTO> contentDTOCursorPageResponse = adminService.getContents(cursor, size);
-        return ResponseEntity.ok(contentDTOCursorPageResponse);
+    @Override
+    public ResponseEntity<CursorPageResponse<ContentDTO>> getContents(Long cursor, int size) {
+
+        CursorPageResponse<ContentDTO> contentDTOCursorPageResponse = adminService.getContents(
+                cursor, size);
+        return ResponseEntity.status(HttpStatus.OK).body(contentDTOCursorPageResponse);
     }
 }
