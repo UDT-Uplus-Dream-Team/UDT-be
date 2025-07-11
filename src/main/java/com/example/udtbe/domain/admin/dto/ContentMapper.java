@@ -6,6 +6,7 @@ import com.example.udtbe.domain.admin.dto.common.PlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.ContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.ContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.ContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.ContentUpdateResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,10 @@ public class ContentMapper {
 
     public static ContentRegisterResponse toContentRegisterResponse(Content content) {
         return new ContentRegisterResponse(content.getId());
+    }
+
+    public static ContentUpdateResponse toContentUpdateResponse(Content content) {
+        return new ContentUpdateResponse(content.getId());
     }
 
     public static ContentGetDetailResponse toContentGetResponse(Content content,
