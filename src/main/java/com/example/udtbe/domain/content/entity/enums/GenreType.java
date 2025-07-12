@@ -50,7 +50,7 @@ public enum GenreType {
         return Arrays.stream(values())
                 .filter(g -> g.getType().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new RestApiException(EnumErrorCode.CATEGORY_TYPE_BAD_REQUEST));
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.GENRE_TYPE_BAD_REQUEST));
     }
 
     public static List<String> toGenreTypes(List<String> types) {

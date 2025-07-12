@@ -78,4 +78,8 @@ public class Survey extends TimeBaseEntity {
                 .member(member)
                 .build();
     }
+
+    public void updateGenreTag(List<String> genreTag) {
+        this.genreTag = genreTag;
+    }
 }
