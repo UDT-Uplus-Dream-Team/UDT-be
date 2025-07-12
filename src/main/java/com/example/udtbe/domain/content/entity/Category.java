@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.content.entity;
 
+import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
@@ -16,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -40,20 +42,21 @@ public class Category extends TimeBaseEntity {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Genre> genres = new ArrayList<>();
 
-    private Category(CategoryType categoryType, boolean isDeleted, List<Genre> genres) {
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<ContentCategory> contentCategories = new ArrayList<>();
+
+    @Builder(access = PRIVATE)
+    private Category(CategoryType categoryType, boolean isDeleted) {
         this.categoryType = categoryType;
         this.isDeleted = isDeleted;
-        initGenres(genres);
     }
 
-    public static Category of(CategoryType categoryType, boolean isDeleted, List<Genre> genres) {
-        return new Category(categoryType, isDeleted, genres);
+    public static Category of(CategoryType categoryType) {
+        return Category.builder()
+                .categoryType(categoryType)
+                .isDeleted(false)
+                .build();
     }
 
-    private void initGenres(List<Genre> genres) {
-        genres.forEach(genre -> {
-            this.genres.add(genre);
-            genre.addCategory(this);
-        });
-    }
+
 }

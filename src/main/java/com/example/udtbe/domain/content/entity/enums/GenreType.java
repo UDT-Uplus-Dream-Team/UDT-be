@@ -43,7 +43,14 @@ public enum GenreType {
         return Arrays.stream(values())
                 .filter(g -> g.name().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new RestApiException(EnumErrorCode.GENRE_TYPE_NOT_FOUND));
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.GENRE_TYPE_BAD_REQUEST));
+    }
+
+    public static GenreType fromByType(String value) {
+        return Arrays.stream(values())
+                .filter(g -> g.getType().equals(value))
+                .findFirst()
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.CATEGORY_TYPE_BAD_REQUEST));
     }
 
     public static List<String> toGenreTypes(List<String> types) {
@@ -52,7 +59,7 @@ public enum GenreType {
                         .filter(g -> g.getType().equals(type))
                         .findFirst()
                         .orElseThrow(
-                                () -> new RestApiException(EnumErrorCode.GENRE_TYPE_NOT_FOUND)
+                                () -> new RestApiException(EnumErrorCode.GENRE_TYPE_BAD_REQUEST)
                         )
                         .name()
                 ).toList();

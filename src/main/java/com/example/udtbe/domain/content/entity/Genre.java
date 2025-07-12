@@ -8,6 +8,7 @@ import static lombok.AccessLevel.PROTECTED;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import com.example.udtbe.global.util.GenreTypeConverter;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -17,7 +18,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,6 +50,9 @@ public class Genre extends TimeBaseEntity {
             foreignKey = @ForeignKey(NO_CONSTRAINT))
     private Category category;
 
+    @OneToMany(mappedBy = "genre", cascade = CascadeType.ALL)
+    private List<ContentGenre> contentGenres = new ArrayList<>();
+
     @Builder(access = PRIVATE)
     private Genre(GenreType genreType, boolean isDeleted, Category category) {
         this.genreType = genreType;
@@ -53,15 +60,12 @@ public class Genre extends TimeBaseEntity {
         this.category = category;
     }
 
-    public static Genre of(GenreType genreType, boolean isDeleted, Category category) {
+    public static Genre of(GenreType genreType, Category category) {
         return Genre.builder()
                 .genreType(genreType)
-                .isDeleted(isDeleted)
                 .category(category)
+                .isDeleted(false)
                 .build();
     }
 
-    public void addCategory(Category category) {
-        this.category = category;
-    }
 }

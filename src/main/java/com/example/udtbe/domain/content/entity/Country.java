@@ -37,10 +37,10 @@ public class Country extends TimeBaseEntity {
         this.isDeleted = isDeleted;
     }
 
-    public static Country of(String countryName, boolean isDeleted) {
+    public static Country of(String countryName) {
         return Country.builder()
                 .countryName(countryName)
-                .isDeleted(isDeleted)
+                .isDeleted(false)
                 .build();
     }
 }

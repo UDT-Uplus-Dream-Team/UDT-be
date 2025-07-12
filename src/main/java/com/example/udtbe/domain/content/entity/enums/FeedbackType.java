@@ -21,6 +21,6 @@ public enum FeedbackType {
         return Arrays.stream(values())
                 .filter(f -> f.name().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new RestApiException(EnumErrorCode.FEEDBACK_TYPE_NOT_FOUND));
+                .orElseThrow(() -> new RestApiException(EnumErrorCode.FEEDBACK_TYPE_BAD_REQUEST));
     }
 }

@@ -5,8 +5,10 @@ import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.TagConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -15,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,14 +42,24 @@ public class ContentMetadata extends TimeBaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
+    @Convert(converter = TagConverter.class)
+    private List<String> categoryTag;
+
+    @Convert(converter = TagConverter.class)
     @Column(name = "genre_tag")
-    private String genreTag;
+    private List<String> genreTag;
 
+    @Convert(converter = TagConverter.class)
     @Column(name = "platform_tag")
-    private String platformTag;
+    private List<String> platformTag;
 
+    @Convert(converter = TagConverter.class)
     @Column(name = "director_tag")
-    private String directorTag;
+    private List<String> directorTag;
+
+    @Convert(converter = TagConverter.class)
+    private List<String> castTag;
+
 
     @OneToOne(fetch = LAZY, optional = false)
     @JoinColumn(
@@ -58,28 +71,50 @@ public class ContentMetadata extends TimeBaseEntity {
 
     @Builder(access = PRIVATE)
     private ContentMetadata(String title, String rating, boolean isDeleted,
-            String genreTag, String platformTag, String directorTag,
+            List<String> categoryTag,
+            List<String> genreTag, List<String> platformTag, List<String> directorTag,
+            List<String> castTag,
             Content content) {
         this.title = title;
         this.rating = rating;
         this.isDeleted = isDeleted;
+        this.categoryTag = categoryTag;
         this.genreTag = genreTag;
         this.platformTag = platformTag;
         this.directorTag = directorTag;
+        this.castTag = castTag;
         this.content = content;
     }
 
-    public static ContentMetadata of(String title, String rating, boolean isDeleted,
-            String genreTag, String platformTag, String directorTag,
+    public static ContentMetadata of(String title, String rating, List<String> categoryTag,
+            List<String> genreTag, List<String> platformTag, List<String> directorTag,
+            List<String> castTag,
             Content content) {
         return ContentMetadata.builder()
                 .title(title)
                 .rating(rating)
-                .isDeleted(isDeleted)
+                .isDeleted(false)
+                .categoryTag(categoryTag)
                 .genreTag(genreTag)
                 .platformTag(platformTag)
                 .directorTag(directorTag)
+                .castTag(castTag)
                 .content(content)
                 .build();
+    }
+
+    public void delete(boolean status) {
+        this.isDeleted = status;
+    }
+
+    public void update(String title, String rating, List<String> categoryTag, List<String> genreTag,
+            List<String> platformTag, List<String> directorTag, List<String> castTag) {
+        this.title = title;
+        this.rating = rating;
+        this.categoryTag = categoryTag;
+        this.genreTag = genreTag;
+        this.platformTag = platformTag;
+        this.directorTag = directorTag;
+        this.castTag = castTag;
     }
 }
