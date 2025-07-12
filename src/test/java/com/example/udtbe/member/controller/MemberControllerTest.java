@@ -14,7 +14,6 @@ import com.example.udtbe.domain.survey.repository.SurveyRepository;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +25,6 @@ class MemberControllerTest extends ApiSupport {
     MemberRepository memberRepository;
     @Autowired
     SurveyRepository surveyRepository;
-
-    @BeforeEach
-    void setup() throws Exception {
-
-    }
 
     @AfterEach
     void tearDown() {
