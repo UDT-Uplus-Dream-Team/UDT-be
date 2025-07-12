@@ -91,10 +91,7 @@ class MemberServiceTest {
         // then
         then(surveyQuery).should().findSurveyByMemberId(member.getId());
         assertAll(
-                () -> assertEquals(
-                        request.genres().stream()
-                                .map(e -> GenreType.fromByType(e).name()).toList(),
-                        response.genres()),
+                () -> assertEquals(request.genres(), response.genres()),
                 () -> assertEquals(
                         request.genres().stream()
                                 .map(e -> GenreType.fromByType(e).name()).toList(),
