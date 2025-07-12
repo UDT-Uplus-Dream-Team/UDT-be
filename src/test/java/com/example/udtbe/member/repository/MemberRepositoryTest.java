@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @DisplayName("[MemberRepository 테스트]")
-class MemberRepository extends DataJpaSupport {
+class MemberRepositoryTest extends DataJpaSupport {
 
     @Autowired
     MemberQuery memberQuery;
