@@ -15,20 +15,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class FileService {
 
     private final AmazonS3 amazonS3;
 
     private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png",
-            "webp");
+            ".webp");
     private static final String CONTENT_IMG_DIR = "content/";
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
