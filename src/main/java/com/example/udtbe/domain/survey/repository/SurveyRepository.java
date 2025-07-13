@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
-    Optional<Survey> findSurveyByMemberId(Long Long);
+    Optional<Survey> findSurveyByMemberId(Long memberId);
 
     boolean existsByMember(Member member);
 }
