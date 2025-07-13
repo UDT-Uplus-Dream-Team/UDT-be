@@ -41,7 +41,7 @@ class MemberServiceTest {
     @InjectMocks
     private MemberService memberService;
 
-    @DisplayName("마이페이지에서 회원 정보를 조회한다.")
+    @DisplayName("마이페이지에서 회원 정보를 조회할 수 있다..")
     @Test
     void getMemberInfo() {
         // given
@@ -70,7 +70,7 @@ class MemberServiceTest {
 
     }
 
-    @DisplayName("마이페이지에서 회원 선호 장르를 수정한다.")
+    @DisplayName("마이페이지에서 회원 선호 장르를 수정할 수 있다.")
     @Test
     void updateGenre() {
         // given
@@ -99,7 +99,7 @@ class MemberServiceTest {
         );
     }
 
-    @DisplayName("마이페이지에서 올바르지 않은 장르타입으로 수정 시 400에러가 나온다.")
+    @DisplayName("마이페이지에서 올바르지 않은 장르타입으로 수정할 수 없다.")
     @Test
     public void updateInvalidGenre() {
         // given
