@@ -1,8 +1,10 @@
 package com.example.udtbe.domain.member.controller;
 
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
+import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
+import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,5 +34,13 @@ public interface MemberControllerApiSpec {
     ResponseEntity<MemberUpdateGenreResponse> updateSurveyGenres(
             @AuthenticationPrincipal Member member,
             @Valid @RequestBody MemberUpdateGenreRequest memberUpdateGenreRequest
+    );
+
+    @Operation(summary = "마이페이지에서 유저 구독 플렛폼 수정")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PatchMapping("/users/survey/platform")
+    ResponseEntity<MemberUpdatePlatformResponse> updateSurveyPlatforms(
+            @AuthenticationPrincipal Member member,
+            @Valid @RequestBody MemberUpdatePlatformRequest memberUpdateGenreRequest
     );
 }

@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
+import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.repository.MemberRepository;
 import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import com.example.udtbe.domain.survey.repository.SurveyRepository;
@@ -123,5 +124,66 @@ class MemberControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.message").value("장르 수정은 최소 1개 이상 최대 3개 이하입니다."));
     }
 
+    @DisplayName("마이페이지에서 구독 플렛폼을 수정할 수 있다.")
+    @Test
+    void updatePlatform() throws Exception {
+        // given
+        List<String> platforms = List.of("넷플릭스", "디즈니+");
+        List<String> genres = List.of("코미디");
+
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+
+        mockMvc.perform(post("/api/survey")
+                .content(toJson(surveyCreateRequest))
+                .contentType(APPLICATION_JSON)
+                .cookie(accessTokenOfTempMember)
+        );
+
+        MemberUpdatePlatformRequest memberUpdatePlatformRequest = new MemberUpdatePlatformRequest(
+                List.of("왓챠", "티빙")
+        );
+
+        ResultActions actions = mockMvc.perform(patch("/api/users/survey/platform")
+                .content(toJson(memberUpdatePlatformRequest))
+                .contentType(APPLICATION_JSON)
+                .cookie(accessTokenOfTempMember)
+        ).andExpect(status().isOk());
+
+        for (int i = 0; i < memberUpdatePlatformRequest.platforms().size(); i++) {
+            actions.andExpect(jsonPath("$.platforms[" + i + "]").value(
+                    memberUpdatePlatformRequest.platforms().get(i)));
+        }
+    }
+
+    @DisplayName("마이페이지에서 올바르지 않은 플렛폼 타입으로 수정 시 400에러가 나온다.")
+    @Test
+    void updateInvalidPlatform() throws Exception {
+        // given
+        List<String> platforms = List.of("넷플릭스", "디즈니+");
+        List<String> genres = List.of("코미디");
+
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+
+        mockMvc.perform(post("/api/survey")
+                .content(toJson(surveyCreateRequest))
+                .contentType(APPLICATION_JSON)
+                .cookie(accessTokenOfTempMember)
+        );
+
+        MemberUpdatePlatformRequest memberUpdatePlatformRequest = new MemberUpdatePlatformRequest(
+                List.of("!!!", "??", "aaaa")
+        );
+
+        // when & then
+        mockMvc.perform(patch("/api/users/survey/platform")
+                        .content(toJson(memberUpdatePlatformRequest))
+                        .contentType(APPLICATION_JSON)
+                        .cookie(accessTokenOfTempMember)
+                ).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(
+                        EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST.name()))
+                .andExpect(jsonPath("$.message").value(
+                        EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST.getMessage()));
+    }
 
 }
