@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.content.service;
 
+import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -13,6 +15,7 @@ import com.example.udtbe.domain.content.repository.CountryRepository;
 import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -34,4 +37,7 @@ public class ContentQuery {
     private final ContentMetadataRepository contentMetadataRepository;
     private final ContentPlatformRepository contentPlatformRepository;
 
+    public CursorPageResponse<ContentsGetResponse> getContents(ContentsGetRequest request) {
+        return contentRepository.getContents(request);
+    }
 }
