@@ -5,6 +5,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.example.udtbe.global.entity.TimeBaseEntity;
+import com.example.udtbe.global.util.OptionalTagConverter;
 import com.example.udtbe.global.util.TagConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
@@ -53,11 +54,11 @@ public class ContentMetadata extends TimeBaseEntity {
     @Column(name = "platform_tag")
     private List<String> platformTag;
 
-    @Convert(converter = TagConverter.class)
+    @Convert(converter = OptionalTagConverter.class)
     @Column(name = "director_tag")
     private List<String> directorTag;
 
-    @Convert(converter = TagConverter.class)
+    @Convert(converter = OptionalTagConverter.class)
     private List<String> castTag;
 
 
