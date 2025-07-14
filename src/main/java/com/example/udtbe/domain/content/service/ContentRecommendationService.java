@@ -72,8 +72,7 @@ public class ContentRecommendationService {
         log.info("--- 개인화 추천 검색 시작 ---");
         long startTime = System.currentTimeMillis();
 
-        // 1. 모든 ContentMetadata를 한 번에 조회하여 캐시 생성
-        log.debug("ContentMetadata 캐시 생성 중...");
+        // 1. 모든 ContentMetadata를 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
         log.info("ContentMetadata 캐시 생성 완료: 총 {}개 콘텐츠", metadataCache.size());
 

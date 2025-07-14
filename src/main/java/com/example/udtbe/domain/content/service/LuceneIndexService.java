@@ -54,7 +54,6 @@ public class LuceneIndexService {
         log.debug("IndexWriter 설정 생성 완료: analyzer={}", analyzer.getClass().getSimpleName());
 
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-            log.debug("기존 인덱스 삭제 중...");
             indexWriter.deleteAll();
 
             log.debug("ContentMetadata 조회 시작");
