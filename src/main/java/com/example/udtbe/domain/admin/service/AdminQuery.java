@@ -38,50 +38,50 @@ public class AdminQuery {
     private final CountryRepository countryRepository;
 
 
-    public Content findContentByContentId(Long contentId){
-        return contentRepository.findById(contentId).orElseThrow( ()->
+    public Content findContentByContentId(Long contentId) {
+        return contentRepository.findById(contentId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND)
         );
     }
 
-    public ContentMetadata findContentMetadateByContentId(Long contentId){
-        return contentMetadataRepository.findByContent_Id(contentId).orElseThrow( ()->
+    public ContentMetadata findContentMetadateByContentId(Long contentId) {
+        return contentMetadataRepository.findByContent_Id(contentId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CONTENT_METADATA_NOT_FOUND)
         );
     }
 
-    public Category findByCategoryType(CategoryType categoryType){
-        return categoryRepository.findByCategoryType(categoryType).orElseThrow( ()->
+    public Category findByCategoryType(CategoryType categoryType) {
+        return categoryRepository.findByCategoryType(categoryType).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND)
         );
     }
 
-    public Genre findByGenreTypeAndCategory(GenreType genreType, Category ccategory){
-        return genreRepository.findByGenreTypeAndCategory(genreType,ccategory).orElseThrow( ()->
+    public Genre findByGenreTypeAndCategory(GenreType genreType, Category ccategory) {
+        return genreRepository.findByGenreTypeAndCategory(genreType, ccategory).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.GENRE_NOT_FOUND)
         );
     }
 
-    public Platform findByPlatform(PlatformType platformType){
-        return platformRepository.findByPlatformType(platformType).orElseThrow( ()->
+    public Platform findByPlatform(PlatformType platformType) {
+        return platformRepository.findByPlatformType(platformType).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND)
         );
     }
 
-    public Cast findOrSaveCast(String castName, String castImageUrl){
-        return castRepository.findByCastNameAndCastImageUrl(castName, castImageUrl).orElseGet( ()->
+    public Cast findOrSaveCast(String castName, String castImageUrl) {
+        return castRepository.findByCastNameAndCastImageUrl(castName, castImageUrl).orElseGet(() ->
                 castRepository.save(Cast.of(castName, castImageUrl))
         );
     }
 
-    public Director findOrSaveDirector(String directorName){
-        return directorRepository.findByDirectorName(directorName).orElseGet( ()->
+    public Director findOrSaveDirector(String directorName) {
+        return directorRepository.findByDirectorName(directorName).orElseGet(() ->
                 directorRepository.save(Director.of(directorName))
         );
     }
 
-    public Country findOrSaveCountry(String countryName){
-        return countryRepository.findByCountryName(countryName).orElseGet( ()->
+    public Country findOrSaveCountry(String countryName) {
+        return countryRepository.findByCountryName(countryName).orElseGet(() ->
                 countryRepository.save(Country.of(countryName))
         );
     }

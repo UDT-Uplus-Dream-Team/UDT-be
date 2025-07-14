@@ -21,6 +21,6 @@ public record ContentGetDetailResponse(
         List<String> directors,
         List<CastDTO> casts,
         List<PlatformDTO> platforms
-){
+) {
 
 }
