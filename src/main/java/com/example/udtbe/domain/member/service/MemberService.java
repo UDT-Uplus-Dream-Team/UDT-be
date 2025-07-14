@@ -48,7 +48,12 @@ public class MemberService {
 
         survey.updateGenreTag(genres);
 
-        return new MemberUpdateGenreResponse(memberUpdateGenreRequest.genres());
+        List<String> genresRes = survey.getGenreTag().stream()
+                .map(genreType ->
+                        GenreType.from(genreType).getType()
+                ).toList();
+
+        return new MemberUpdateGenreResponse(genresRes);
     }
 
     @Transactional
@@ -63,7 +68,12 @@ public class MemberService {
 
         survey.updatePlatformTag(platforms);
 
-        return new MemberUpdatePlatformResponse(memberUpdatePlatformRequest.platforms());
+        List<String> platformsRes = survey.getPlatformTag().stream()
+                .map(platformType ->
+                        PlatformType.from(platformType).getType()
+                ).toList();
+
+        return new MemberUpdatePlatformResponse(platformsRes);
     }
 
 }
