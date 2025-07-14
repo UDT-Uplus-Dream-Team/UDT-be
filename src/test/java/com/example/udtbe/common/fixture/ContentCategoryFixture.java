@@ -23,4 +23,8 @@ public class ContentCategoryFixture {
         list.add(contentCategory3);
         return list;
     }
+
+    public static ContentCategory contentCategory(Content content, Category category) {
+        return ContentCategory.of(content, category);
+    }
 }

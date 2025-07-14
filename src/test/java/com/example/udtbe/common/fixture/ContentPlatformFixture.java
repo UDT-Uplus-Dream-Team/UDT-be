@@ -22,4 +22,13 @@ public class ContentPlatformFixture {
         });
         return list;
     }
+
+    public static ContentPlatform contentPlatform(Content content, Platform platform) {
+        return ContentPlatform.of(
+                "watch_URL",
+                true,
+                content,
+                platform
+        );
+    }
 }

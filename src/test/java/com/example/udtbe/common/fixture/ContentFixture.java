@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
 public class ContentFixture {
+
     public static Content content(String title, String description) {
         return Content.of(
                 title,
@@ -94,5 +95,19 @@ public class ContentFixture {
         });
 
         return list;
+    }
+
+    public static Content content(String title, LocalDateTime openDate, String rating) {
+        return Content.of(
+                title,
+                "description",
+                "https://example.com/default-poster.jpg",
+                "https://example.com/default-backdrop.jpg",
+                "https://example.com/default-trailer.mp4",
+                openDate,
+                120,
+                1,
+                rating
+        );
     }
 }

@@ -41,4 +41,8 @@ public class ContentGenreFixture {
         });
         return list;
     }
+
+    public static ContentGenre contentGenre(Content content, Genre genre) {
+        return ContentGenre.of(content, genre);
+    }
 }
