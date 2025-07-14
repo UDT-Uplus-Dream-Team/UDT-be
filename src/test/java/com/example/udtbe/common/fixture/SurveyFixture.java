@@ -30,4 +30,86 @@ public class SurveyFixture {
                 member
         );
     }
+
+    // === 특정 장르 선호 설문 메서드들 ===
+
+    public static Survey actionThrillerSurvey(Member member) {
+        return Survey.of(
+                List.of("NETFLIX", "WATCHA"),
+                List.of("ACTION", "THRILLER"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey scienceFictionSurvey(Member member) {
+        return Survey.of(
+                List.of("DISNEY_PLUS", "NETFLIX"),
+                List.of("SF", "FANTASY"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey netflixOnlySurvey(Member member) {
+        return Survey.of(
+                List.of("NETFLIX"),
+                List.of("ACTION", "DRAMA"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey disneyPlusSurvey(Member member) {
+        return Survey.of(
+                List.of("DISNEY_PLUS"),
+                List.of("ACTION", "ADVENTURE"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey musicalRomanceSurvey(Member member) {
+        return Survey.of(
+                List.of("NETFLIX", "WATCHA", "TVING"),
+                List.of("MUSICAL", "ROMANCE"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey horrorThrillerSurvey(Member member) {
+        return Survey.of(
+                List.of("NETFLIX", "WATCHA"),
+                List.of("HORROR", "THRILLER", "MYSTERY"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey familyFriendlySurvey(Member member) {
+        return Survey.of(
+                List.of("DISNEY_PLUS", "NETFLIX"),
+                List.of("ANIMATION", "ADVENTURE", "FAMILY"),
+                List.of(""),
+                false,
+                member
+        );
+    }
+
+    public static Survey emptyPlatformSurvey(Member member) {
+        return Survey.of(
+                List.of(), // 빈 플랫폼 리스트
+                List.of("ACTION"),
+                List.of(""),
+                false,
+                member
+        );
+    }
 }
