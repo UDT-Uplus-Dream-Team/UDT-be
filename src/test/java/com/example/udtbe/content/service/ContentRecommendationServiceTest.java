@@ -105,7 +105,7 @@ class ContentRecommendationServiceTest {
 
             // 첫 번째 추천이 액션/스릴러 장르를 포함하는지 확인
             assertThat(result.get(0).genres())
-                    .anyMatch(genre -> genre.contains("ACTION") || genre.contains("THRILLER"));
+                    .anyMatch(genre -> genre.contains("액션") || genre.contains("스릴러"));
 
             verify(contentRecommendationQuery).findSurveyByMemberId(testMember.getId());
             verify(luceneIndexService).getIndexReader();
@@ -180,7 +180,7 @@ class ContentRecommendationServiceTest {
             // then
             assertThat(result).hasSize(5);
             assertThat(result).allMatch(response ->
-                    response.platforms().contains("NETFLIX"));
+                    response.platforms().contains("넷플릭스"));
         }
 
         @Test
@@ -203,7 +203,7 @@ class ContentRecommendationServiceTest {
             // then
             assertThat(result).hasSize(2);
             assertThat(result).allMatch(response ->
-                    response.platforms().contains("DISNEY_PLUS"));
+                    response.platforms().contains("디즈니+"));
         }
     }
 
@@ -234,7 +234,7 @@ class ContentRecommendationServiceTest {
             // 상위 3개 중에 스릴러 장르가 포함된 콘텐츠가 최소 2개는 있어야 함
             long thrillerCountInTop3 = result.subList(0, 3).stream()
                     .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("THRILLER") ? 1L : 0L)
+                            .mapToLong(genre -> genre.contains("스릴러") ? 1L : 0L)
                             .sum())
                     .sum();
             assertThat(thrillerCountInTop3).isGreaterThanOrEqualTo(2L);
@@ -250,19 +250,19 @@ class ContentRecommendationServiceTest {
 
             // 액션 콘텐츠에 싫어요 피드백 (탑건, 블랙팬서)
             mockNegativeFeedbackForAction();
-            // 비액션 우선, 액션은 하위에: 스릴러(기생충,올드보이,조커), 뮤지컬(라라랜드), SF(인터스텔라,아바타), 액션(탑건,블랙팬서,스파이더맨)
-            mockContentQueryWithOrder(List.of(1L, 2L, 9L, 6L, 3L, 4L, 7L, 5L, 8L, 10L));
+            // 비액션 우선, 액션은 하위에: 스릴러(기생충,올드보이), 뮤지컬(라라랜드), SF(인터스텔라), 액션(탑건,블랙팬서,스파이더맨), 기타(아바타,겟아웃,조커)
+            mockContentQueryWithOrder(List.of(1L, 2L, 6L, 3L, 5L, 8L, 10L, 4L, 7L, 9L));
 
             // when
             List<ContentRecommendationResponse> result = contentRecommendationService
-                    .searchRecommendations(testSurvey, testMember, 8);
+                    .searchRecommendations(testSurvey, testMember, 10);
 
             // then
-            assertThat(result).hasSize(8);
+            assertThat(result).hasSize(10);
             // 상위 4개 중에는 액션 장르가 최대 1개만 있어야 함 (피드백으로 점수가 낮아졌으므로)
             long actionCountInTop4 = result.subList(0, 4).stream()
                     .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("ACTION") ? 1L : 0L)
+                            .mapToLong(genre -> genre.contains("액션") ? 1L : 0L)
                             .sum())
                     .sum();
             assertThat(actionCountInTop4).isLessThanOrEqualTo(1L);
@@ -270,7 +270,7 @@ class ContentRecommendationServiceTest {
             // 하위 4개 중에는 액션 장르가 최소 2개는 있어야 함
             long actionCountInBottom4 = result.subList(4, 8).stream()
                     .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("ACTION") ? 1L : 0L)
+                            .mapToLong(genre -> genre.contains("액션") ? 1L : 0L)
                             .sum())
                     .sum();
             assertThat(actionCountInBottom4).isGreaterThanOrEqualTo(2L);
