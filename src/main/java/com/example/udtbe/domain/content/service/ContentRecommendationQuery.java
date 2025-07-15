@@ -10,9 +10,9 @@ import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.repository.SurveyRepository;
 import com.example.udtbe.global.exception.RestApiException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +31,9 @@ public class ContentRecommendationQuery {
     /**
      * 회원별 설문 조회
      */
-    public Optional<Survey> findSurveyByMemberId(Long memberId) {
-        if (memberId == null) {
-            throw new RestApiException(RecommendContentErrorCode.INVALID_LIMIT_PARAMETER);
-        }
-        return surveyRepository.findByMemberId(memberId);
+    public Survey findSurveyByMemberId(Long memberId) {
+        return surveyRepository.findByMemberId(memberId).orElseThrow(
+                () -> new RestApiException(RecommendContentErrorCode.SURVEY_NOT_FOUND));
     }
 
     /**
@@ -60,9 +58,6 @@ public class ContentRecommendationQuery {
      * 회원별 피드백 조회
      */
     public List<Feedback> findFeedbacksByMemberId(Long memberId) {
-        if (memberId == null) {
-            throw new RestApiException(RecommendContentErrorCode.INVALID_LIMIT_PARAMETER);
-        }
         try {
             return feedbackRepository.findByMemberIdAndIsDeletedFalse(memberId);
         } catch (Exception e) {
@@ -76,7 +71,7 @@ public class ContentRecommendationQuery {
      */
     public List<Content> findContentsByIds(List<Long> contentIds) {
         if (contentIds == null || contentIds.isEmpty()) {
-            return List.of();
+            return Collections.emptyList();
         }
         try {
             return contentRepository.findAllById(contentIds);
