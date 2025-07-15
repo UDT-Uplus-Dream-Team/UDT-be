@@ -17,6 +17,7 @@ import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
+import com.example.udtbe.domain.content.exception.RecommendContentErrorCode;
 import com.example.udtbe.domain.content.service.ContentRecommendationQuery;
 import com.example.udtbe.domain.content.service.ContentRecommendationService;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
@@ -24,6 +25,7 @@ import com.example.udtbe.domain.content.service.LuceneSearchService;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.domain.survey.entity.Survey;
+import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +153,7 @@ class ContentRecommendationServiceTest {
         void shouldReturnPopularContents_WhenSurveyNotExists() {
             // given
             when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(null); // 설문이 없는 경우
+                    .thenThrow(new RestApiException(RecommendContentErrorCode.SURVEY_NOT_FOUND));
             when(contentRecommendationQuery.findPopularContentMetadata(5))
                     .thenReturn(testMetadataList.subList(0, 5));
 
