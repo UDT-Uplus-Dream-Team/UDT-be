@@ -9,8 +9,11 @@ import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPl
 import static com.example.udtbe.domain.content.entity.QCountry.country;
 import static com.example.udtbe.domain.content.entity.QGenre.genre;
 import static com.example.udtbe.domain.content.entity.QPlatform.platform;
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
 
-import com.example.udtbe.domain.admin.dto.common.ContentDTO;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
@@ -18,7 +21,6 @@ import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
@@ -37,33 +39,52 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public CursorPageResponse<ContentDTO> findContentsAdminByCursor(Long cursor, int size) {
+    public CursorPageResponse<AdminContentGetResponse> getsAdminContentsByCursor(Long cursor,
+            int size, String categoryType) {
 
-        List<ContentDTO> dtos = queryFactory
-                .select(Projections.constructor(
-                        ContentDTO.class,
-                        content.id,
-                        content.title,
-                        content.posterUrl,
-                        content.openDate,
-                        content.rating
-                ))
+        List<Long> contentIds = queryFactory
+                .select(content.id)
                 .from(content)
-                .where(cursorFilter(cursor), deletedFilter())
-                .orderBy(content.id.desc())
+                .leftJoin(content.contentCategories, contentCategory)
+                .leftJoin(contentCategory.category, category)
+                .where(cursorFilter(cursor), deletedFilter(), categoryFilter(categoryType))
+                .orderBy(content.openDate.desc(), content.id.desc())
                 .limit(size + 1)
                 .fetch();
 
-        boolean hasNext = dtos.size() > size;
+        List<AdminContentGetResponse> contentAdminGetResponses = queryFactory
+                .from(content)
+                .leftJoin(content.contentCategories, contentCategory)
+                .leftJoin(contentCategory.category, category)
+                .leftJoin(content.contentPlatforms, contentPlatform)
+                .leftJoin(contentPlatform.platform, platform)
+                .where(content.id.in(contentIds))
+                .orderBy(content.openDate.desc(), content.id.desc())
+                .transform(
+                        groupBy(content.id).list(
+                                new QAdminContentGetResponse(
+                                        content.id,
+                                        content.title,
+                                        content.posterUrl,
+                                        content.openDate,
+                                        content.rating,
+                                        list(category.categoryType.stringValue()),
+                                        list(platform.platformType.stringValue())
+                                )
+                        )
+                );
+
+        boolean hasNext = contentAdminGetResponses.size() > size;
+
         if (hasNext) {
-            dtos.remove(dtos.size() - 1);
+            contentAdminGetResponses.remove(contentAdminGetResponses.size() - 1);
         }
 
-        String nextCursor = hasNext
-                ? String.valueOf(dtos.get(dtos.size() - 1).contentId())
+        String nextCursor = hasNext ? String.valueOf(
+                contentAdminGetResponses.get(contentAdminGetResponses.size() - 1).contentId())
                 : null;
 
-        return new CursorPageResponse<>(dtos, nextCursor, hasNext);
+        return new CursorPageResponse<>(contentAdminGetResponses, nextCursor, hasNext);
     }
 
     @Override
@@ -273,5 +294,13 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 
     private BooleanExpression deletedFilter() {
         return content.isDeleted.eq(false);
+    }
+
+    private BooleanExpression categoryFilter(String categoryType) {
+        if (Objects.isNull(categoryType)) {
+            return null;
+        }
+        CategoryType ct = CategoryType.fromByType(categoryType);
+        return category.categoryType.in(ct);
     }
 }
