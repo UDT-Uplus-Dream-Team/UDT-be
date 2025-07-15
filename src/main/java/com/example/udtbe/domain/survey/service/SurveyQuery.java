@@ -23,7 +23,7 @@ public class SurveyQuery {
     }
 
     public Survey findSurveyByMemberId(Long memberId) {
-        return surveyRepository.findSurveyByMemberId(memberId)
+        return surveyRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RestApiException(SurveyErrorCode.SURVEY_NOT_FOUND));
     }
 }

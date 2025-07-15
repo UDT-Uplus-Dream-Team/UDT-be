@@ -3,6 +3,7 @@ package com.example.udtbe.domain.content.entity.enums;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -63,5 +64,15 @@ public enum GenreType {
                         )
                         .name()
                 ).toList();
+    }
+
+    public static List<String> toKoreanTypes(List<String> englishGenres) {
+        if (englishGenres == null || englishGenres.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return englishGenres.stream()
+                .map(englishGenre -> from(englishGenre).getType())
+                .toList();
     }
 }

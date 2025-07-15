@@ -2,6 +2,7 @@ package com.example.udtbe.domain.content.repository;
 
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.global.dto.CursorPageResponse;
 
@@ -11,4 +12,6 @@ public interface ContentRepositoryCustom {
             String categoryType);
 
     CursorPageResponse<ContentsGetResponse> getContents(ContentsGetRequest request);
+
+    ContentDetailsGetResponse getContentDetails(Long contentId);
 }
