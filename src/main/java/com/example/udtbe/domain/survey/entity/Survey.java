@@ -82,4 +82,8 @@ public class Survey extends TimeBaseEntity {
     public void updateGenreTag(List<String> genreTag) {
         this.genreTag = genreTag;
     }
+
+    public void updatePlatformTag(List<String> platformTag) {
+        this.platformTag = platformTag;
+    }
 }

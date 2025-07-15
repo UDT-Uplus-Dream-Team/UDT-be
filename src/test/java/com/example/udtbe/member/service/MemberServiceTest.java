@@ -11,9 +11,12 @@ import static org.mockito.BDDMockito.then;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
+import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
+import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
+import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberQuery;
 import com.example.udtbe.domain.member.service.MemberService;
@@ -119,4 +122,57 @@ class MemberServiceTest {
                 .isInstanceOf(RestApiException.class)
                 .hasMessage(EnumErrorCode.GENRE_TYPE_BAD_REQUEST.getMessage());
     }
+
+
+    @DisplayName("마이페이지에서 회원 구독 플렛폼을 수정할 수 있다.")
+    @Test
+    void updatePlatform() {
+        // given
+        final MemberUpdatePlatformRequest request = new MemberUpdatePlatformRequest(
+                List.of("넷플릭스", "왓챠")
+        );
+
+        final String email = "test@email.com";
+
+        Member member = MemberFixture.member(email, ROLE_USER);
+        Survey survey = SurveyFixture.survey(List.of("NETFLIX"), List.of("SF", "ROMANCE"), member);
+
+        given(surveyQuery.findSurveyByMemberId(member.getId())).willReturn(survey);
+        // when
+        MemberUpdatePlatformResponse response =
+                memberService.updateMemberPlatforms(member.getId(), request);
+
+        // then
+        then(surveyQuery).should().findSurveyByMemberId(member.getId());
+        assertAll(
+                () -> assertEquals(request.platforms(), response.platforms()),
+                () -> assertEquals(
+                        request.platforms().stream()
+                                .map(e -> PlatformType.fromByType(e).name()).toList(),
+                        survey.getPlatformTag())
+        );
+    }
+
+    @DisplayName("마이페이지에서 올바르지 않은 플렛폼 타입으로 수정할 수 없다.")
+    @Test
+    public void updateInvalidPlatform() {
+        // given
+        final MemberUpdatePlatformRequest request = new MemberUpdatePlatformRequest(
+                List.of("엥?", "액션")
+        );
+
+        final String email = "test@email.com";
+
+        Member member = MemberFixture.member(email, ROLE_USER);
+        Survey survey = SurveyFixture.survey(List.of("NETFLIX"), List.of("SF", "ROMANCE"), member);
+
+        given(surveyQuery.findSurveyByMemberId(member.getId())).willReturn(survey);
+
+        // when & then
+        assertThatThrownBy(() -> memberService.updateMemberPlatforms(member.getId(), request))
+                .isInstanceOf(RestApiException.class)
+                .hasMessage(EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST.getMessage());
+    }
+
+
 }
