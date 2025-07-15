@@ -30,6 +30,7 @@ public class CuratedContentQueryDSLImpl implements CuratedContentQueryDSL {
                 : null;
 
         return jpaQueryFactory.selectFrom(curatedContent)
+                .join(curatedContent.content).fetchJoin()
                 .where(baseCondition.and(
                         cursorCondition != null ? cursorCondition : Expressions.TRUE))
                 .orderBy(curatedContent.id.desc())

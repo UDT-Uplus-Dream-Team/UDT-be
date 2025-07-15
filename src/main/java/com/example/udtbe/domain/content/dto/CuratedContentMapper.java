@@ -13,14 +13,7 @@ public class CuratedContentMapper {
         return new CuratedContentDTO(
                 content.getId(),
                 content.getTitle(),
-                content.getPosterUrl(),
-                content.getRating(),
-                ContentCountryMapper.countryNames(content.getContentCountries()),
-                ContentCategoryMapper.toCategoryDTOList(
-                        content.getContentCategories(),
-                        content.getContentGenres()
-                ),
-                ContentPlatformMapper.platformNames(content.getContentPlatforms())
+                content.getPosterUrl()
         );
     }
 

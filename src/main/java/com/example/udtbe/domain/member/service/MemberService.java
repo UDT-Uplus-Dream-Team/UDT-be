@@ -46,11 +46,11 @@ public class MemberService {
 
         boolean hasNext = curatedContents.size() > request.size();
         List<CuratedContent> limited =
-                hasNext ? curatedContents.subList(0, curatedContents.size()) : curatedContents;
+                hasNext ? curatedContents.subList(0, request.size()) : curatedContents;
 
         List<CuratedContentDTO> dtoList = CuratedContentMapper.toResponseList(limited);
 
-        Long nextCursor = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
+        Long nextCursor = hasNext ? limited.get(limited.size() - 1).getId() : null;
 
         return new CuratedContentGetListResponse(
                 dtoList, nextCursor, hasNext
