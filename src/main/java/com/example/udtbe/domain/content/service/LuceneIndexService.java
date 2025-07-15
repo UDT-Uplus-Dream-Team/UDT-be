@@ -60,17 +60,10 @@ public class LuceneIndexService {
             List<ContentMetadata> allContentMetadata = contentMetadataRepository.findByIsDeletedFalse();
             log.info("인덱싱 대상 ContentMetadata: {}개", allContentMetadata.size());
 
-            int indexedCount = 0;
             for (ContentMetadata metadata : allContentMetadata) {
                 try {
                     Document doc = createDocument(metadata);
                     indexWriter.addDocument(doc);
-                    indexedCount++;
-
-                    if (indexedCount % 100 == 0) {
-                        log.debug("인덱싱 진행률: {}/{}", indexedCount, allContentMetadata.size());
-                    }
-
                 } catch (Exception e) {
                     log.warn("문서 인덱싱 실패 - contentId={}: {}",
                             metadata.getContent().getId(), e.getMessage());
@@ -79,7 +72,6 @@ public class LuceneIndexService {
 
             indexWriter.commit();
             indexBuilt = true;
-            log.info("Lucene 인덱스 빌드 성공: {}개 문서 인덱싱 완료", indexedCount);
         }
     }
 

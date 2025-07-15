@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.content.controller;
 
-import com.example.udtbe.domain.content.dto.ContentRecommendationResponse;
+import com.example.udtbe.domain.content.dto.response.ContentRecommendationResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
