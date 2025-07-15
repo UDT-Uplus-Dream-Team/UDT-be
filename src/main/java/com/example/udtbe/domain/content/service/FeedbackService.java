@@ -4,7 +4,7 @@ import com.example.udtbe.domain.content.dto.FeedbackMapper;
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackGetBulkResponse;
+import com.example.udtbe.domain.content.dto.response.FeedbackGetListResponse;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
@@ -30,7 +30,7 @@ public class FeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public FeedbackGetBulkResponse getFeedbackList(FeedbackContentGetRequest request,
+    public FeedbackGetListResponse getFeedbackList(FeedbackContentGetRequest request,
             Member member) {
         List<Feedback> feedbacks = feedbackQuery.getFeedbacksByCursor(member, request);
 
@@ -41,7 +41,7 @@ public class FeedbackService {
 
         Long nextCursor = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
 
-        return new FeedbackGetBulkResponse(dtoList, nextCursor, hasNext);
+        return new FeedbackGetListResponse(dtoList, nextCursor, hasNext);
     }
 
     @Transactional

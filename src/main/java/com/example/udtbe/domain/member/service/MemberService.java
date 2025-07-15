@@ -1,9 +1,16 @@
 package com.example.udtbe.domain.member.service;
 
+import com.example.udtbe.domain.content.dto.CuratedContentMapper;
+import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
+import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
+import com.example.udtbe.domain.content.dto.response.CuratedContentGetListResponse;
+import com.example.udtbe.domain.content.entity.CuratedContent;
+import com.example.udtbe.domain.content.service.CuratedContentQuery;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +21,7 @@ public class MemberService {
 
     private final MemberQuery memberQuery;
     private final SurveyQuery surveyQuery;
+    private final CuratedContentQuery curatedContentQuery;
 
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(Long memberId) {
@@ -27,6 +35,25 @@ public class MemberService {
                 survey.getPlatformTag(),
                 survey.getGenreTag(),
                 member.getProfileImageUrl());
+    }
 
+    @Transactional(readOnly = true)
+    public CuratedContentGetListResponse getCuratedContents(CuratedContentGetRequest request,
+            Member member) {
+
+        List<CuratedContent> curatedContents = curatedContentQuery.getCuratedContentsByCursor(
+                member, request);
+
+        boolean hasNext = curatedContents.size() > request.size();
+        List<CuratedContent> limited =
+                hasNext ? curatedContents.subList(0, curatedContents.size()) : curatedContents;
+
+        List<CuratedContentDTO> dtoList = CuratedContentMapper.toResponseList(limited);
+
+        Long nextCursor = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
+
+        return new CuratedContentGetListResponse(
+                dtoList, nextCursor, hasNext
+        );
     }
 }

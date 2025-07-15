@@ -2,7 +2,7 @@ package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackGetBulkResponse;
+import com.example.udtbe.domain.content.dto.response.FeedbackGetListResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,7 +32,7 @@ public interface FeedbackControllerApiSpec {
     @Operation(summary = "Feedback한 Content 조회 API", description = "좋아요/싫어요 한 컨텐츠들을 조회한다")
     @ApiResponse(useReturnTypeSchema = true)
     @GetMapping("/users/me/feedbacks")
-    ResponseEntity<FeedbackGetBulkResponse> getFeedbackByCursor(
+    ResponseEntity<FeedbackGetListResponse> getFeedbackByCursor(
             @ModelAttribute @Valid FeedbackContentGetRequest request,
             @AuthenticationPrincipal Member member);
 

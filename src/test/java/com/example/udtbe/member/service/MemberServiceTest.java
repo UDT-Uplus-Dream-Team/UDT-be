@@ -8,6 +8,10 @@ import static org.mockito.BDDMockito.then;
 
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
+import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
+import com.example.udtbe.domain.content.entity.CuratedContent;
+import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
+import com.example.udtbe.domain.content.service.CuratedContentQuery;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberQuery;
@@ -29,6 +33,9 @@ class MemberServiceTest {
 
     @Mock
     private SurveyQuery surveyQuery;
+
+    @Mock
+    private CuratedContentQuery curatedContentQuery;
 
     @InjectMocks
     private MemberService memberService;
@@ -59,6 +66,25 @@ class MemberServiceTest {
                 () -> assertThat(response.genres()).isEqualTo(survey.getGenreTag()),
                 () -> assertThat(response.profileImageUrl()).isEqualTo(member.getProfileImageUrl())
         );
+    }
+
+    @DisplayName("마이페이지에서 엄선된 추천 콘텐츠 목록을 무한스크롤로 조회한다.")
+    @Test
+    void getCuratedContents() {
+        // given
+        final String email = "test@email.com";
+
+        Member member = MemberFixture.member(email, ROLE_USER);
+        CuratedContent curatedContent1 = curatedContent("")
+
+        CuratedContentGetRequest request = new CuratedContentGetRequest(5L, 10,
+                FeedbackSortType.NEWEST);
+
+        given(memberQuery.findMemberById(member.getId())).willReturn(member);
+
+        // when
+
+        // then
 
     }
 }
