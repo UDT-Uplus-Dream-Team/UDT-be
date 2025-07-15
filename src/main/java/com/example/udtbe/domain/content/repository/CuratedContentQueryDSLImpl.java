@@ -37,4 +37,5 @@ public class CuratedContentQueryDSLImpl implements CuratedContentQueryDSL {
                 .limit(curatedContentGetRequest.size() + 1)
                 .fetch();
     }
+
 }

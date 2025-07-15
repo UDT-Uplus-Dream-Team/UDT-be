@@ -32,7 +32,8 @@ public class MemberController implements MemberControllerApiSpec {
         CuratedContentGetListResponse response
                 = memberService.getCuratedContents(curatedContentGetRequest, member);
         return ResponseEntity.ok(response);
-      
+    }
+
     @Override
     public ResponseEntity<MemberUpdateGenreResponse> updateSurveyGenres(Member member,
             MemberUpdateGenreRequest memberUpdateGenreRequest) {

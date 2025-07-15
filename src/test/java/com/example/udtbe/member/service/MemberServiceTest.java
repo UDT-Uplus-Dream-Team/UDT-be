@@ -16,9 +16,9 @@ import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
 import com.example.udtbe.domain.content.dto.response.CuratedContentGetListResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.CuratedContent;
-import com.example.udtbe.domain.content.service.CuratedContentQuery;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.service.CuratedContentQuery;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
@@ -114,7 +114,6 @@ class MemberServiceTest {
                 () -> assertThat(response.nextCursor()).isEqualTo(curatedContent2.getId()),
                 () -> assertThat(response.hasNext()).isTrue()
         );
-
     }
 
     @DisplayName("마이페이지에서 회원 선호 장르를 수정할 수 있다.")

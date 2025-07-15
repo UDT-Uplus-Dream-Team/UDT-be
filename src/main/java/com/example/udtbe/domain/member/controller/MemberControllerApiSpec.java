@@ -38,6 +38,7 @@ public interface MemberControllerApiSpec {
     ResponseEntity<CuratedContentGetListResponse> getCuratedContents(
             @AuthenticationPrincipal Member member,
             @ModelAttribute @Valid CuratedContentGetRequest curatedContentGetRequest
+    );
 
     @Operation(summary = "마이페이지에서 유저 선호 장르 수정")
     @ApiResponse(useReturnTypeSchema = true)
