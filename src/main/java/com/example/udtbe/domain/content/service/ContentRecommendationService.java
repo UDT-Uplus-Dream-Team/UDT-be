@@ -10,6 +10,8 @@ import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
+import com.example.udtbe.global.exception.RestApiException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -48,7 +51,7 @@ public class ContentRecommendationService {
 
             return searchRecommendations(userSurvey, member, limit);
 
-        } catch (Exception e) {
+        } catch (IOException | ParseException | RestApiException e) {
             log.error("추천 시스템 오류 발생: memberId={}, error={}", member.getId(), e.getMessage(), e);
             return getPopularContents(limit);
         }
@@ -56,7 +59,7 @@ public class ContentRecommendationService {
 
     public List<ContentRecommendationResponse> searchRecommendations(Survey userSurvey,
             Member member, int limit)
-            throws Exception {
+            throws IOException, ParseException {
 
         // TODO: 모든 ContentMetadata를 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
@@ -65,10 +68,10 @@ public class ContentRecommendationService {
                 userSurvey.getPlatformTag(), metadataCache);
 
         List<String> userGenres = userSurvey.getGenreTag();
-        TopDocs topDocs = luceneSearchService.searchRecommendations(
+        TopDocs topDocs = luceneSearchService.searchRecommendations(//IOException, ParseException
                 platformFilteredContentIds, userGenres, limit);
 
-        DirectoryReader reader = luceneIndexService.getIndexReader();
+        DirectoryReader reader = luceneIndexService.getIndexReader();//IOException
         IndexSearcher searcher = new IndexSearcher(reader);
 
         List<ContentRecommendationDTO> recommendations = new ArrayList<>();
@@ -77,7 +80,7 @@ public class ContentRecommendationService {
 
         for (int i = 0; i < topDocs.scoreDocs.length; i++) {
             ScoreDoc scoreDoc = topDocs.scoreDocs[i];
-            Document doc = searcher.storedFields().document(scoreDoc.doc);
+            Document doc = searcher.storedFields().document(scoreDoc.doc);//IOException
             Long contentId = Long.valueOf(doc.get("contentId"));
             // TF-IDF 점수
             float luceneScore = scoreDoc.score;
@@ -88,17 +91,15 @@ public class ContentRecommendationService {
 
             float finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
 
-
             recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
         }
 
-        reader.close();
+        reader.close();//IOException
 
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
                 .limit(limit)
                 .toList();
-
 
         List<Long> sortedContentIds = sortedRecommendations.stream()
                 .map(ContentRecommendationDTO::contentId)
@@ -110,7 +111,6 @@ public class ContentRecommendationService {
                 .map(content -> metadataCache.get(content.getId()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-
 
         return ContentRecommendationMapper.toResponseList(contents, metadataList);
     }
@@ -212,7 +212,6 @@ public class ContentRecommendationService {
                         case DISLIKE -> -1.0f;
                         case UNINTERESTED -> -0.5f;
                     };
-
 
                     for (String genre : metadata.getGenreTag()) {
                         if (genre != null && !genre.trim().isEmpty()) {

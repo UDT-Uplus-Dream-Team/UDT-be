@@ -91,7 +91,6 @@ public class LuceneIndexService {
         doc.add(new TextField("platformTag", platformTag, Field.Store.YES));
         doc.add(new TextField("genreTag", genreTag, Field.Store.YES));
 //        doc.add(new TextField("directorTag", directorTag, Field.Store.YES));
-//        doc.add(new StringField("rating", rating, Field.Store.YES));
 
         log.trace("문서 생성: contentId={}, title='{}', platforms='{}', genres='{}', rating='{}'",
                 contentId, metadata.getTitle(), platformTag, genreTag, rating);
