@@ -19,7 +19,6 @@ import org.apache.lucene.store.Directory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class LuceneIndexService {
     private final Analyzer analyzer;
     private final Directory directory;
 
-    private volatile boolean indexBuilt = false;
+    private boolean indexBuilt = false;
 
     @EventListener(ApplicationReadyEvent.class)
     public void buildIndexOnStartup() {
@@ -40,30 +39,26 @@ public class LuceneIndexService {
         try {
             buildIndex();
             long endTime = System.currentTimeMillis();
-            log.info("===== Lucene 인덱스 빌드 완료 =====");
-            log.info("인덱스 빌드 시간: {}ms, 상태: {}", endTime - startTime, indexBuilt);
+            log.info("===== Lucene 인덱스 빌드 완료: {}ms =====", endTime - startTime);
         } catch (Exception e) {
-            log.error("Lucene 인덱스 빌드 실패: {}", e.getMessage(), e);
+            log.error("Lucene 인덱스 빌드 실패", e);
         }
     }
 
-    @Transactional(readOnly = true)
-    public synchronized void buildIndex() throws IOException {
-        log.debug("Lucene 인덱스 빌드 세부 작업 시작");
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        log.debug("IndexWriter 설정 생성 완료: analyzer={}", analyzer.getClass().getSimpleName());
+    private void buildIndex() throws IOException {
+        List<ContentMetadata> allContentMetadata = contentMetadataRepository.findByIsDeletedFalse();
+        log.info("인덱싱 대상 ContentMetadata: {}개", allContentMetadata.size());
 
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
             indexWriter.deleteAll();
 
-            log.debug("ContentMetadata 조회 시작");
-            List<ContentMetadata> allContentMetadata = contentMetadataRepository.findByIsDeletedFalse();
-            log.info("인덱싱 대상 ContentMetadata: {}개", allContentMetadata.size());
-
+            int successCount = 0;
             for (ContentMetadata metadata : allContentMetadata) {
                 try {
                     Document doc = createDocument(metadata);
                     indexWriter.addDocument(doc);
+                    successCount++;
                 } catch (Exception e) {
                     log.warn("문서 인덱싱 실패 - contentId={}: {}",
                             metadata.getContent().getId(), e.getMessage());
@@ -72,6 +67,7 @@ public class LuceneIndexService {
 
             indexWriter.commit();
             indexBuilt = true;
+            log.info("인덱싱 완료: {}/{}개 성공", successCount, allContentMetadata.size());
         }
     }
 
@@ -105,10 +101,8 @@ public class LuceneIndexService {
 
     public DirectoryReader getIndexReader() throws IOException {
         if (!indexBuilt) {
-            log.warn("인덱스가 빌드되지 않음 - 즉시 빌드 시작");
-            buildIndex();
+            throw new IllegalStateException("인덱스가 아직 빌드되지 않았습니다");
         }
-        log.debug("DirectoryReader 생성: indexBuilt={}", indexBuilt);
         return DirectoryReader.open(directory);
     }
 
