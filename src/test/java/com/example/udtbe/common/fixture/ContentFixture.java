@@ -97,6 +97,20 @@ public class ContentFixture {
 
         return list;
     }
+
+    public static Content content(String title, LocalDateTime openDate, String rating) {
+        return Content.of(
+                title,
+                "description",
+                "https://example.com/default-poster.jpg",
+                "https://example.com/default-backdrop.jpg",
+                "https://example.com/default-trailer.mp4",
+                openDate,
+                120,
+                1,
+                rating
+        );
+    }
     // === ID가 미리 설정된 실제 영화 데이터 (1L~10L) ===
 
     public static Content parasite() {

@@ -150,71 +150,71 @@ public class ContentMetadataFixture {
     public static ContentMetadata parasiteMetadata() {
         Content content = ContentFixture.parasite(); // ID 1L 이미 설정됨
         return createMetadataWithId(content, "기생충", "15세이상관람가", 
-                List.of("MOVIE"), List.of("THRILLER", "DRAMA", "CRIME"),
-                List.of("NETFLIX", "WATCHA"), List.of("봉준호"));
+                List.of("영화"), List.of("스릴러", "서사/드라마", "범죄"),
+                List.of("넷플릭스", "왓챠"), List.of("봉준호"));
     }
 
     public static ContentMetadata oldboyMetadata() {
         Content content = ContentFixture.oldboy(); // ID 2L 이미 설정됨
         return createMetadataWithId(content, "올드보이", "청소년관람불가",
-                List.of("MOVIE"), List.of("THRILLER", "MYSTERY", "CRIME"),
-                List.of("NETFLIX", "TVING"), List.of("박찬욱"));
+                List.of("영화"), List.of("스릴러", "미스터리", "범죄"),
+                List.of("넷플릭스", "티빙"), List.of("박찬욱"));
     }
 
     public static ContentMetadata interstellarMetadata() {
         Content content = ContentFixture.interstellar(); // ID 3L 이미 설정됨
         return createMetadataWithId(content, "인터스텔라", "12세이상관람가",
-                List.of("MOVIE"), List.of("SF", "ADVENTURE", "DRAMA"),
-                List.of("NETFLIX", "WATCHA", "WAVVE"), List.of("크리스토퍼 놀란"));
+                List.of("영화"), List.of("SF", "어드벤처", "서사/드라마"),
+                List.of("넷플릭스", "왓챠", "웨이브"), List.of("크리스토퍼 놀란"));
     }
 
     public static ContentMetadata avatarMetadata() {
         Content content = ContentFixture.avatar(); // ID 4L 이미 설정됨
         return createMetadataWithId(content, "아바타: 물의 길", "12세이상관람가",
-                List.of("MOVIE"), List.of("SF", "ADVENTURE", "FANTASY"),
-                List.of("DISNEY_PLUS", "COUPANG_PLAY"), List.of("제임스 카메론"));
+                List.of("영화"), List.of("SF", "어드벤처", "판타지"),
+                List.of("디즈니+", "쿠팡플레이"), List.of("제임스 카메론"));
     }
 
     public static ContentMetadata topGunMetadata() {
         Content content = ContentFixture.topGun(); // ID 5L 이미 설정됨
         return createMetadataWithId(content, "탑건: 매버릭", "12세이상관람가",
-                List.of("MOVIE"), List.of("ACTION", "ADVENTURE", "DRAMA"),
-                List.of("NETFLIX", "COUPANG_PLAY", "APPLE_TV"), List.of("조셉 코신스키"));
+                List.of("영화"), List.of("액션", "어드벤처", "서사/드라마"),
+                List.of("넷플릭스", "쿠팡플레이", "Apple TV"), List.of("조셉 코신스키"));
     }
 
     public static ContentMetadata laLaLandMetadata() {
         Content content = ContentFixture.laLaLand(); // ID 6L 이미 설정됨
         return createMetadataWithId(content, "라라랜드", "12세이상관람가",
-                List.of("MOVIE"), List.of("MUSICAL", "ROMANCE", "DRAMA"),
-                List.of("NETFLIX", "WATCHA", "TVING"), List.of("데미언 셔젤"));
+                List.of("영화"), List.of("뮤지컬", "멜로/로맨스", "서사/드라마"),
+                List.of("넷플릭스", "왓챠", "티빙"), List.of("데미언 셔젤"));
     }
 
     public static ContentMetadata getOutMetadata() {
         Content content = ContentFixture.getOut(); // ID 7L 이미 설정됨
         return createMetadataWithId(content, "겟 아웃", "15세이상관람가",
-                List.of("MOVIE"), List.of("HORROR", "THRILLER", "MYSTERY"),
-                List.of("NETFLIX", "WATCHA"), List.of("조던 필"));
+                List.of("영화"), List.of("공포(호러),", "스릴러", "미스터리"),
+                List.of("넷플릭스", "왓챠"), List.of("조던 필"));
     }
 
     public static ContentMetadata blackPantherMetadata() {
         Content content = ContentFixture.blackPanther(); // ID 8L 이미 설정됨
         return createMetadataWithId(content, "블랙 팬서", "12세이상관람가",
-                List.of("MOVIE"), List.of("ACTION", "ADVENTURE", "SF"),
-                List.of("DISNEY_PLUS", "NETFLIX"), List.of("라이언 쿠글러"));
+                List.of("영화"), List.of("액션", "어드벤처", "SF"),
+                List.of("디즈니+", "넷플릭스"), List.of("라이언 쿠글러"));
     }
 
     public static ContentMetadata jokerMetadata() {
         Content content = ContentFixture.joker(); // ID 9L 이미 설정됨
         return createMetadataWithId(content, "조커", "15세이상관람가",
-                List.of("MOVIE"), List.of("THRILLER", "DRAMA", "CRIME"),
-                List.of("NETFLIX", "WATCHA", "TVING"), List.of("토드 필립스"));
+                List.of("영화"), List.of("스릴러", "서사/드라마", "범죄"),
+                List.of("넷플릭스", "왓챠", "티빙"), List.of("토드 필립스"));
     }
 
     public static ContentMetadata spiderManMetadata() {
         Content content = ContentFixture.spiderMan(); // ID 10L 이미 설정됨
         return createMetadataWithId(content, "스파이더맨: 노 웨이 홈", "12세이상관람가",
-                List.of("MOVIE"), List.of("ACTION", "ADVENTURE", "SF"),
-                List.of("NETFLIX", "COUPANG_PLAY"), List.of("존 왓츠"));
+                List.of("영화"), List.of("액션", "어드벤처", "SF"),
+                List.of("넷플릭스", "쿠팡플레이"), List.of("존 왓츠"));
     }
 
     // === Helper 메서드 ===
