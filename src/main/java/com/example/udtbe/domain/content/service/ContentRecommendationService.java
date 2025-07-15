@@ -68,10 +68,10 @@ public class ContentRecommendationService {
                 userSurvey.getPlatformTag(), metadataCache);
 
         List<String> userGenres = userSurvey.getGenreTag();
-        TopDocs topDocs = luceneSearchService.searchRecommendations(//IOException, ParseException
+        TopDocs topDocs = luceneSearchService.searchRecommendations(
                 platformFilteredContentIds, userGenres, limit);
 
-        DirectoryReader reader = luceneIndexService.getIndexReader();//IOException
+        DirectoryReader reader = luceneIndexService.getIndexReader();
         IndexSearcher searcher = new IndexSearcher(reader);
 
         List<ContentRecommendationDTO> recommendations = new ArrayList<>();
@@ -80,7 +80,7 @@ public class ContentRecommendationService {
 
         for (int i = 0; i < topDocs.scoreDocs.length; i++) {
             ScoreDoc scoreDoc = topDocs.scoreDocs[i];
-            Document doc = searcher.storedFields().document(scoreDoc.doc);//IOException
+            Document doc = searcher.storedFields().document(scoreDoc.doc);
             Long contentId = Long.valueOf(doc.get("contentId"));
             // TF-IDF 점수
             float luceneScore = scoreDoc.score;
@@ -94,7 +94,7 @@ public class ContentRecommendationService {
             recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
         }
 
-        reader.close();//IOException
+        reader.close();
 
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
