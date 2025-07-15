@@ -1,15 +1,11 @@
 package com.example.udtbe.domain.content.dto.request;
 
-import java.util.Objects;
+import jakarta.validation.constraints.NotNull;
 
 public record CuratedContentGetRequest(
         Long cursor,
-        Integer size
+        @NotNull
+        int size
 ) {
 
-    public CuratedContentGetRequest {
-        if (Objects.isNull(size)) {
-            size = 10;
-        }
-    }
 }
