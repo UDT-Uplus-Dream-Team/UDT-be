@@ -19,4 +19,8 @@ public class ContentCountryFixture {
         });
         return list;
     }
+
+    public static ContentCountry contentCountry(Content content, Country country) {
+        return ContentCountry.of(content, country);
+    }
 }
