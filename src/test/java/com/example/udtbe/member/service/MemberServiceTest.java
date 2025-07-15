@@ -12,8 +12,8 @@ import static org.mockito.BDDMockito.then;
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
+import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
 import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
-import com.example.udtbe.domain.content.dto.response.CuratedContentGetListResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
@@ -29,6 +29,7 @@ import com.example.udtbe.domain.member.service.MemberQuery;
 import com.example.udtbe.domain.member.service.MemberService;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
 import java.util.List;
@@ -104,13 +105,14 @@ class MemberServiceTest {
         given(curatedContentQuery.getCuratedContentsByCursor(member, request))
                 .willReturn(List.of(curatedContent1, curatedContent2, curatedContent3));
         // when
-        CuratedContentGetListResponse response = memberService.getCuratedContents(request, member);
+        CursorPageResponse<CuratedContentDTO> response = memberService.getCuratedContents(request,
+                member);
 
         // then
         assertAll(
-                () -> assertThat(response.contents()).hasSize(2),
-                () -> assertThat(response.contents().get(0).title()).isEqualTo("test_content1"),
-                () -> assertThat(response.contents().get(1).title()).isEqualTo("test_content2"),
+                () -> assertThat(response.item()).hasSize(2),
+                () -> assertThat(response.item().get(0).title()).isEqualTo("test_content1"),
+                () -> assertThat(response.item().get(1).title()).isEqualTo("test_content2"),
                 () -> assertThat(response.nextCursor()).isEqualTo(curatedContent2.getId()),
                 () -> assertThat(response.hasNext()).isTrue()
         );

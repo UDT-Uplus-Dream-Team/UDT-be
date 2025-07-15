@@ -3,11 +3,10 @@ package com.example.udtbe.domain.member.service;
 import com.example.udtbe.domain.content.dto.CuratedContentMapper;
 import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
 import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
-import com.example.udtbe.domain.content.dto.response.CuratedContentGetListResponse;
 import com.example.udtbe.domain.content.entity.CuratedContent;
-import com.example.udtbe.domain.content.service.CuratedContentQuery;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.service.CuratedContentQuery;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
@@ -16,6 +15,7 @@ import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,8 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public CuratedContentGetListResponse getCuratedContents(CuratedContentGetRequest request,
+    public CursorPageResponse<CuratedContentDTO> getCuratedContents(
+            CuratedContentGetRequest request,
             Member member) {
 
         List<CuratedContent> curatedContents = curatedContentQuery.getCuratedContentsByCursor(
@@ -56,9 +57,10 @@ public class MemberService {
 
         List<CuratedContentDTO> dtoList = CuratedContentMapper.toResponseList(limited);
 
-        Long nextCursor = hasNext ? limited.get(limited.size() - 1).getId() : null;
+        Long nextCursorRaw = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
+        String nextCursor = nextCursorRaw == null ? null : nextCursorRaw.toString();
 
-        return new CuratedContentGetListResponse(
+        return new CursorPageResponse<>(
                 dtoList, nextCursor, hasNext
         );
     }

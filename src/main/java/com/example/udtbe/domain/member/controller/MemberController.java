@@ -1,7 +1,7 @@
 package com.example.udtbe.domain.member.controller;
 
+import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
 import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
-import com.example.udtbe.domain.content.dto.response.CuratedContentGetListResponse;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
@@ -9,7 +9,9 @@ import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberService;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,12 +28,12 @@ public class MemberController implements MemberControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<CuratedContentGetListResponse> getCuratedContents(Member member,
+    public ResponseEntity<CursorPageResponse<CuratedContentDTO>> getCuratedContents(Member member,
             CuratedContentGetRequest curatedContentGetRequest) {
         // TODO: 3차 MVP 때 엄선된 콘텐츠 필터링 반영
-        CuratedContentGetListResponse response
+        CursorPageResponse<CuratedContentDTO> response
                 = memberService.getCuratedContents(curatedContentGetRequest, member);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Override

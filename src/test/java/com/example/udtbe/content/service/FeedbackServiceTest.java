@@ -8,10 +8,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackGetListResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
@@ -21,6 +21,7 @@ import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,10 +99,11 @@ public class FeedbackServiceTest {
         given(feedbackQuery.getFeedbacksByCursor(member, request)).willReturn(feedbacks);
 
         // when
-        FeedbackGetListResponse result = feedbackService.getFeedbackList(request, member);
+        CursorPageResponse<FeedbackContentDTO> result
+                = feedbackService.getFeedbackList(request, member);
 
         // then
-        assertThat(result.contents()).hasSize(2);
+        assertThat(result.item()).hasSize(2);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.nextCursor()).isEqualTo(feedbacks.get(1).getId());
     }

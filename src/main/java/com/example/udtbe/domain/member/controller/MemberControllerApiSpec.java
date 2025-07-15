@@ -1,13 +1,14 @@
 package com.example.udtbe.domain.member.controller;
 
+import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
 import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
-import com.example.udtbe.domain.content.dto.response.CuratedContentGetListResponse;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
 import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,11 +32,10 @@ public interface MemberControllerApiSpec {
             @AuthenticationPrincipal Member member
     );
 
-
-    @Operation(summary = "마이페이지에서 엄선된 추천 콘텐츠 조회 API")
+    @Operation(summary = "마이페이지에서 엄선된 추천 콘텐츠 목록 조회 API")
     @ApiResponse(useReturnTypeSchema = true)
     @GetMapping("/users/me/curated/contents")
-    ResponseEntity<CuratedContentGetListResponse> getCuratedContents(
+    ResponseEntity<CursorPageResponse<CuratedContentDTO>> getCuratedContents(
             @AuthenticationPrincipal Member member,
             @ModelAttribute @Valid CuratedContentGetRequest curatedContentGetRequest
     );

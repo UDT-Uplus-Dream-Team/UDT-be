@@ -1,10 +1,11 @@
 package com.example.udtbe.domain.content.controller;
 
+import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackGetListResponse;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +25,12 @@ public class FeedbackController implements FeedbackControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<FeedbackGetListResponse> getFeedbackByCursor(
+    public ResponseEntity<CursorPageResponse<FeedbackContentDTO>> getFeedbackByCursor(
             FeedbackContentGetRequest request, Member member) {
         // TODO: 3차 MVP 때 플랫폼별, 장르별 FeedbackSortType 반영
-        FeedbackGetListResponse response = feedbackService.getFeedbackList(
+        CursorPageResponse<FeedbackContentDTO> response = feedbackService.getFeedbackList(
                 request, member);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Override
