@@ -12,8 +12,7 @@ import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.ContentGenreFixture;
 import com.example.udtbe.common.fixture.ContentPlatformFixture;
 import com.example.udtbe.common.support.DataJpaSupport;
-import com.example.udtbe.domain.admin.dto.common.ContentDTO;
-import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentCast;
 import com.example.udtbe.domain.content.entity.ContentCategory;
@@ -22,12 +21,9 @@ import com.example.udtbe.domain.content.entity.ContentDirector;
 import com.example.udtbe.domain.content.entity.ContentGenre;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.ContentPlatform;
-import com.example.udtbe.domain.content.entity.Platform;
-import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
@@ -124,42 +120,16 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         Long lastId = contents.get(contents.size() - 1).getId();
 
         // when
-        CursorPageResponse<ContentDTO> page =
-                contentRepository.findContentsAdminByCursor(null, size);
+        CursorPageResponse<AdminContentGetResponse> page =
+                contentRepository.getsAdminContentsByCursor(null, size, null);
 
         // then
-        List<ContentDTO> dtos = page.item();
+        List<AdminContentGetResponse> dtos = page.item();
         assertThat(dtos).hasSize(size)
-                .extracting(ContentDTO::contentId)
+                .extracting(AdminContentGetResponse::contentId)
                 .containsExactly(
                         IntStream.range(0, size).mapToObj(i -> lastId - i).toArray(Long[]::new));
         assertThat(page.hasNext()).isTrue();
         assertThat(page.nextCursor()).isEqualTo(String.valueOf(lastId - size + 1));
     }
-
-
-    private List<ContentPlatform> defaultPlatforms(Content content, int count) {
-        List<ContentPlatform> list = new ArrayList<>();
-
-        IntStream.rangeClosed(1, count).forEach(i -> {
-            Platform platform = Platform.of(PlatformType.NETFLIX);
-            ContentPlatform contentPlatform = ContentPlatform.of("https://example.com/watch" + i,
-                    true, content,
-                    platform);
-            list.add(contentPlatform);
-        });
-        return list;
-    }
-
-    private List<ContentCast> defaultCasts(Content content, int count) {
-        List<ContentCast> list = new ArrayList<>();
-
-        IntStream.rangeClosed(1, count).forEach(i -> {
-            Cast cast = Cast.of("박연진" + i, "https://example.com/cast" + i);
-            ContentCast contentCast = ContentCast.of(content, cast);
-            list.add(contentCast);
-        });
-        return list;
-    }
-
 }
