@@ -19,4 +19,8 @@ public class ContentCastFixture {
         });
         return list;
     }
+
+    public static ContentCast contentCast(Content content, Cast cast) {
+        return ContentCast.of(content, cast);
+    }
 }

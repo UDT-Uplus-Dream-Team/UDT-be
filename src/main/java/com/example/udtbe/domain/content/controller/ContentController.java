@@ -1,6 +1,7 @@
 package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.service.ContentService;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -18,6 +19,12 @@ public class ContentController implements ContentControllerApiSpec {
     public ResponseEntity<CursorPageResponse<ContentsGetResponse>> getContents(
             ContentsGetRequest request) {
         CursorPageResponse<ContentsGetResponse> response = contentService.getContents(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<ContentDetailsGetResponse> getContentDetails(Long contentId) {
+        ContentDetailsGetResponse response = contentService.getContentDetails(contentId);
         return ResponseEntity.ok(response);
     }
 }

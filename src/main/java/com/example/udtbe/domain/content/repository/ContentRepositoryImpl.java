@@ -1,23 +1,37 @@
 package com.example.udtbe.domain.content.repository;
 
+import static com.example.udtbe.domain.content.entity.QCast.cast;
 import static com.example.udtbe.domain.content.entity.QCategory.category;
 import static com.example.udtbe.domain.content.entity.QContent.content;
+import static com.example.udtbe.domain.content.entity.QContentCast.contentCast;
 import static com.example.udtbe.domain.content.entity.QContentCategory.contentCategory;
 import static com.example.udtbe.domain.content.entity.QContentCountry.contentCountry;
+import static com.example.udtbe.domain.content.entity.QContentDirector.contentDirector;
 import static com.example.udtbe.domain.content.entity.QContentGenre.contentGenre;
 import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPlatform;
 import static com.example.udtbe.domain.content.entity.QCountry.country;
+import static com.example.udtbe.domain.content.entity.QDirector.director;
 import static com.example.udtbe.domain.content.entity.QGenre.genre;
 import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 
 import com.example.udtbe.domain.admin.dto.common.ContentDTO;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.content.entity.Category;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentPlatform;
+import com.example.udtbe.domain.content.entity.Country;
+import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.Genre;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -128,6 +142,69 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 : null;
 
         return new CursorPageResponse<>(items, nextCursor, hasNext);
+    }
+
+    @Override
+    public ContentDetailsGetResponse getContentDetails(Long contentId) {
+        Content findContent = queryFactory
+                .selectFrom(content)
+                .where(content.id.eq(contentId), content.isDeleted.isFalse())
+                .fetchOne();
+
+        if (Objects.isNull(findContent)) {
+            throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
+        }
+
+        List<ContentPlatform> contentPlatforms = queryFactory
+                .selectFrom(contentPlatform)
+                .join(contentPlatform.platform, platform).fetchJoin()
+                .where(contentPlatform.content.eq(findContent))
+                .fetch();
+
+        List<Cast> casts = queryFactory
+                .select(cast)
+                .from(contentCast)
+                .join(contentCast.cast, cast)
+                .where(contentCast.content.eq(findContent))
+                .fetch();
+
+        List<Director> directors = queryFactory
+                .select(director)
+                .from(contentDirector)
+                .join(contentDirector.director, director)
+                .where(contentDirector.content.eq(findContent))
+                .fetch();
+
+        List<Country> countries = queryFactory
+                .select(country)
+                .from(contentCountry)
+                .join(contentCountry.country, country)
+                .where(contentCountry.content.eq(findContent))
+                .fetch();
+
+        List<Category> categories = queryFactory
+                .select(category)
+                .from(contentCategory)
+                .join(contentCategory.category, category)
+                .where(contentCategory.content.eq(findContent))
+                .fetch();
+
+        List<Genre> genres = queryFactory
+                .select(genre)
+                .from(contentGenre)
+                .join(contentGenre.genre, genre)
+                .where(contentGenre.content.eq(findContent))
+                .fetch();
+
+        return new ContentDetailsGetResponse(
+                findContent,
+                contentPlatforms,
+                casts,
+                directors,
+                countries,
+                categories,
+                genres
+        );
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
