@@ -1,6 +1,7 @@
 package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,7 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Tag(name = "콘텐츠 API", description = "콘텐츠 관련 API")
@@ -19,5 +22,12 @@ public interface ContentControllerApiSpec {
     @PostMapping("/api/contents")
     public ResponseEntity<CursorPageResponse<ContentsGetResponse>> getContents(
             @ModelAttribute @Valid ContentsGetRequest request
+    );
+
+    @Operation(summary = "콘텐츠 상세 조회 API", description = "콘텐츠 정보를 상세 조회한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @GetMapping("/api/contents/{contentId}")
+    public ResponseEntity<ContentDetailsGetResponse> getContentDetails(
+            @PathVariable(name = "contentId") Long contentId
     );
 }
