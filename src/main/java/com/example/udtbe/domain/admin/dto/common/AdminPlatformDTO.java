@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.admin.dto.common;
 
-public record PlatformDTO(
+public record AdminPlatformDTO(
         String platformType,
         String watchUrl,
         boolean isAvailable

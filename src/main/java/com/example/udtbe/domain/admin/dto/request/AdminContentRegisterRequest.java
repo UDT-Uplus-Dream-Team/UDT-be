@@ -1,8 +1,8 @@
 package com.example.udtbe.domain.admin.dto.request;
 
-import com.example.udtbe.domain.admin.dto.common.CastDTO;
-import com.example.udtbe.domain.admin.dto.common.CategoryDTO;
-import com.example.udtbe.domain.admin.dto.common.PlatformDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record ContentRegisterRequest(
+public record AdminContentRegisterRequest(
         @NotBlank(message = "제목을 입력해주세요.")
         String title,
 
@@ -36,16 +36,16 @@ public record ContentRegisterRequest(
         String rating,
 
         @NotEmpty(message = "분류를 하나 이상 선택해주세요.")
-        List<CategoryDTO> categories,
+        List<AdminCategoryDTO> categories,
 
         List<String> countries,
 
         List<String> directors,
 
-        List<CastDTO> casts,
+        List<AdminCastDTO> casts,
 
         @NotEmpty(message = "플랫폼을 하나 이상 선택해주세요.")
-        List<PlatformDTO> platforms
+        List<AdminPlatformDTO> platforms
 ) {
 
 }
