@@ -102,12 +102,12 @@ public class AdminControllerTest extends ApiSupport {
                 List.of(new AdminCategoryDTO("영화", List.of("액션"))),
                 List.of("한국"), List.of("테스트 감독"),
                 List.of(new AdminCastDTO("테스트 배우", "https://cast.jpg")),
-                List.of(new AdminPlatformDTO("넷플릭스", "https://watch", true))
+                List.of(new AdminPlatformDTO("넷플릭스", "https://watch"))
         );
     }
 
     @Test
-    @DisplayName("콘텐츠 등록 시 DB에 저장된다")
+    @DisplayName("콘텐츠 등록 시 DB에 저장할 수 있다.")
     void contentRegister() throws Exception {
         // when & then
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
@@ -120,7 +120,7 @@ public class AdminControllerTest extends ApiSupport {
     }
 
     @Test
-    @DisplayName("콘텐츠 수정 시 필드와 메타데이터가 변경된다")
+    @DisplayName("콘텐츠 수정 시 필드와 메타데이터가 변경될 수 있다.")
     void updateContent() throws Exception {
         // given
         AdminContentUpdateRequest adminContentUpdateRequest = new AdminContentUpdateRequest(
@@ -135,8 +135,8 @@ public class AdminControllerTest extends ApiSupport {
                 List.of("한국"), List.of("수정 테스트 감독"),
                 List.of(new AdminCastDTO("수정 테스트 배우", "c1")),
                 List.of(
-                        new AdminPlatformDTO("넷플릭스", "w1", true),
-                        new AdminPlatformDTO("디즈니+", "w2", false)
+                        new AdminPlatformDTO("넷플릭스", "w1"),
+                        new AdminPlatformDTO("디즈니+", "w2")
                 )
         );
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
@@ -160,7 +160,7 @@ public class AdminControllerTest extends ApiSupport {
     }
 
     @Test
-    @DisplayName("페이징 조회 시 데이터와 nextCursor가 반환된다")
+    @DisplayName("페이징 조회 시 데이터와 nextCursor가 반환될 수 있다.")
     void getContents() throws Exception {
         // given
         for (int i = 1; i <= 4; i++) {
@@ -171,7 +171,7 @@ public class AdminControllerTest extends ApiSupport {
                     List.of(new AdminCategoryDTO("영화", List.of("액션"))),
                     List.of("KR"), List.of("D"),
                     List.of(new AdminCastDTO("C", "u")),
-                    List.of(new AdminPlatformDTO("넷플릭스", "u", true))
+                    List.of(new AdminPlatformDTO("넷플릭스", "u"))
             );
 
             mockMvc.perform(post("/api/admin/contents")
@@ -204,7 +204,7 @@ public class AdminControllerTest extends ApiSupport {
     }
 
     @Test
-    @DisplayName("페이징 카테고리 필터링 조회 시 데이터와 nextCursor가 반환된다")
+    @DisplayName("페이징 카테고리 필터링 조회 시 데이터와 nextCursor가 반환될 수 있다.")
     void getContentsByCategory() throws Exception {
         // given
         for (int i = 1; i <= 4; i++) {
@@ -224,7 +224,7 @@ public class AdminControllerTest extends ApiSupport {
                     ),
                     List.of("KR"), List.of("D"),
                     List.of(new AdminCastDTO("C", "u")),
-                    List.of(new AdminPlatformDTO("넷플릭스", "u", true))
+                    List.of(new AdminPlatformDTO("넷플릭스", "u"))
             );
 
             mockMvc.perform(post("/api/admin/contents")
@@ -259,7 +259,7 @@ public class AdminControllerTest extends ApiSupport {
     }
 
     @Test
-    @DisplayName("상세 조회 시 매핑된 필드가 반환된다")
+    @DisplayName("상세 조회 시 매핑된 필드가 반환될 수 있다.")
     void getContentSuccess() throws Exception {
         //given
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
@@ -285,7 +285,7 @@ public class AdminControllerTest extends ApiSupport {
 
 
     @Test
-    @DisplayName("삭제 시 isDeleted 플래그가 설정, 그 다음 조회 시 404")
+    @DisplayName("삭제 시 isDeleted 플래그가 설정될 수 있다. 그 다음 조회 시 404에러가 나올 수 있다.")
     void deleteContent() throws Exception {
         // given
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")

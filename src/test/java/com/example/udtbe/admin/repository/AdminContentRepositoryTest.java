@@ -42,7 +42,7 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
     private ContentMetadataRepository metadataRepository;
 
 
-    @DisplayName("관리자는 콘텐츠를 저장한다.")
+    @DisplayName("관리자는 콘텐츠를 저장할 수 있다.")
     @Test
     @Rollback
     void saveContent() {
@@ -77,7 +77,7 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         );
     }
 
-    @DisplayName("관리자는 콘텐츠메타데이터를 저장한다.")
+    @DisplayName("관리자는 콘텐츠메타데이터를 저장할 수 있다.")
     @Test
     @Rollback
     public void saveContentMeta() {
@@ -107,7 +107,7 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         );
     }
 
-    @DisplayName("첫 페이지 조회: cursor=null, size=5")
+    @DisplayName("첫 페이지를 조회 할 수 있다.( cursor=null, size=5 )")
     @Test
     @Rollback
     void findContentsAdminByCursor() {
