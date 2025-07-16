@@ -1,8 +1,8 @@
-package com.example.udtbe.domain.content.dto.request;
+package com.example.udtbe.domain.member.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 
-public record CuratedContentGetRequest(
+public record MemberCuratedContentGetsRequest(
         Long cursor,
         @NotNull
         int size

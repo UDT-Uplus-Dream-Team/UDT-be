@@ -1,14 +1,12 @@
 package com.example.udtbe.domain.member.service;
 
-import com.example.udtbe.domain.content.dto.CuratedContentMapper;
-import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
-import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
-import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
-import com.example.udtbe.domain.content.service.CuratedContentQuery;
+import com.example.udtbe.domain.content.repository.CuratedContentRepository;
+import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
@@ -27,7 +25,7 @@ public class MemberService {
 
     private final MemberQuery memberQuery;
     private final SurveyQuery surveyQuery;
-    private final CuratedContentQuery curatedContentQuery;
+    private final CuratedContentRepository curatedContentRepository;
 
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(Long memberId) {
@@ -44,24 +42,12 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public CursorPageResponse<CuratedContentDTO> getCuratedContents(
-            CuratedContentGetRequest request,
-            Member member) {
-
-        List<CuratedContent> curatedContents = curatedContentQuery.getCuratedContentsByCursor(
-                member, request);
-
-        boolean hasNext = curatedContents.size() > request.size();
-        List<CuratedContent> limited =
-                hasNext ? curatedContents.subList(0, request.size()) : curatedContents;
-
-        List<CuratedContentDTO> dtoList = CuratedContentMapper.toResponseList(limited);
-
-        Long nextCursorRaw = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
-        String nextCursor = nextCursorRaw == null ? null : nextCursorRaw.toString();
-
-        return new CursorPageResponse<>(
-                dtoList, nextCursor, hasNext
+    public CursorPageResponse<MemberCuratedContentGetResponse> getCuratedContents(
+            MemberCuratedContentGetsRequest request, Member member) {
+        return curatedContentRepository.getCuratedContentByCursor(
+                request.cursor(),
+                request.size(),
+                member
         );
     }
 

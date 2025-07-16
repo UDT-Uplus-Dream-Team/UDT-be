@@ -1,9 +1,9 @@
 package com.example.udtbe.domain.member.controller;
 
-import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
-import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
+import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
@@ -35,9 +35,9 @@ public interface MemberControllerApiSpec {
     @Operation(summary = "마이페이지에서 엄선된 추천 콘텐츠 목록 조회 API")
     @ApiResponse(useReturnTypeSchema = true)
     @GetMapping("/users/me/curated/contents")
-    ResponseEntity<CursorPageResponse<CuratedContentDTO>> getCuratedContents(
+    ResponseEntity<CursorPageResponse<MemberCuratedContentGetResponse>> getCuratedContents(
             @AuthenticationPrincipal Member member,
-            @ModelAttribute @Valid CuratedContentGetRequest curatedContentGetRequest
+            @ModelAttribute @Valid MemberCuratedContentGetsRequest memberCuratedContentGetsRequest
     );
 
     @Operation(summary = "마이페이지에서 유저 선호 장르 수정")

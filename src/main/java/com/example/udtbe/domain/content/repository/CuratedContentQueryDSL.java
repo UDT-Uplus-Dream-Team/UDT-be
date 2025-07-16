@@ -1,12 +1,11 @@
 package com.example.udtbe.domain.content.repository;
 
-import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
-import com.example.udtbe.domain.content.entity.CuratedContent;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.entity.Member;
-import java.util.List;
+import com.example.udtbe.global.dto.CursorPageResponse;
 
 public interface CuratedContentQueryDSL {
 
-    List<CuratedContent> getCuratedContentByCursor(
-            CuratedContentGetRequest curatedContentGetRequest, Member member);
+    CursorPageResponse<MemberCuratedContentGetResponse> getCuratedContentByCursor(
+            Long cursor, int size, Member member);
 }

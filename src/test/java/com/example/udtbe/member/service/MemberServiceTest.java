@@ -1,26 +1,16 @@
 package com.example.udtbe.member.service;
 
-import static com.example.udtbe.common.fixture.CuratedContentFixture.curatedContent;
-import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
-import com.example.udtbe.domain.content.dto.common.CuratedContentDTO;
-import com.example.udtbe.domain.content.dto.request.CuratedContentGetRequest;
 import com.example.udtbe.domain.content.entity.Content;
-import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
-import com.example.udtbe.domain.content.service.CuratedContentQuery;
+import com.example.udtbe.domain.content.repository.CuratedContentRepository;
+import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
@@ -32,13 +22,22 @@ import com.example.udtbe.domain.survey.service.SurveyQuery;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -50,7 +49,7 @@ class MemberServiceTest {
     private SurveyQuery surveyQuery;
 
     @Mock
-    private CuratedContentQuery curatedContentQuery;
+    private CuratedContentRepository curatedContentRepository;
 
     @InjectMocks
     private MemberService memberService;
@@ -96,25 +95,53 @@ class MemberServiceTest {
         Content content2 = ContentFixture.content("test_content2", "description2");
         Content content3 = ContentFixture.content("test_content3", "description3");
 
-        CuratedContent curatedContent1 = curatedContent(member, content1);
-        CuratedContent curatedContent2 = curatedContent(member, content2);
-        CuratedContent curatedContent3 = curatedContent(member, content3);
+        MemberCuratedContentGetResponse response1 = new MemberCuratedContentGetResponse(
+                1L, "test_content1", "poster1.jpg"
+        );
+        MemberCuratedContentGetResponse response2 = new MemberCuratedContentGetResponse(
+                2L, "test_content2", "poster2.jpg"
+        );
+        MemberCuratedContentGetResponse response3 = new MemberCuratedContentGetResponse(
+                3L, "test_content3", "poster3.jpg"
+        );
 
-        CuratedContentGetRequest request = new CuratedContentGetRequest(null, 2);
+        MemberCuratedContentGetsRequest firstRequest = new MemberCuratedContentGetsRequest(null, 2);
+        CursorPageResponse<MemberCuratedContentGetResponse> firstPageResponse =
+                new CursorPageResponse<>(List.of(response1, response2), "2", true);
 
-        given(curatedContentQuery.getCuratedContentsByCursor(member, request))
-                .willReturn(List.of(curatedContent1, curatedContent2, curatedContent3));
+        given(curatedContentRepository.getCuratedContentByCursor(null, 2, member))
+                .willReturn(firstPageResponse);
+
+        MemberCuratedContentGetsRequest secondRequest = new MemberCuratedContentGetsRequest(2L, 2);
+        CursorPageResponse<MemberCuratedContentGetResponse> secondPageResponse =
+                new CursorPageResponse<>(List.of(response3), null, false);
+
+        given(curatedContentRepository.getCuratedContentByCursor(2L, 2, member))
+                .willReturn(secondPageResponse);
+
         // when
-        CursorPageResponse<CuratedContentDTO> response = memberService.getCuratedContents(request,
-                member);
+        CursorPageResponse<MemberCuratedContentGetResponse> firstResponse =
+                memberService.getCuratedContents(firstRequest, member);
+
+        CursorPageResponse<MemberCuratedContentGetResponse> secondResponse =
+                memberService.getCuratedContents(secondRequest, member);
+
 
         // then
         assertAll(
-                () -> assertThat(response.item()).hasSize(2),
-                () -> assertThat(response.item().get(0).title()).isEqualTo("test_content1"),
-                () -> assertThat(response.item().get(1).title()).isEqualTo("test_content2"),
-                () -> assertThat(response.nextCursor()).isEqualTo(curatedContent2.getId()),
-                () -> assertThat(response.hasNext()).isTrue()
+                () -> assertThat(firstResponse.item()).hasSize(2),
+                () -> assertThat(firstResponse.item().get(0).contentId()).isEqualTo(1L),
+                () -> assertThat(firstResponse.item().get(1).contentId()).isEqualTo(2L),
+                () -> assertThat(firstResponse.nextCursor()).isEqualTo("2"),
+                () -> assertThat(firstResponse.hasNext()).isTrue()
+        );
+
+        // then 2
+        assertAll(
+                () -> assertThat(secondResponse.item()).hasSize(1),
+                () -> assertThat(secondResponse.item().get(0).contentId()).isEqualTo(3L),
+                () -> assertThat(secondResponse.nextCursor()).isNull(),
+                () -> assertThat(secondResponse.hasNext()).isFalse()
         );
     }
 

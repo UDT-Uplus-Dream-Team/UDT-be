@@ -1,15 +1,5 @@
 package com.example.udtbe.domain.content.repository;
 
-import static com.example.udtbe.domain.content.entity.QCategory.category;
-import static com.example.udtbe.domain.content.entity.QContent.content;
-import static com.example.udtbe.domain.content.entity.QContentCategory.contentCategory;
-import static com.example.udtbe.domain.content.entity.QContentCountry.contentCountry;
-import static com.example.udtbe.domain.content.entity.QContentGenre.contentGenre;
-import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPlatform;
-import static com.example.udtbe.domain.content.entity.QCountry.country;
-import static com.example.udtbe.domain.content.entity.QGenre.genre;
-import static com.example.udtbe.domain.content.entity.QPlatform.platform;
-
 import com.example.udtbe.domain.admin.dto.common.ContentDTO;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
@@ -21,13 +11,24 @@ import com.example.udtbe.global.dto.CursorPageResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+
+import static com.example.udtbe.domain.content.entity.QCategory.category;
+import static com.example.udtbe.domain.content.entity.QContent.content;
+import static com.example.udtbe.domain.content.entity.QContentCategory.contentCategory;
+import static com.example.udtbe.domain.content.entity.QContentCountry.contentCountry;
+import static com.example.udtbe.domain.content.entity.QContentGenre.contentGenre;
+import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPlatform;
+import static com.example.udtbe.domain.content.entity.QCountry.country;
+import static com.example.udtbe.domain.content.entity.QGenre.genre;
+import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 
 @Repository
 @RequiredArgsConstructor
@@ -131,7 +132,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
-            List<Long> allContentIds) {
+                                                    List<Long> allContentIds) {
 
         if (isNullOrEmpty(platforms)) {
             return allContentIds;
@@ -167,7 +168,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByRatings(List<String> ratings,
-            List<Long> allContentIds) {
+                                              List<Long> allContentIds) {
 
         if (isNullOrEmpty(ratings)) {
             return allContentIds;
@@ -180,7 +181,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByOpenDates(List<LocalDateTime> openDates,
-            List<Long> allContentIds) {
+                                                List<Long> allContentIds) {
 
         if (isNullOrEmpty(openDates)) {
             return allContentIds;
@@ -199,7 +200,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByCategories(List<String> categories,
-            List<Long> allContentIds) {
+                                                 List<Long> allContentIds) {
 
         if (isNullOrEmpty(categories)) {
             return allContentIds;
@@ -219,7 +220,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByGenres(List<String> genres,
-            List<Long> allContentIds) {
+                                             List<Long> allContentIds) {
 
         if (isNullOrEmpty(genres)) {
             return allContentIds;
