@@ -56,8 +56,8 @@ public class AdminQuery {
         );
     }
 
-    public Genre findByGenreTypeAndCategory(GenreType genreType, Category ccategory) {
-        return genreRepository.findByGenreTypeAndCategory(genreType, ccategory).orElseThrow(() ->
+    public Genre findByGenreTypeAndCategory(GenreType genreType, Category category) {
+        return genreRepository.findByGenreTypeAndCategory(genreType, category).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.GENRE_NOT_FOUND)
         );
     }

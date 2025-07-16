@@ -57,6 +57,14 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    /* 추천 Lucene 라이브러리 */
+    implementation 'org.apache.lucene:lucene-core:9.12.2'
+    implementation 'org.apache.lucene:lucene-analysis-common:9.12.2'
+    implementation 'org.apache.lucene:lucene-queryparser:9.12.2'
+
+    /* 한국어 분석기 (Nori) */
+    implementation 'org.apache.lucene:lucene-analysis-nori:9.12.2'
+
     /* test */
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

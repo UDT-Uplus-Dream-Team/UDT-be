@@ -1,13 +1,41 @@
 package com.example.udtbe.domain.content.repository;
 
 import com.example.udtbe.domain.admin.dto.common.ContentDTO;
+import static com.example.udtbe.domain.content.entity.QCast.cast;
+import static com.example.udtbe.domain.content.entity.QCategory.category;
+import static com.example.udtbe.domain.content.entity.QContent.content;
+import static com.example.udtbe.domain.content.entity.QContentCast.contentCast;
+import static com.example.udtbe.domain.content.entity.QContentCategory.contentCategory;
+import static com.example.udtbe.domain.content.entity.QContentCountry.contentCountry;
+import static com.example.udtbe.domain.content.entity.QContentDirector.contentDirector;
+import static com.example.udtbe.domain.content.entity.QContentGenre.contentGenre;
+import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPlatform;
+import static com.example.udtbe.domain.content.entity.QCountry.country;
+import static com.example.udtbe.domain.content.entity.QDirector.director;
+import static com.example.udtbe.domain.content.entity.QGenre.genre;
+import static com.example.udtbe.domain.content.entity.QPlatform.platform;
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
+
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.content.entity.Category;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentPlatform;
+import com.example.udtbe.domain.content.entity.Country;
+import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.Genre;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -20,16 +48,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.example.udtbe.domain.content.entity.QCategory.category;
-import static com.example.udtbe.domain.content.entity.QContent.content;
-import static com.example.udtbe.domain.content.entity.QContentCategory.contentCategory;
-import static com.example.udtbe.domain.content.entity.QContentCountry.contentCountry;
-import static com.example.udtbe.domain.content.entity.QContentGenre.contentGenre;
-import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPlatform;
-import static com.example.udtbe.domain.content.entity.QCountry.country;
-import static com.example.udtbe.domain.content.entity.QGenre.genre;
-import static com.example.udtbe.domain.content.entity.QPlatform.platform;
-
 @Repository
 @RequiredArgsConstructor
 public class ContentRepositoryImpl implements ContentRepositoryCustom {
@@ -38,33 +56,52 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public CursorPageResponse<ContentDTO> findContentsAdminByCursor(Long cursor, int size) {
+    public CursorPageResponse<AdminContentGetResponse> getsAdminContentsByCursor(Long cursor,
+            int size, String categoryType) {
 
-        List<ContentDTO> dtos = queryFactory
-                .select(Projections.constructor(
-                        ContentDTO.class,
-                        content.id,
-                        content.title,
-                        content.posterUrl,
-                        content.openDate,
-                        content.rating
-                ))
+        List<Long> contentIds = queryFactory
+                .select(content.id)
                 .from(content)
-                .where(cursorFilter(cursor), deletedFilter())
-                .orderBy(content.id.desc())
+                .leftJoin(content.contentCategories, contentCategory)
+                .leftJoin(contentCategory.category, category)
+                .where(cursorFilter(cursor), deletedFilter(), categoryFilter(categoryType))
+                .orderBy(content.openDate.desc(), content.id.desc())
                 .limit(size + 1)
                 .fetch();
 
-        boolean hasNext = dtos.size() > size;
+        List<AdminContentGetResponse> contentAdminGetResponses = queryFactory
+                .from(content)
+                .leftJoin(content.contentCategories, contentCategory)
+                .leftJoin(contentCategory.category, category)
+                .leftJoin(content.contentPlatforms, contentPlatform)
+                .leftJoin(contentPlatform.platform, platform)
+                .where(content.id.in(contentIds))
+                .orderBy(content.openDate.desc(), content.id.desc())
+                .transform(
+                        groupBy(content.id).list(
+                                new QAdminContentGetResponse(
+                                        content.id,
+                                        content.title,
+                                        content.posterUrl,
+                                        content.openDate,
+                                        content.rating,
+                                        list(category.categoryType.stringValue()),
+                                        list(platform.platformType.stringValue())
+                                )
+                        )
+                );
+
+        boolean hasNext = contentAdminGetResponses.size() > size;
+
         if (hasNext) {
-            dtos.remove(dtos.size() - 1);
+            contentAdminGetResponses.remove(contentAdminGetResponses.size() - 1);
         }
 
-        String nextCursor = hasNext
-                ? String.valueOf(dtos.get(dtos.size() - 1).contentId())
+        String nextCursor = hasNext ? String.valueOf(
+                contentAdminGetResponses.get(contentAdminGetResponses.size() - 1).contentId())
                 : null;
 
-        return new CursorPageResponse<>(dtos, nextCursor, hasNext);
+        return new CursorPageResponse<>(contentAdminGetResponses, nextCursor, hasNext);
     }
 
     @Override
@@ -131,6 +168,69 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         return new CursorPageResponse<>(items, nextCursor, hasNext);
     }
 
+    @Override
+    public ContentDetailsGetResponse getContentDetails(Long contentId) {
+        Content findContent = queryFactory
+                .selectFrom(content)
+                .where(content.id.eq(contentId), content.isDeleted.isFalse())
+                .fetchOne();
+
+        if (Objects.isNull(findContent)) {
+            throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
+        }
+
+        List<ContentPlatform> contentPlatforms = queryFactory
+                .selectFrom(contentPlatform)
+                .join(contentPlatform.platform, platform).fetchJoin()
+                .where(contentPlatform.content.eq(findContent))
+                .fetch();
+
+        List<Cast> casts = queryFactory
+                .select(cast)
+                .from(contentCast)
+                .join(contentCast.cast, cast)
+                .where(contentCast.content.eq(findContent))
+                .fetch();
+
+        List<Director> directors = queryFactory
+                .select(director)
+                .from(contentDirector)
+                .join(contentDirector.director, director)
+                .where(contentDirector.content.eq(findContent))
+                .fetch();
+
+        List<Country> countries = queryFactory
+                .select(country)
+                .from(contentCountry)
+                .join(contentCountry.country, country)
+                .where(contentCountry.content.eq(findContent))
+                .fetch();
+
+        List<Category> categories = queryFactory
+                .select(category)
+                .from(contentCategory)
+                .join(contentCategory.category, category)
+                .where(contentCategory.content.eq(findContent))
+                .fetch();
+
+        List<Genre> genres = queryFactory
+                .select(genre)
+                .from(contentGenre)
+                .join(contentGenre.genre, genre)
+                .where(contentGenre.content.eq(findContent))
+                .fetch();
+
+        return new ContentDetailsGetResponse(
+                findContent,
+                contentPlatforms,
+                casts,
+                directors,
+                countries,
+                categories,
+                genres
+        );
+    }
+
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
                                                     List<Long> allContentIds) {
 
@@ -146,8 +246,6 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .select(content.id)
                 .from(content)
                 .join(content.contentPlatforms, contentPlatform)
-                .on(contentPlatform.isAvailable.isTrue())
-                .join(contentPlatform.platform, platform)
                 .where(platform.platformType.in(platformTypes))
                 .fetch();
     }
@@ -268,11 +366,18 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         if (Objects.isNull(cursor)) {
             return null;
         }
-
         return content.id.lt(cursor);
     }
 
     private BooleanExpression deletedFilter() {
-        return content.isDeleted.eq(false);
+        return content.isDeleted.isFalse();
+    }
+
+    private BooleanExpression categoryFilter(String categoryType) {
+        if (Objects.isNull(categoryType) || categoryType.isBlank()) {
+            return null;
+        }
+        CategoryType ct = CategoryType.fromByType(categoryType);
+        return category.categoryType.in(ct);
     }
 }

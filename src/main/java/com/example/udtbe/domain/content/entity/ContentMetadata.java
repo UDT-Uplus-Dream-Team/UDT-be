@@ -43,6 +43,7 @@ public class ContentMetadata extends TimeBaseEntity {
     private boolean isDeleted;
 
     @Convert(converter = TagConverter.class)
+    @Column(name = "category_tag")
     private List<String> categoryTag;
 
     @Convert(converter = TagConverter.class)
@@ -58,6 +59,7 @@ public class ContentMetadata extends TimeBaseEntity {
     private List<String> directorTag;
 
     @Convert(converter = TagConverter.class)
+    @Column(name = "cast_tag")
     private List<String> castTag;
 
 

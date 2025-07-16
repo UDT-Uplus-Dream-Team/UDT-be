@@ -1,12 +1,12 @@
 package com.example.udtbe.domain.admin.dto.response;
 
-import com.example.udtbe.domain.admin.dto.common.CastDTO;
-import com.example.udtbe.domain.admin.dto.common.CategoryDTO;
-import com.example.udtbe.domain.admin.dto.common.PlatformDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record ContentGetDetailResponse(
+public record AdminContentGetDetailResponse(
         String title,
         String description,
         String posterUrl,
@@ -16,11 +16,11 @@ public record ContentGetDetailResponse(
         Integer runningTime,
         Integer episode,
         String rating,
-        List<CategoryDTO> categories,
+        List<AdminCategoryDTO> categories,
         List<String> countries,
         List<String> directors,
-        List<CastDTO> casts,
-        List<PlatformDTO> platforms
+        List<AdminCastDTO> casts,
+        List<AdminPlatformDTO> platforms
 ) {
 
 }

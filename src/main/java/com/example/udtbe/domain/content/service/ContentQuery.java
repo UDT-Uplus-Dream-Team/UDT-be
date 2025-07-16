@@ -1,6 +1,7 @@
 package com.example.udtbe.domain.content.service;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
@@ -39,5 +40,9 @@ public class ContentQuery {
 
     public CursorPageResponse<ContentsGetResponse> getContents(ContentsGetRequest request) {
         return contentRepository.getContents(request);
+    }
+
+    public ContentDetailsGetResponse getContentDetails(Long contentId) {
+        return contentRepository.getContentDetails(contentId);
     }
 }

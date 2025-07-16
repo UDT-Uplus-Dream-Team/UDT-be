@@ -1,15 +1,16 @@
 package com.example.udtbe.domain.admin.service;
 
-import com.example.udtbe.domain.admin.dto.ContentMapper;
-import com.example.udtbe.domain.admin.dto.common.CastDTO;
-import com.example.udtbe.domain.admin.dto.common.CategoryDTO;
-import com.example.udtbe.domain.admin.dto.common.ContentDTO;
-import com.example.udtbe.domain.admin.dto.common.PlatformDTO;
-import com.example.udtbe.domain.admin.dto.request.ContentRegisterRequest;
-import com.example.udtbe.domain.admin.dto.request.ContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.response.ContentGetDetailResponse;
-import com.example.udtbe.domain.admin.dto.response.ContentRegisterResponse;
-import com.example.udtbe.domain.admin.dto.response.ContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.AdminContentMapper;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -62,8 +63,8 @@ public class AdminService {
     private final ContentDirectorRepository contentDirectorRepository;
 
     @Transactional
-    public ContentRegisterResponse registerContent(ContentRegisterRequest request) {
-        Content content = contentRepository.save(ContentMapper.toContentEntity(request));
+    public AdminContentRegisterResponse registerContent(AdminContentRegisterRequest request) {
+        Content content = contentRepository.save(AdminContentMapper.toContentEntity(request));
 
         request.categories().forEach(dto -> {
             Category category = adminQuery.findByCategoryType(
@@ -89,10 +90,10 @@ public class AdminService {
         request.platforms().forEach(dto -> {
             Platform platform = adminQuery.findByPlatform(
                     PlatformType.fromByType(dto.platformType()));
-            ContentPlatform.of(dto.watchUrl(), dto.isAvailable(), content, platform);
+            ContentPlatform.of(dto.watchUrl(), content, platform);
         });
 
-        for (CategoryDTO catDto : request.categories()) {
+        for (AdminCategoryDTO catDto : request.categories()) {
             Category category = adminQuery.findByCategoryType(
                     CategoryType.fromByType(catDto.categoryType()));
             for (String genreName : catDto.genres()) {
@@ -102,20 +103,21 @@ public class AdminService {
             }
         }
 
-        List<String> categoryTags = request.categories().stream().map(CategoryDTO::categoryType)
+        List<String> categoryTags = request.categories().stream()
+                .map(AdminCategoryDTO::categoryType)
                 .toList();
-        List<String> platformTags = request.platforms().stream().map(PlatformDTO::platformType)
+        List<String> platformTags = request.platforms().stream().map(AdminPlatformDTO::platformType)
                 .toList();
         List<String> genreTags = request.categories().stream().flatMap(c -> c.genres().stream())
                 .distinct().toList();
-        List<String> castTags = request.casts().stream().map(CastDTO::castName).toList();
+        List<String> castTags = request.casts().stream().map(AdminCastDTO::castName).toList();
         contentMetadataRepository.save(ContentMetadata.of(
                 content.getTitle(), content.getRating(), categoryTags,
                 genreTags, platformTags, request.directors(), castTags,
                 content
         ));
 
-        return ContentMapper.toContentRegisterResponse(content);
+        return AdminContentMapper.toContentRegisterResponse(content);
     }
 
     @Transactional
@@ -128,7 +130,8 @@ public class AdminService {
     }
 
     @Transactional
-    public ContentUpdateResponse updateContent(Long contentId, ContentUpdateRequest request) {
+    public AdminContentUpdateResponse updateContent(Long contentId,
+            AdminContentUpdateRequest request) {
         Content content = adminQuery.findContentByContentId(contentId);
 
         content.update(request.title(), request.description(), request.posterUrl(),
@@ -161,10 +164,10 @@ public class AdminService {
         request.platforms().forEach(dto -> {
             Platform platform = adminQuery.findByPlatform(
                     PlatformType.fromByType(dto.platformType()));
-            ContentPlatform.of(dto.watchUrl(), dto.isAvailable(), content, platform);
+            ContentPlatform.of(dto.watchUrl(), content, platform);
         });
 
-        for (CategoryDTO catDto : request.categories()) {
+        for (AdminCategoryDTO catDto : request.categories()) {
             Category category = adminQuery.findByCategoryType(
                     CategoryType.fromByType(catDto.categoryType()));
             for (String genreName : catDto.genres()) {
@@ -175,17 +178,18 @@ public class AdminService {
         }
 
         ContentMetadata metadata = adminQuery.findContentMetadateByContentId(contentId);
-        List<String> categoryTags = request.categories().stream().map(CategoryDTO::categoryType)
+        List<String> categoryTags = request.categories().stream()
+                .map(AdminCategoryDTO::categoryType)
                 .toList();
         List<String> genreTags = request.categories().stream().flatMap(dto -> dto.genres().stream())
                 .distinct().toList();
-        List<String> platformTags = request.platforms().stream().map(PlatformDTO::platformType)
+        List<String> platformTags = request.platforms().stream().map(AdminPlatformDTO::platformType)
                 .toList();
-        List<String> castTags = request.casts().stream().map(CastDTO::castName).toList();
+        List<String> castTags = request.casts().stream().map(AdminCastDTO::castName).toList();
         metadata.update(request.title(), request.rating(), categoryTags, genreTags, platformTags,
                 request.directors(), castTags);
 
-        return ContentMapper.toContentUpdateResponse(content);
+        return AdminContentMapper.toContentUpdateResponse(content);
     }
 
     private void deleteContentRelation(Content content) {
@@ -198,12 +202,18 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public CursorPageResponse<ContentDTO> getContents(Long cursor, int size) {
-        return contentRepository.findContentsAdminByCursor(cursor, size);
+    public CursorPageResponse<AdminContentGetResponse> getContents(
+            AdminContentGetsRequest adminContentGetsRequest
+    ) {
+        return contentRepository.getsAdminContentsByCursor(
+                adminContentGetsRequest.cursor(),
+                adminContentGetsRequest.size(),
+                adminContentGetsRequest.categoryType()
+        );
     }
 
     @Transactional(readOnly = true)
-    public ContentGetDetailResponse getContent(Long contentId) {
+    public AdminContentGetDetailResponse getContent(Long contentId) {
         Content content = adminQuery.findContentByContentId(contentId);
         if (content.isDeleted()) {
             throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
@@ -223,12 +233,12 @@ public class AdminService {
                 .distinct()
                 .forEach(type -> categoryGenreMap.putIfAbsent(type, new ArrayList<>()));
 
-        List<CategoryDTO> categories = categoryGenreMap.entrySet().stream()
-                .map(e -> new CategoryDTO(e.getKey(), e.getValue()))
+        List<AdminCategoryDTO> categories = categoryGenreMap.entrySet().stream()
+                .map(e -> new AdminCategoryDTO(e.getKey(), e.getValue()))
                 .toList();
 
-        List<CastDTO> castDTOs = content.getContentCasts().stream()
-                .map(c -> new CastDTO(
+        List<AdminCastDTO> adminCastDTOS = content.getContentCasts().stream()
+                .map(c -> new AdminCastDTO(
                         c.getCast().getCastName(),
                         c.getCast().getCastImageUrl()))
                 .toList();
@@ -241,14 +251,15 @@ public class AdminService {
                 .map(c -> c.getCountry().getCountryName())
                 .toList();
 
-        List<PlatformDTO> platforms = content.getContentPlatforms().stream()
-                .map(p -> new PlatformDTO(
+        List<AdminPlatformDTO> platforms = content.getContentPlatforms().stream()
+                .map(p -> new AdminPlatformDTO(
                         p.getPlatform().getPlatformType().getType(),
-                        p.getWatchUrl(),
-                        p.isAvailable()))
+                        p.getWatchUrl()
+                ))
                 .toList();
 
-        return ContentMapper.toContentGetResponse(content, categories, castDTOs, directors,
+        return AdminContentMapper.toContentGetResponse(content, categories, adminCastDTOS,
+                directors,
                 countries, platforms);
     }
 

@@ -18,4 +18,8 @@ public class ContentDirectorFixture {
         });
         return list;
     }
+
+    public static ContentDirector contentDirector(Content content, Director director) {
+        return ContentDirector.of(content, director);
+    }
 }

@@ -48,4 +48,14 @@ public enum PlatformType {
                         .name()
                 ).toList();
     }
+
+    public static List<String> toKoreanTypes(List<String> englishPlatforms) {
+        if (englishPlatforms == null || englishPlatforms.isEmpty()) {
+            return List.of();
+        }
+
+        return englishPlatforms.stream()
+                .map(englishPlatform -> from(englishPlatform).getType())
+                .toList();
+    }
 }

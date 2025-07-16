@@ -1,11 +1,12 @@
 package com.example.udtbe.domain.admin.controller;
 
-import com.example.udtbe.domain.admin.dto.common.ContentDTO;
-import com.example.udtbe.domain.admin.dto.request.ContentRegisterRequest;
-import com.example.udtbe.domain.admin.dto.request.ContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.response.ContentGetDetailResponse;
-import com.example.udtbe.domain.admin.dto.response.ContentRegisterResponse;
-import com.example.udtbe.domain.admin.dto.response.ContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,27 +21,27 @@ public class AdminController implements AdminControllerApiSpec {
     private final AdminService adminService;
 
     @Override
-    public ResponseEntity<ContentRegisterResponse> registerContent(
-            ContentRegisterRequest contentRegisterRequest) {
+    public ResponseEntity<AdminContentRegisterResponse> registerContent(
+            AdminContentRegisterRequest adminContentRegisterRequest) {
 
-        ContentRegisterResponse contentRegisterResponse = adminService.registerContent(
-                contentRegisterRequest);
+        AdminContentRegisterResponse contentRegisterResponse = adminService.registerContent(
+                adminContentRegisterRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(contentRegisterResponse);
     }
 
     @Override
-    public ResponseEntity<ContentUpdateResponse> updateContent(
-            Long contentId, ContentUpdateRequest contentUpdateRequest) {
+    public ResponseEntity<AdminContentUpdateResponse> updateContent(
+            Long contentId, AdminContentUpdateRequest adminContentUpdateRequest) {
 
-        ContentUpdateResponse contentUpdateResponse = adminService.updateContent(contentId,
-                contentUpdateRequest);
+        AdminContentUpdateResponse contentUpdateResponse = adminService.updateContent(contentId,
+                adminContentUpdateRequest);
         return ResponseEntity.status(HttpStatus.OK).body(contentUpdateResponse);
     }
 
     @Override
-    public ResponseEntity<ContentGetDetailResponse> getContent(Long contentId) {
+    public ResponseEntity<AdminContentGetDetailResponse> getContent(Long contentId) {
 
-        ContentGetDetailResponse contentGetResponse = adminService.getContent(contentId);
+        AdminContentGetDetailResponse contentGetResponse = adminService.getContent(contentId);
         return ResponseEntity.status(HttpStatus.OK).body(contentGetResponse);
     }
 
@@ -52,10 +53,11 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<CursorPageResponse<ContentDTO>> getContents(Long cursor, int size) {
-
-        CursorPageResponse<ContentDTO> contentDTOCursorPageResponse = adminService.getContents(
-                cursor, size);
+    public ResponseEntity<CursorPageResponse<AdminContentGetResponse>> getContents(
+            AdminContentGetsRequest adminContentGetsRequest
+    ) {
+        CursorPageResponse<AdminContentGetResponse> contentDTOCursorPageResponse = adminService
+                .getContents(adminContentGetsRequest);
         return ResponseEntity.status(HttpStatus.OK).body(contentDTOCursorPageResponse);
     }
 }
