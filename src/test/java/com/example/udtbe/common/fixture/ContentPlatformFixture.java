@@ -16,7 +16,7 @@ public class ContentPlatformFixture {
         IntStream.rangeClosed(1, count).forEach(i -> {
             Platform platform = Platform.of(PlatformType.NETFLIX);
             ContentPlatform contentPlatform = ContentPlatform.of("https://example.com/watch" + i,
-                    true, content,
+                    content,
                     platform);
             list.add(contentPlatform);
         });
@@ -26,7 +26,6 @@ public class ContentPlatformFixture {
     public static ContentPlatform contentPlatform(Content content, Platform platform) {
         return ContentPlatform.of(
                 "watch_URL",
-                true,
                 content,
                 platform
         );

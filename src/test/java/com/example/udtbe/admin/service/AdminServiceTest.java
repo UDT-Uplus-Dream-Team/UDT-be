@@ -109,8 +109,8 @@ public class AdminServiceTest {
                         new AdminCastDTO("테스트 배우2", "https://cast.image2")
                 ),
                 List.of(
-                        new AdminPlatformDTO("넷플릭스", "https://watch1", true),
-                        new AdminPlatformDTO("왓챠", "https://watch2", false)
+                        new AdminPlatformDTO("넷플릭스", "https://watch1"),
+                        new AdminPlatformDTO("왓챠", "https://watch2")
                 )
         );
     }
@@ -251,7 +251,7 @@ public class AdminServiceTest {
                 List.of("미국"),
                 List.of("수정 테스트 감독"),
                 List.of(new AdminCastDTO("수정 테스트 배우", "https://new-image")),
-                List.of(new AdminPlatformDTO("디즈니+", "https://watch", false))
+                List.of(new AdminPlatformDTO("디즈니+", "https://watch"))
         );
 
         List<AdminCategoryDTO> adminCategoryDTO = adminContentUpdateRequest.categories();
