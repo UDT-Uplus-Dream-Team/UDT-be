@@ -69,7 +69,7 @@ public class ContentFixture {
         ContentDirector.of(content, director);
         ContentCast.of(content, cast);
         ContentCountry.of(content, country);
-        ContentPlatform.of("https://example.com/watch", true, content, platform);
+        ContentPlatform.of("https://example.com/watch", content, platform);
 
         return content;
     }

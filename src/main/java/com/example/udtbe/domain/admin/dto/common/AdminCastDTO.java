@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.admin.dto.common;
 
-public record CastDTO(
+public record AdminCastDTO(
         String castName,
         String castImageUrl
 ) {

@@ -16,13 +16,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.example.udtbe.common.fixture.ContentFixture;
-import com.example.udtbe.domain.admin.dto.common.CastDTO;
-import com.example.udtbe.domain.admin.dto.common.CategoryDTO;
-import com.example.udtbe.domain.admin.dto.common.ContentDTO;
-import com.example.udtbe.domain.admin.dto.common.PlatformDTO;
-import com.example.udtbe.domain.admin.dto.request.ContentRegisterRequest;
-import com.example.udtbe.domain.admin.dto.request.ContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.response.ContentGetDetailResponse;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -83,11 +84,11 @@ public class AdminServiceTest {
     @InjectMocks
     private AdminService adminService;
 
-    private ContentRegisterRequest registerRequest;
+    private AdminContentRegisterRequest registerRequest;
 
     @BeforeEach
     void setUp() {
-        registerRequest = new ContentRegisterRequest(
+        registerRequest = new AdminContentRegisterRequest(
                 "테스트 제목",
                 "테스트 설명",
                 "https://poster",
@@ -98,23 +99,23 @@ public class AdminServiceTest {
                 0,
                 "전체 관람가",
                 List.of(
-                        new CategoryDTO("영화", List.of("액션", "SF")),
-                        new CategoryDTO("애니메이션", List.of("키즈"))
+                        new AdminCategoryDTO("영화", List.of("액션", "SF")),
+                        new AdminCategoryDTO("애니메이션", List.of("키즈"))
                 ),
                 List.of("대한민국"),
                 List.of("테스트 감독"),
                 List.of(
-                        new CastDTO("테스트 배우", "https://cast.image1"),
-                        new CastDTO("테스트 배우2", "https://cast.image2")
+                        new AdminCastDTO("테스트 배우", "https://cast.image1"),
+                        new AdminCastDTO("테스트 배우2", "https://cast.image2")
                 ),
                 List.of(
-                        new PlatformDTO("넷플릭스", "https://watch1", true),
-                        new PlatformDTO("왓챠", "https://watch2", false)
+                        new AdminPlatformDTO("넷플릭스", "https://watch1"),
+                        new AdminPlatformDTO("왓챠", "https://watch2")
                 )
         );
     }
 
-    @DisplayName("콘텐츠와 메타데이터를 저장한다.")
+    @DisplayName("콘텐츠와 메타데이터를 저장할 수 있다.")
     @Test
     void contentRegister() {
         // given
@@ -123,23 +124,24 @@ public class AdminServiceTest {
         given(saved.getId()).willReturn(id);
         given(contentRepository.save(any(Content.class))).willReturn(saved);
 
-        List<CategoryDTO> categoryDTOs = registerRequest.categories();
+        List<AdminCategoryDTO> adminCategoryDTOS = registerRequest.categories();
 
-        for (CategoryDTO categoryDTO : categoryDTOs) {
+        for (AdminCategoryDTO adminCategoryDTO : adminCategoryDTOS) {
             Category category = mock(Category.class);
             given(adminQuery.findByCategoryType(
-                    CategoryType.fromByType(categoryDTO.categoryType())))
+                    CategoryType.fromByType(adminCategoryDTO.categoryType())))
                     .willReturn(category);
-            for (String genreName : categoryDTO.genres()) {
+            for (String genreName : adminCategoryDTO.genres()) {
                 GenreType genreType = GenreType.fromByType(genreName);
                 given(adminQuery.findByGenreTypeAndCategory(genreType, category))
                         .willReturn(mock(Genre.class));
             }
         }
 
-        List<CastDTO> castDtos = registerRequest.casts();
-        for (CastDTO castDto : castDtos) {
-            given(adminQuery.findOrSaveCast(eq(castDto.castName()), eq(castDto.castImageUrl())))
+        List<AdminCastDTO> adminCastDtos = registerRequest.casts();
+        for (AdminCastDTO adminCastDto : adminCastDtos) {
+            given(adminQuery.findOrSaveCast(eq(adminCastDto.castName()),
+                    eq(adminCastDto.castImageUrl())))
                     .willReturn(mock(Cast.class));
         }
 
@@ -155,8 +157,8 @@ public class AdminServiceTest {
                     .willReturn(mock(Country.class));
         }
 
-        List<PlatformDTO> platformDTOs = registerRequest.platforms();
-        for (PlatformDTO platDto : platformDTOs) {
+        List<AdminPlatformDTO> adminPlatformDTOS = registerRequest.platforms();
+        for (AdminPlatformDTO platDto : adminPlatformDTOS) {
             PlatformType platformType = PlatformType.fromByType(platDto.platformType());
             given(adminQuery.findByPlatform(
                     eq(platformType)))
@@ -170,7 +172,7 @@ public class AdminServiceTest {
         // when
         adminService.registerContent(registerRequest);
 
-        int genresSize = categoryDTOs.stream()
+        int genresSize = adminCategoryDTOS.stream()
                 .mapToInt(dto -> dto.genres().size()).sum();
 
         // then
@@ -183,7 +185,7 @@ public class AdminServiceTest {
                 () -> verify(adminQuery, times(genresSize))
                         .findByGenreTypeAndCategory(any(GenreType.class), any(Category.class)),
 
-                () -> verify(adminQuery, times(castDtos.size()))
+                () -> verify(adminQuery, times(adminCastDtos.size()))
                         .findOrSaveCast(anyString(), anyString()),
 
                 () -> verify(adminQuery, times(registerRequest.directors().size()))
@@ -200,12 +202,12 @@ public class AdminServiceTest {
         );
     }
 
-    @DisplayName("저장 요청 분류 타입이 ENUM에 정의되어 있는 분류 타입과 맞지 않으면 404 에러가 발생한다.")
+    @DisplayName("저장 요청 분류 타입이 ENUM에 정의되어 있는 분류 타입과 맞지 않으면 404 에러가 발생할 수 있다.")
     @Test
     void saveInvalidCategoryType() {
         // given
-        CategoryDTO badCategoryDTO = new CategoryDTO("UNKNOWN", List.of());
-        ContentRegisterRequest badReq = new ContentRegisterRequest(
+        AdminCategoryDTO badAdminCategoryDTO = new AdminCategoryDTO("UNKNOWN", List.of());
+        AdminContentRegisterRequest badReq = new AdminContentRegisterRequest(
                 registerRequest.title(),
                 registerRequest.description(),
                 registerRequest.posterUrl(),
@@ -215,7 +217,7 @@ public class AdminServiceTest {
                 registerRequest.runningTime(),
                 registerRequest.episode(),
                 registerRequest.rating(),
-                List.of(badCategoryDTO),
+                List.of(badAdminCategoryDTO),
                 registerRequest.countries(),
                 registerRequest.directors(),
                 registerRequest.casts(),
@@ -228,7 +230,7 @@ public class AdminServiceTest {
 
     }
 
-    @DisplayName("관리자는 콘텐츠를 업데이트할 때 필드와 메타데이터를 수정한다")
+    @DisplayName("관리자는 콘텐츠를 업데이트할 때 필드와 메타데이터를 수정할 수 있다.")
     @Test
     void updateContent() {
         // given
@@ -240,20 +242,20 @@ public class AdminServiceTest {
         given(adminQuery.findContentMetadateByContentId(id))
                 .willReturn(metadata);
 
-        ContentUpdateRequest contentUpdateRequest = new ContentUpdateRequest(
+        AdminContentUpdateRequest adminContentUpdateRequest = new AdminContentUpdateRequest(
                 "수정 테스트 제목", "수정 테스트 설명",
                 "https://new-poster", "https://new-backdrop", "https://new-trailer",
                 LocalDateTime.of(2025, 7, 10, 0, 0),
                 130, 1, "19세 관람가",
-                List.of(new CategoryDTO("애니메이션", List.of("키즈"))),
+                List.of(new AdminCategoryDTO("애니메이션", List.of("키즈"))),
                 List.of("미국"),
                 List.of("수정 테스트 감독"),
-                List.of(new CastDTO("수정 테스트 배우", "https://new-image")),
-                List.of(new PlatformDTO("디즈니+", "https://watch", false))
+                List.of(new AdminCastDTO("수정 테스트 배우", "https://new-image")),
+                List.of(new AdminPlatformDTO("디즈니+", "https://watch"))
         );
 
-        List<CategoryDTO> categoryDTO = contentUpdateRequest.categories();
-        for (CategoryDTO dto : categoryDTO) {
+        List<AdminCategoryDTO> adminCategoryDTO = adminContentUpdateRequest.categories();
+        for (AdminCategoryDTO dto : adminCategoryDTO) {
             Category category = mock(Category.class);
             given(adminQuery.findByCategoryType(
                     CategoryType.fromByType(dto.categoryType())))
@@ -265,26 +267,27 @@ public class AdminServiceTest {
             }
         }
 
-        List<CastDTO> castDtos = contentUpdateRequest.casts();
-        for (CastDTO castDto : castDtos) {
-            given(adminQuery.findOrSaveCast(eq(castDto.castName()), eq(castDto.castImageUrl())))
+        List<AdminCastDTO> adminCastDtos = adminContentUpdateRequest.casts();
+        for (AdminCastDTO adminCastDto : adminCastDtos) {
+            given(adminQuery.findOrSaveCast(eq(adminCastDto.castName()),
+                    eq(adminCastDto.castImageUrl())))
                     .willReturn(mock(Cast.class));
         }
 
-        for (String directorName : contentUpdateRequest.directors()) {
+        for (String directorName : adminContentUpdateRequest.directors()) {
             given(adminQuery.findOrSaveDirector(
                     eq(directorName)))
                     .willReturn(mock(Director.class));
         }
 
-        for (String countryName : contentUpdateRequest.countries()) {
+        for (String countryName : adminContentUpdateRequest.countries()) {
             given(adminQuery.findOrSaveCountry(
                     eq(countryName)))
                     .willReturn(mock(Country.class));
         }
 
-        List<PlatformDTO> platformDTOs = contentUpdateRequest.platforms();
-        for (PlatformDTO platDto : platformDTOs) {
+        List<AdminPlatformDTO> adminPlatformDTOS = adminContentUpdateRequest.platforms();
+        for (AdminPlatformDTO platDto : adminPlatformDTOS) {
             PlatformType platformType = PlatformType.fromByType(platDto.platformType());
             given(adminQuery.findByPlatform(
                     eq(platformType)))
@@ -292,52 +295,55 @@ public class AdminServiceTest {
         }
 
         // when
-        adminService.updateContent(id, contentUpdateRequest);
+        adminService.updateContent(id, adminContentUpdateRequest);
 
-        List<String> categoryTag = categoryDTO.stream().map(CategoryDTO::categoryType).toList();
-        List<String> genreTag = categoryDTO.stream().flatMap(dto -> dto.genres().stream()).toList();
-        List<String> castTag = castDtos.stream().map(CastDTO::castName).toList();
-        List<String> directorTag = contentUpdateRequest.directors();
-        List<String> platformTag = platformDTOs.stream().map(PlatformDTO::platformType).toList();
+        List<String> categoryTag = adminCategoryDTO.stream().map(AdminCategoryDTO::categoryType)
+                .toList();
+        List<String> genreTag = adminCategoryDTO.stream().flatMap(dto -> dto.genres().stream())
+                .toList();
+        List<String> castTag = adminCastDtos.stream().map(AdminCastDTO::castName).toList();
+        List<String> directorTag = adminContentUpdateRequest.directors();
+        List<String> platformTag = adminPlatformDTOS.stream().map(AdminPlatformDTO::platformType)
+                .toList();
         // then
-        int genreSize = contentUpdateRequest.categories().stream()
+        int genreSize = adminContentUpdateRequest.categories().stream()
                 .mapToInt(dto -> dto.genres().size()).sum();
         assertAll(
                 () -> verify(adminQuery).findContentByContentId(eq(id)),
                 () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
                 () -> verify(content).update(
-                        eq(contentUpdateRequest.title()),
-                        eq(contentUpdateRequest.description()),
-                        eq(contentUpdateRequest.posterUrl()),
-                        eq(contentUpdateRequest.backdropUrl()),
-                        eq(contentUpdateRequest.trailerUrl()),
-                        eq(contentUpdateRequest.openDate()),
-                        eq(contentUpdateRequest.runningTime()),
-                        eq(contentUpdateRequest.episode()),
-                        eq(contentUpdateRequest.rating())),
-                () -> verify(adminQuery, times(categoryDTO.size() * 2))
+                        eq(adminContentUpdateRequest.title()),
+                        eq(adminContentUpdateRequest.description()),
+                        eq(adminContentUpdateRequest.posterUrl()),
+                        eq(adminContentUpdateRequest.backdropUrl()),
+                        eq(adminContentUpdateRequest.trailerUrl()),
+                        eq(adminContentUpdateRequest.openDate()),
+                        eq(adminContentUpdateRequest.runningTime()),
+                        eq(adminContentUpdateRequest.episode()),
+                        eq(adminContentUpdateRequest.rating())),
+                () -> verify(adminQuery, times(adminCategoryDTO.size() * 2))
                         .findByCategoryType(any(CategoryType.class)),
                 () -> verify(adminQuery, times(genreSize)).findByGenreTypeAndCategory(
                         any(GenreType.class), any(Category.class)
                 ),
-                () -> verify(adminQuery, times(castDtos.size())).findOrSaveCast(
+                () -> verify(adminQuery, times(adminCastDtos.size())).findOrSaveCast(
                         anyString(), anyString()
                 ),
                 () -> verify(adminQuery,
-                        times(contentUpdateRequest.directors().size())).findOrSaveDirector(
+                        times(adminContentUpdateRequest.directors().size())).findOrSaveDirector(
                         anyString()
                 ),
                 () -> verify(adminQuery,
-                        times(contentUpdateRequest.countries().size())).findOrSaveCountry(
+                        times(adminContentUpdateRequest.countries().size())).findOrSaveCountry(
                         anyString()
                 ),
                 () -> verify(adminQuery,
-                        times(contentUpdateRequest.platforms().size())).findByPlatform(
+                        times(adminContentUpdateRequest.platforms().size())).findByPlatform(
                         any(PlatformType.class)
                 ),
                 () -> verify(metadata).update(
-                        eq(contentUpdateRequest.title()),
-                        eq(contentUpdateRequest.rating()),
+                        eq(adminContentUpdateRequest.title()),
+                        eq(adminContentUpdateRequest.rating()),
                         eq(categoryTag),
                         eq(genreTag),
                         eq(platformTag),
@@ -347,27 +353,84 @@ public class AdminServiceTest {
         );
     }
 
-    @DisplayName("커서 기반 페이지네이션 결과를 반환한다")
+    @DisplayName("커서 기반 페이지네이션 결과를 반환할 수 있다")
     @Test
     void getContents() {
         // given
-        ContentDTO contentDTO1 = new ContentDTO(5L, "T5", "p5", LocalDateTime.now(), "전체관람가");
-        ContentDTO contentDTO = new ContentDTO(4L, "T4", "p4", LocalDateTime.now(), "15세");
-        CursorPageResponse<ContentDTO> page = new CursorPageResponse<>(
-                List.of(contentDTO1, contentDTO), "4", true);
 
-        given(contentRepository.findContentsAdminByCursor(5L, 2))
+        AdminContentGetResponse adminContentGetResponse1 = new AdminContentGetResponse(5L, "T5",
+                "p5",
+                LocalDateTime.now(), "전체관람가",
+                List.of("MOVIE"), List.of("NETFLIX"));
+        AdminContentGetResponse adminContentGetResponse = new AdminContentGetResponse(4L, "T4",
+                "p4",
+                LocalDateTime.now(), "15세",
+                List.of("MOVIE", "DRAMA"), List.of("TVING"));
+        CursorPageResponse<AdminContentGetResponse> page = new CursorPageResponse<>(
+                List.of(adminContentGetResponse1, adminContentGetResponse), "4", true);
+
+        AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(5L, 2, null);
+
+        given(contentRepository.getsAdminContentsByCursor(
+                adminContentGetsRequest.cursor(),
+                adminContentGetsRequest.size(),
+                adminContentGetsRequest.categoryType()
+        ))
                 .willReturn(page);
 
         // when
-        CursorPageResponse<ContentDTO> res = adminService.getContents(5L, 2);
+        CursorPageResponse<AdminContentGetResponse> res = adminService.getContents(
+                adminContentGetsRequest);
 
         // then
         assertThat(res).isSameAs(page);
-        then(contentRepository).should().findContentsAdminByCursor(5L, 2);
+        then(contentRepository).should().getsAdminContentsByCursor(
+                adminContentGetsRequest.cursor(),
+                adminContentGetsRequest.size(),
+                adminContentGetsRequest.categoryType()
+        );
     }
 
-    @DisplayName("getContent: 정상 조회 시 필드와 연관관계가 매핑되어 반환된다")
+    @DisplayName("커서 기반 카테고리 필터링 페이지네이션 결과를 반환할 수 있다")
+    @Test
+    void getContentsByCategory() {
+        // given
+        AdminContentGetResponse adminContentGetResponse1 = new AdminContentGetResponse(4L, "T4",
+                "p4",
+                LocalDateTime.now(), "15세",
+                List.of("DRAMA"), List.of("TVING"));
+
+        AdminContentGetResponse adminContentGetResponse2 = new AdminContentGetResponse(4L, "T4",
+                "p4",
+                LocalDateTime.now(), "15세",
+                List.of("MOVIE", "DRAMA"), List.of("TVING"));
+
+        CursorPageResponse<AdminContentGetResponse> page = new CursorPageResponse<>(
+                List.of(adminContentGetResponse2, adminContentGetResponse1), "4", true);
+
+        AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(5L, 2, "드라마");
+
+        given(contentRepository.getsAdminContentsByCursor(
+                adminContentGetsRequest.cursor(),
+                adminContentGetsRequest.size(),
+                adminContentGetsRequest.categoryType()
+        ))
+                .willReturn(page);
+
+        // when
+        CursorPageResponse<AdminContentGetResponse> res = adminService.getContents(
+                adminContentGetsRequest);
+
+        // then
+        assertThat(res).isSameAs(page);
+        then(contentRepository).should().getsAdminContentsByCursor(
+                adminContentGetsRequest.cursor(),
+                adminContentGetsRequest.size(),
+                adminContentGetsRequest.categoryType()
+        );
+    }
+
+    @DisplayName("getContent: 정상 조회 시 필드와 연관관계가 매핑되어 반환될 수 있다.")
     @Test
     void getContentSuccess() {
         // given
@@ -378,7 +441,7 @@ public class AdminServiceTest {
         given(adminQuery.findContentByContentId(id)).willReturn(content);
 
         // when
-        ContentGetDetailResponse contentGetDetailResponse = adminService.getContent(id);
+        AdminContentGetDetailResponse contentGetDetailResponse = adminService.getContent(id);
 
         // then
         assertAll(
@@ -389,7 +452,7 @@ public class AdminServiceTest {
         );
     }
 
-    @DisplayName("콘텐츠를 삭제할 때 소프트 딜리트, 콘텐트와 연관 관계는 하드 딜리트")
+    @DisplayName("콘텐츠를 삭제할 때 소프트 딜리트, 콘텐트와 연관 관계는 하드 딜리트될 수 있다.")
     @Test
     void deleteContentSuccess() {
         // given
@@ -420,7 +483,7 @@ public class AdminServiceTest {
         );
     }
 
-    @DisplayName("삭제된 콘텐츠 조회 시 404 예외가 발생한다")
+    @DisplayName("삭제된 콘텐츠 조회 시 404 예외가 발생할 수 있다.")
     @Test
     void getContentDeletedNotFound() {
         // given
