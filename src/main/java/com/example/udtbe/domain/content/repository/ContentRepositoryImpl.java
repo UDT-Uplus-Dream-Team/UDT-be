@@ -16,9 +16,12 @@ import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 
 import com.example.udtbe.domain.admin.dto.common.ContentDTO;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.QWeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -207,6 +210,26 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         );
     }
 
+    @Override
+    public List<WeeklyRecommendedContentsResponse> getWeeklyRecommendedContents(
+            WeeklyRecommendationRequest request, List<GenreType> genreTypes) {
+
+        List<WeeklyRecommendedContentsResponse> items = queryFactory
+                .select(new QWeeklyRecommendedContentsResponse(content))
+                .from(content)
+                .leftJoin(content.contentGenres, contentGenre)
+                .leftJoin(contentGenre.genre, genre)
+                .where(
+                        deletedFilter(),
+                        genresFilter(genreTypes)
+                )
+                .orderBy(content.id.desc())
+                .limit(request.size())
+                .fetch();
+
+        return items;
+    }
+
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
             List<Long> allContentIds) {
 
@@ -338,6 +361,10 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .from(content)
                 .where(content.id.eq(contentId))
                 .fetchOne();
+    }
+
+    private BooleanExpression genresFilter(List<GenreType> genreTypes) {
+        return genre.genreType.in(genreTypes);
     }
 
     private BooleanExpression cursorFilter(Long cursor) {
