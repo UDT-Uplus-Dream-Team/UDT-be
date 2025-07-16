@@ -244,8 +244,6 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .select(content.id)
                 .from(content)
                 .join(content.contentPlatforms, contentPlatform)
-                .on(contentPlatform.isAvailable.isTrue())
-                .join(contentPlatform.platform, platform)
                 .where(platform.platformType.in(platformTypes))
                 .fetch();
     }
@@ -366,16 +364,15 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         if (Objects.isNull(cursor)) {
             return null;
         }
-
         return content.id.lt(cursor);
     }
 
     private BooleanExpression deletedFilter() {
-        return content.isDeleted.eq(false);
+        return content.isDeleted.isFalse();
     }
 
     private BooleanExpression categoryFilter(String categoryType) {
-        if (Objects.isNull(categoryType)) {
+        if (Objects.isNull(categoryType) || categoryType.isBlank()) {
             return null;
         }
         CategoryType ct = CategoryType.fromByType(categoryType);

@@ -31,9 +31,6 @@ public class ContentPlatform extends TimeBaseEntity {
     @Column(name = "watch_url")
     private String watchUrl;
 
-    @Column(name = "is_available")
-    private boolean isAvailable;
-
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "platform_id",
             nullable = false,
@@ -46,16 +43,15 @@ public class ContentPlatform extends TimeBaseEntity {
             foreignKey = @ForeignKey(NO_CONSTRAINT))
     private Content content;
 
-    private ContentPlatform(String watchUrl, boolean isAvailable, Content content,
+    private ContentPlatform(String watchUrl, Content content,
             Platform platform) {
         this.watchUrl = watchUrl;
-        this.isAvailable = isAvailable;
         addContentAndPlatform(content, platform);
     }
 
-    public static ContentPlatform of(String watchUrl, boolean isAvailable, Content content,
+    public static ContentPlatform of(String watchUrl, Content content,
             Platform platform) {
-        return new ContentPlatform(watchUrl, isAvailable, content, platform);
+        return new ContentPlatform(watchUrl, content, platform);
     }
 
     private void addContentAndPlatform(Content content, Platform platform) {

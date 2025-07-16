@@ -90,7 +90,7 @@ public class AdminService {
         request.platforms().forEach(dto -> {
             Platform platform = adminQuery.findByPlatform(
                     PlatformType.fromByType(dto.platformType()));
-            ContentPlatform.of(dto.watchUrl(), dto.isAvailable(), content, platform);
+            ContentPlatform.of(dto.watchUrl(), content, platform);
         });
 
         for (AdminCategoryDTO catDto : request.categories()) {
@@ -164,7 +164,7 @@ public class AdminService {
         request.platforms().forEach(dto -> {
             Platform platform = adminQuery.findByPlatform(
                     PlatformType.fromByType(dto.platformType()));
-            ContentPlatform.of(dto.watchUrl(), dto.isAvailable(), content, platform);
+            ContentPlatform.of(dto.watchUrl(), content, platform);
         });
 
         for (AdminCategoryDTO catDto : request.categories()) {
@@ -254,8 +254,8 @@ public class AdminService {
         List<AdminPlatformDTO> platforms = content.getContentPlatforms().stream()
                 .map(p -> new AdminPlatformDTO(
                         p.getPlatform().getPlatformType().getType(),
-                        p.getWatchUrl(),
-                        p.isAvailable()))
+                        p.getWatchUrl()
+                ))
                 .toList();
 
         return AdminContentMapper.toContentGetResponse(content, categories, adminCastDTOS,
