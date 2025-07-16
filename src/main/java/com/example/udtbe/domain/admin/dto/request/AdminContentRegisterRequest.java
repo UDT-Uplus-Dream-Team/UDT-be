@@ -12,6 +12,7 @@ import java.util.List;
 
 public record AdminContentRegisterRequest(
         @NotBlank(message = "제목을 입력해주세요.")
+        @NotNull
         String title,
 
         String description,
