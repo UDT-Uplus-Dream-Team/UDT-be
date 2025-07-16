@@ -1,6 +1,12 @@
 package com.example.udtbe.content.controller;
 
+import static java.time.DayOfWeek.FRIDAY;
+import static java.time.DayOfWeek.MONDAY;
+import static java.time.DayOfWeek.SATURDAY;
+import static java.time.DayOfWeek.TUESDAY;
+import static java.time.DayOfWeek.WEDNESDAY;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -52,9 +58,12 @@ import com.example.udtbe.domain.content.repository.CountryRepository;
 import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -426,6 +435,75 @@ class ContentControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.code").value("CONTENT_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("콘텐츠를 찾을 수 없습니다."))
         ;
+    }
+
+    @DisplayName("요일별 추천 콘텐츠 목록을 조회한다.")
+    @Test
+    void getWeeklyRecommendedContents() throws Exception {
+        // given
+
+        List<Content> contents = new ArrayList<>();
+        contents.add(ContentFixture.content("버라이어티", "버라이어티"));
+        contents.add(ContentFixture.content("코미디", "코미디"));
+        contents.add(ContentFixture.content("액션", "액션"));
+        contents.add(ContentFixture.content("어드벤처", "어드벤처"));
+        contents.add(ContentFixture.content("범죄", "범죄"));
+        contents.add(ContentFixture.content("스릴러", "스릴러"));
+        contents.add(ContentFixture.content("멜로/로맨스", "멜로/로맨스"));
+        contents.add(ContentFixture.content("다큐멘터리", "다큐멘터리"));
+
+        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
+        List<Content> savedContents = contentRepository.saveAll(contents);
+        List<Genre> savedGenres = genreRepository.saveAll(
+                GenreFixture.genres(savedCategories.get(0)));
+
+        List<ContentGenre> contentGenres = new ArrayList<>();
+        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(19));
+        initContentGenre(contentGenres, savedContents.get(1), savedGenres.get(7));
+        initContentGenre(contentGenres, savedContents.get(2), savedGenres.get(0));
+        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(6));
+        initContentGenre(contentGenres, savedContents.get(4), savedGenres.get(14));
+        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(3));
+        initContentGenre(contentGenres, savedContents.get(6), savedGenres.get(9));
+        initContentGenre(contentGenres, savedContents.get(7), savedGenres.get(13));
+        contentGenreRepository.saveAll(contentGenres);
+
+        DayOfWeek today = LocalDate.now().getDayOfWeek();
+        Map<DayOfWeek, List<Long>> expectedContentIdsByGenre = Map.of(
+                MONDAY, List.of(savedContents.get(1).getId(), savedContents.get(0).getId()),
+                TUESDAY, List.of(savedContents.get(3).getId(), savedContents.get(2).getId()),
+                WEDNESDAY, List.of(savedContents.get(5).getId(), savedContents.get(4).getId()),
+                FRIDAY, List.of(savedContents.get(6).getId()),
+                SATURDAY, List.of(savedContents.get(7).getId())
+        );
+
+        List<Long> expectedIds = expectedContentIdsByGenre.getOrDefault(today, List.of());
+
+        // when  // then
+        if (today == DayOfWeek.THURSDAY || today == DayOfWeek.SUNDAY) {
+            mockMvc.perform(get("/api/contents/weekly")
+                            .param("size", "4")
+                            .contentType(APPLICATION_JSON)
+                            .cookie(accessTokenOfMember)
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[*].length()").value(4))
+            ;
+        } else {
+            mockMvc.perform(get("/api/contents/weekly")
+                            .param("size", "2")
+                            .contentType(APPLICATION_JSON)
+                            .cookie(accessTokenOfMember)
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[*].contentId", containsInAnyOrder(
+                            expectedIds.stream()
+                                    .map(Long::intValue)
+                                    .toArray()
+                    )));
+        }
     }
 
     private void initContentDirectors(List<ContentDirector> contentDirectors, Content content,
