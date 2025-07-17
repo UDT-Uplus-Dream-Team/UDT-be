@@ -82,4 +82,8 @@ public class Member extends TimeBaseEntity {
     public void updateLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
+
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }

@@ -2,14 +2,18 @@ package com.example.udtbe.domain.member.service;
 
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.repository.CuratedContentRepository;
+import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,7 @@ public class MemberService {
 
     private final MemberQuery memberQuery;
     private final SurveyQuery surveyQuery;
+    private final CuratedContentRepository curatedContentRepository;
 
     @Transactional(readOnly = true)
     public MemberInfoResponse getMemberInfo(Long memberId) {
@@ -34,7 +39,16 @@ public class MemberService {
                 survey.getPlatformTag(),
                 survey.getGenreTag(),
                 member.getProfileImageUrl());
+    }
 
+    @Transactional(readOnly = true)
+    public CursorPageResponse<MemberCuratedContentGetResponse> getCuratedContents(
+            MemberCuratedContentGetsRequest request, Member member) {
+        return curatedContentRepository.getCuratedContentByCursor(
+                request.cursor(),
+                request.size(),
+                member
+        );
     }
 
     @Transactional

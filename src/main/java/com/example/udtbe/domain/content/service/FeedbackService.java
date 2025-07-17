@@ -4,11 +4,11 @@ import com.example.udtbe.domain.content.dto.FeedbackMapper;
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackGetBulkResponse;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class FeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public FeedbackGetBulkResponse getFeedbackList(FeedbackContentGetRequest request,
+    public CursorPageResponse<FeedbackContentDTO> getFeedbackList(FeedbackContentGetRequest request,
             Member member) {
         List<Feedback> feedbacks = feedbackQuery.getFeedbacksByCursor(member, request);
 
@@ -39,9 +39,10 @@ public class FeedbackService {
 
         List<FeedbackContentDTO> dtoList = FeedbackMapper.toResponseList(limited);
 
-        Long nextCursor = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
+        Long nextCursorRaw = limited.isEmpty() ? null : limited.get(limited.size() - 1).getId();
+        String nextCursor = nextCursorRaw == null ? null : nextCursorRaw.toString();
 
-        return new FeedbackGetBulkResponse(dtoList, nextCursor, hasNext);
+        return new CursorPageResponse<>(dtoList, nextCursor, hasNext);
     }
 
     @Transactional
