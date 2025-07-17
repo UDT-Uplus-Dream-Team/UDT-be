@@ -15,7 +15,7 @@ public class LocalCookie implements CookieConfig {
         cookie.setPath("/");
         cookie.setMaxAge(60 * 180);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setAttribute("SameSite", "None");
         return cookie;
     }
@@ -26,7 +26,7 @@ public class LocalCookie implements CookieConfig {
         cookie.setPath("/");
         cookie.setMaxAge(0);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setAttribute("SameSite", "None");
 
         response.addCookie(cookie);
