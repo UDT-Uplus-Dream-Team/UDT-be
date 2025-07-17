@@ -26,6 +26,7 @@ public record AdminContentGetResponse(
         this.openDate = openDate;
         this.rating = rating;
         this.categories = categories.stream()
+                .distinct()
                 .map(category ->
                         CategoryType.from(category).getType()
                 ).toList();
