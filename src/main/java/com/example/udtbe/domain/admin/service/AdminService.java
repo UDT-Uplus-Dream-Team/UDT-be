@@ -28,7 +28,6 @@ import com.example.udtbe.domain.content.entity.Platform;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
-import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
 import com.example.udtbe.domain.content.repository.ContentCategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCountryRepository;
@@ -38,11 +37,7 @@ import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import com.example.udtbe.global.exception.RestApiException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -192,20 +187,11 @@ public class AdminService {
         return AdminContentMapper.toContentUpdateResponse(content);
     }
 
-    private void deleteContentRelation(Content content) {
-        contentGenreRepository.deleteAll(content.getContentGenres());
-        contentCategoryRepository.deleteAll(content.getContentCategories());
-        contentCastRepository.deleteAll(content.getContentCasts());
-        contentCountryRepository.deleteAll(content.getContentCountries());
-        contentPlatformRepository.deleteAll(content.getContentPlatforms());
-        contentDirectorRepository.deleteAll(content.getContentDirectors());
-    }
-
     @Transactional(readOnly = true)
     public CursorPageResponse<AdminContentGetResponse> getContents(
             AdminContentGetsRequest adminContentGetsRequest
     ) {
-        return contentRepository.getsAdminContentsByCursor(
+        return contentRepository.getsAdminContents(
                 adminContentGetsRequest.cursor(),
                 adminContentGetsRequest.size(),
                 adminContentGetsRequest.categoryType()
@@ -214,53 +200,16 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     public AdminContentGetDetailResponse getContent(Long contentId) {
-        Content content = adminQuery.findContentByContentId(contentId);
-        if (content.isDeleted()) {
-            throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
-        }
+        return contentRepository.getAdminContentDetails(contentId);
+    }
 
-        Map<String, List<String>> categoryGenreMap = content.getContentGenres().stream()
-                .collect(
-                        Collectors.groupingBy(
-                                g -> g.getGenre().getCategory().getCategoryType().getType(),
-                                Collectors.mapping(g -> g.getGenre().getGenreType().getType(),
-                                        Collectors.toList())
-                        )
-                );
-
-        content.getContentCategories().stream()
-                .map(c -> c.getCategory().getCategoryType().getType())
-                .distinct()
-                .forEach(type -> categoryGenreMap.putIfAbsent(type, new ArrayList<>()));
-
-        List<AdminCategoryDTO> categories = categoryGenreMap.entrySet().stream()
-                .map(e -> new AdminCategoryDTO(e.getKey(), e.getValue()))
-                .toList();
-
-        List<AdminCastDTO> adminCastDTOS = content.getContentCasts().stream()
-                .map(c -> new AdminCastDTO(
-                        c.getCast().getCastName(),
-                        c.getCast().getCastImageUrl()))
-                .toList();
-
-        List<String> directors = content.getContentDirectors().stream()
-                .map(d -> d.getDirector().getDirectorName())
-                .toList();
-
-        List<String> countries = content.getContentCountries().stream()
-                .map(c -> c.getCountry().getCountryName())
-                .toList();
-
-        List<AdminPlatformDTO> platforms = content.getContentPlatforms().stream()
-                .map(p -> new AdminPlatformDTO(
-                        p.getPlatform().getPlatformType().getType(),
-                        p.getWatchUrl()
-                ))
-                .toList();
-
-        return AdminContentMapper.toContentGetResponse(content, categories, adminCastDTOS,
-                directors,
-                countries, platforms);
+    private void deleteContentRelation(Content content) {
+        contentGenreRepository.deleteAllByContent(content);
+        contentCategoryRepository.deleteAllByContent(content);
+        contentCastRepository.deleteAllByContent(content);
+        contentCountryRepository.deleteAllByContent(content);
+        contentPlatformRepository.deleteAllByContent(content);
+        contentDirectorRepository.deleteAllByContent(content);
     }
 
 }
