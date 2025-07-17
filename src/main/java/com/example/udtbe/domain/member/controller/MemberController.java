@@ -1,13 +1,17 @@
 package com.example.udtbe.domain.member.controller;
 
+import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberService;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +25,16 @@ public class MemberController implements MemberControllerApiSpec {
     public ResponseEntity<MemberInfoResponse> getMemberInfo(Member member) {
         MemberInfoResponse response = memberService.getMemberInfo(member.getId());
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<CursorPageResponse<MemberCuratedContentGetResponse>> getCuratedContents(
+            Member member,
+            MemberCuratedContentGetsRequest memberCuratedContentGetsRequest) {
+        // TODO: 3차 MVP 때 엄선된 콘텐츠 필터링 반영
+        CursorPageResponse<MemberCuratedContentGetResponse> response
+                = memberService.getCuratedContents(memberCuratedContentGetsRequest, member);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Override
@@ -39,6 +53,7 @@ public class MemberController implements MemberControllerApiSpec {
                 member.getId(), memberUpdateGenreRequest
         );
         return ResponseEntity.ok(memberUpdatePlatformResponse);
+
     }
 
 }
