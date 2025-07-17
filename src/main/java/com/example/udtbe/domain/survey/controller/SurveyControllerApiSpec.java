@@ -5,6 +5,7 @@ import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ public interface SurveyControllerApiSpec {
     @PostMapping("/api/survey")
     public ResponseEntity<Void> survey(
             @RequestBody @Valid SurveyCreateRequest request,
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal Member member,
+            HttpServletResponse response
     );
 }
