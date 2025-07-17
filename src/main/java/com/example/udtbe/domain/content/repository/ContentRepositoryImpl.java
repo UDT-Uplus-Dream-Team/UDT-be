@@ -16,6 +16,10 @@ import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
@@ -54,7 +58,97 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public CursorPageResponse<AdminContentGetResponse> getsAdminContentsByCursor(Long cursor,
+    public AdminContentGetDetailResponse getAdminContentDetails(Long contentId) {
+
+        Content findContent = queryFactory
+                .selectFrom(content)
+                .where(content.id.eq(contentId), content.isDeleted.isFalse())
+                .fetchOne();
+
+        if (Objects.isNull(findContent)) {
+            throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
+        }
+
+        List<AdminPlatformDTO> platforms = queryFactory
+                .select(Projections.constructor(
+                        AdminPlatformDTO.class,
+                        platform.platformType.stringValue(),
+                        contentPlatform.watchUrl
+                ))
+                .from(contentPlatform)
+                .join(contentPlatform.platform, platform)
+                .where(contentPlatform.content.id.eq(contentId))
+                .fetch();
+
+        platforms = platforms.stream().map(p -> new AdminPlatformDTO(
+                PlatformType.from(p.platformType()).getType(),
+                p.watchUrl()
+        )).toList();
+
+        List<AdminCategoryDTO> categories = queryFactory
+                .from(contentCategory)
+                .join(contentCategory.category, category)
+                .leftJoin(contentGenre).on(contentGenre.content.id.eq(contentId)
+                        .and(contentGenre.genre.category.id.eq(category.id)))
+                .leftJoin(contentGenre.genre, genre)
+                .where(contentGenre.content.id.eq(contentId))
+                .transform(groupBy(category.categoryType).list(
+                        Projections.constructor(
+                                AdminCategoryDTO.class,
+                                category.categoryType.stringValue(),
+                                list(genre.genreType.stringValue())
+                        )
+                ));
+        categories = categories.stream()
+                .map(c -> new AdminCategoryDTO(
+                        CategoryType.from(c.categoryType()).getType(),
+                        c.genres().stream()
+                                .map(g -> GenreType.from(g).getType()).toList()
+                )).toList();
+
+        List<String> countries = queryFactory
+                .select(country.countryName.stringValue())
+                .from(contentCountry)
+                .where(contentCountry.content.id.eq(contentId))
+                .fetch();
+
+        List<String> directors = queryFactory
+                .select(director.directorName.stringValue())
+                .from(contentDirector)
+                .where(contentDirector.content.id.eq(contentId))
+                .fetch();
+
+        List<AdminCastDTO> casts = queryFactory
+                .select(Projections.constructor(
+                        AdminCastDTO.class,
+                        cast.castName,
+                        cast.castImageUrl
+                ))
+                .from(contentCast)
+                .join(contentCast.cast, cast)
+                .where(contentCast.content.id.eq(contentId))
+                .fetch();
+
+        return new AdminContentGetDetailResponse(
+                findContent.getTitle(),
+                findContent.getDescription(),
+                findContent.getPosterUrl(),
+                findContent.getBackdropUrl(),
+                findContent.getTrailerUrl(),
+                findContent.getOpenDate(),
+                findContent.getRunningTime(),
+                findContent.getEpisode(),
+                findContent.getRating(),
+                categories,
+                countries,
+                directors,
+                casts,
+                platforms
+        );
+    }
+
+    @Override
+    public CursorPageResponse<AdminContentGetResponse> getsAdminContents(Long cursor,
             int size, String categoryType) {
 
         List<Long> contentIds = queryFactory
