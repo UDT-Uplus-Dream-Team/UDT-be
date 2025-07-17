@@ -28,7 +28,6 @@ public class LocalCookie implements CookieConfig {
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setAttribute("SameSite", "Lax");
-
         response.addCookie(cookie);
     }
 }
