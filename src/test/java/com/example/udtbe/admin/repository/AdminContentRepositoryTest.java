@@ -121,7 +121,7 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
 
         // when
         CursorPageResponse<AdminContentGetResponse> page =
-                contentRepository.getsAdminContentsByCursor(null, size, null);
+                contentRepository.getsAdminContents(null, size, null);
 
         // then
         List<AdminContentGetResponse> dtos = page.item();
