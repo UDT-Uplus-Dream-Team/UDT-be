@@ -5,17 +5,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
@@ -37,7 +34,6 @@ import com.example.udtbe.domain.content.entity.Platform;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
-import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
 import com.example.udtbe.domain.content.repository.ContentCategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCountryRepository;
@@ -371,7 +367,7 @@ public class AdminServiceTest {
 
         AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(5L, 2, null);
 
-        given(contentRepository.getsAdminContentsByCursor(
+        given(contentRepository.getsAdminContents(
                 adminContentGetsRequest.cursor(),
                 adminContentGetsRequest.size(),
                 adminContentGetsRequest.categoryType()
@@ -384,12 +380,13 @@ public class AdminServiceTest {
 
         // then
         assertThat(res).isSameAs(page);
-        then(contentRepository).should().getsAdminContentsByCursor(
+        then(contentRepository).should().getsAdminContents(
                 adminContentGetsRequest.cursor(),
                 adminContentGetsRequest.size(),
                 adminContentGetsRequest.categoryType()
         );
     }
+
 
     @DisplayName("커서 기반 카테고리 필터링 페이지네이션 결과를 반환할 수 있다")
     @Test
@@ -410,7 +407,7 @@ public class AdminServiceTest {
 
         AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(5L, 2, "드라마");
 
-        given(contentRepository.getsAdminContentsByCursor(
+        given(contentRepository.getsAdminContents(
                 adminContentGetsRequest.cursor(),
                 adminContentGetsRequest.size(),
                 adminContentGetsRequest.categoryType()
@@ -423,32 +420,49 @@ public class AdminServiceTest {
 
         // then
         assertThat(res).isSameAs(page);
-        then(contentRepository).should().getsAdminContentsByCursor(
+        then(contentRepository).should().getsAdminContents(
                 adminContentGetsRequest.cursor(),
                 adminContentGetsRequest.size(),
                 adminContentGetsRequest.categoryType()
         );
     }
 
-    @DisplayName("getContent: 정상 조회 시 필드와 연관관계가 매핑되어 반환될 수 있다.")
+    @DisplayName("정상 조회 시 필드와 연관관계가 매핑되어 반환될 수 있다.")
     @Test
     void getContentSuccess() {
         // given
         Long id = 100L;
-        Content content = spy(ContentFixture.content(
-                "테스트 제목", "테스트 설명", "영화", "액션", "넷플릭스"
-        ));
-        given(adminQuery.findContentByContentId(id)).willReturn(content);
+        AdminContentGetDetailResponse contentGetDetailResponse = new AdminContentGetDetailResponse(
+                "테스트 제목", "테스트 설명", "https://poster.url", "https://backdrop.url",
+                "https://trailer.url",
+                LocalDateTime.of(2023, 1, 1, 0, 0), 120, 1, "전체 관람가",
+                List.of(new AdminCategoryDTO("영화", List.of("액션"))),
+                List.of("한국"),
+                List.of("테스트 감독"),
+                List.of(new AdminCastDTO("테스트 배우", "https://cast.url")),
+                List.of(new AdminPlatformDTO("넷플릭스", "https://platform.url")));
+
+        given(contentRepository.getAdminContentDetails(id)).willReturn(contentGetDetailResponse);
 
         // when
-        AdminContentGetDetailResponse contentGetDetailResponse = adminService.getContent(id);
+        AdminContentGetDetailResponse response = adminService.getContent(id);
 
         // then
         assertAll(
-                () -> verify(adminQuery).findContentByContentId(eq(id)),
-
-                () -> assertEquals(content.getTitle(), contentGetDetailResponse.title()),
-                () -> assertEquals(content.getDescription(), contentGetDetailResponse.description())
+                () -> assertEquals(contentGetDetailResponse.title(), response.title()),
+                () -> assertEquals(contentGetDetailResponse.description(), response.description()),
+                () -> assertEquals(contentGetDetailResponse.posterUrl(), response.posterUrl()),
+                () -> assertEquals(contentGetDetailResponse.backdropUrl(), response.backdropUrl()),
+                () -> assertEquals(contentGetDetailResponse.trailerUrl(), response.trailerUrl()),
+                () -> assertEquals(contentGetDetailResponse.openDate(), response.openDate()),
+                () -> assertEquals(contentGetDetailResponse.runningTime(), response.runningTime()),
+                () -> assertEquals(contentGetDetailResponse.episode(), response.episode()),
+                () -> assertEquals(contentGetDetailResponse.rating(), response.rating()),
+                () -> assertEquals(contentGetDetailResponse.categories(), response.categories()),
+                () -> assertEquals(contentGetDetailResponse.countries(), response.countries()),
+                () -> assertEquals(contentGetDetailResponse.directors(), response.directors()),
+                () -> assertEquals(contentGetDetailResponse.casts(), response.casts()),
+                () -> assertEquals(contentGetDetailResponse.platforms(), response.platforms())
         );
     }
 
@@ -471,33 +485,15 @@ public class AdminServiceTest {
                 () -> verify(adminQuery).findContentByContentId(eq(id)),
                 () -> verify(content).delete(eq(true)),
 
-                () -> verify(contentGenreRepository).deleteAll(anyCollection()),
-                () -> verify(contentCategoryRepository).deleteAll(anyCollection()),
-                () -> verify(contentCastRepository).deleteAll(anyCollection()),
-                () -> verify(contentCountryRepository).deleteAll(anyCollection()),
-                () -> verify(contentPlatformRepository).deleteAll(anyCollection()),
-                () -> verify(contentDirectorRepository).deleteAll(anyCollection()),
+                () -> verify(contentGenreRepository).deleteAllByContent(content),
+                () -> verify(contentCategoryRepository).deleteAllByContent(content),
+                () -> verify(contentCastRepository).deleteAllByContent(content),
+                () -> verify(contentCountryRepository).deleteAllByContent(content),
+                () -> verify(contentPlatformRepository).deleteAllByContent(content),
+                () -> verify(contentDirectorRepository).deleteAllByContent(content),
 
                 () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
                 () -> verify(metadata).delete(eq(true))
         );
-    }
-
-    @DisplayName("삭제된 콘텐츠 조회 시 404 예외가 발생할 수 있다.")
-    @Test
-    void getContentDeletedNotFound() {
-        // given
-        Long id = 200L;
-        Content deleted = spy(ContentFixture.content(
-                "삭제 테스트 제목", "삭제 테스트 설명", "영화", "액션", "넷플릭스"
-        ));
-        given(adminQuery.findContentByContentId(id)).willReturn(deleted);
-        given(deleted.isDeleted()).willReturn(true);
-
-        // when / then
-        assertThatThrownBy(
-                () -> adminService.getContent(id)
-        ).isExactlyInstanceOf(RestApiException.class)
-                .hasMessage(ContentErrorCode.CONTENT_NOT_FOUND.getMessage());
     }
 }

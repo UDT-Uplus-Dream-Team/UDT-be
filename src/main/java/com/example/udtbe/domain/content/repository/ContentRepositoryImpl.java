@@ -1,28 +1,5 @@
 package com.example.udtbe.domain.content.repository;
 
-import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
-import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
-import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
-import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
-import com.example.udtbe.domain.content.dto.response.*;
-import com.example.udtbe.domain.content.entity.*;
-import com.example.udtbe.domain.content.entity.enums.CategoryType;
-import com.example.udtbe.domain.content.entity.enums.GenreType;
-import com.example.udtbe.domain.content.entity.enums.PlatformType;
-import com.example.udtbe.domain.content.exception.ContentErrorCode;
-import com.example.udtbe.global.dto.CursorPageResponse;
-import com.example.udtbe.global.exception.RestApiException;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
 import static com.example.udtbe.domain.content.entity.QCast.cast;
 import static com.example.udtbe.domain.content.entity.QCategory.category;
 import static com.example.udtbe.domain.content.entity.QContent.content;
@@ -39,6 +16,44 @@ import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
+import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
+import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
+import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.QWeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.content.entity.Category;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentPlatform;
+import com.example.udtbe.domain.content.entity.Country;
+import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.Genre;
+import com.example.udtbe.domain.content.entity.enums.CategoryType;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
+import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.exception.ContentErrorCode;
+import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+
 @Repository
 @RequiredArgsConstructor
 public class ContentRepositoryImpl implements ContentRepositoryCustom {
@@ -47,8 +62,98 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public CursorPageResponse<AdminContentGetResponse> getsAdminContentsByCursor(Long cursor,
-                                                                                 int size, String categoryType) {
+    public AdminContentGetDetailResponse getAdminContentDetails(Long contentId) {
+
+        Content findContent = queryFactory
+                .selectFrom(content)
+                .where(content.id.eq(contentId), content.isDeleted.isFalse())
+                .fetchOne();
+
+        if (Objects.isNull(findContent)) {
+            throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
+        }
+
+        List<AdminPlatformDTO> platforms = queryFactory
+                .select(Projections.constructor(
+                        AdminPlatformDTO.class,
+                        platform.platformType.stringValue(),
+                        contentPlatform.watchUrl
+                ))
+                .from(contentPlatform)
+                .join(contentPlatform.platform, platform)
+                .where(contentPlatform.content.id.eq(contentId))
+                .fetch();
+
+        platforms = platforms.stream().map(p -> new AdminPlatformDTO(
+                PlatformType.from(p.platformType()).getType(),
+                p.watchUrl()
+        )).toList();
+
+        List<AdminCategoryDTO> categories = queryFactory
+                .from(contentCategory)
+                .join(contentCategory.category, category)
+                .leftJoin(contentGenre).on(contentGenre.content.id.eq(contentId)
+                        .and(contentGenre.genre.category.id.eq(category.id)))
+                .leftJoin(contentGenre.genre, genre)
+                .where(contentGenre.content.id.eq(contentId))
+                .transform(groupBy(category.categoryType).list(
+                        Projections.constructor(
+                                AdminCategoryDTO.class,
+                                category.categoryType.stringValue(),
+                                list(genre.genreType.stringValue())
+                        )
+                ));
+        categories = categories.stream()
+                .map(c -> new AdminCategoryDTO(
+                        CategoryType.from(c.categoryType()).getType(),
+                        c.genres().stream()
+                                .map(g -> GenreType.from(g).getType()).toList()
+                )).toList();
+
+        List<String> countries = queryFactory
+                .select(country.countryName.stringValue())
+                .from(contentCountry)
+                .where(contentCountry.content.id.eq(contentId))
+                .fetch();
+
+        List<String> directors = queryFactory
+                .select(director.directorName.stringValue())
+                .from(contentDirector)
+                .where(contentDirector.content.id.eq(contentId))
+                .fetch();
+
+        List<AdminCastDTO> casts = queryFactory
+                .select(Projections.constructor(
+                        AdminCastDTO.class,
+                        cast.castName,
+                        cast.castImageUrl
+                ))
+                .from(contentCast)
+                .join(contentCast.cast, cast)
+                .where(contentCast.content.id.eq(contentId))
+                .fetch();
+
+        return new AdminContentGetDetailResponse(
+                findContent.getTitle(),
+                findContent.getDescription(),
+                findContent.getPosterUrl(),
+                findContent.getBackdropUrl(),
+                findContent.getTrailerUrl(),
+                findContent.getOpenDate(),
+                findContent.getRunningTime(),
+                findContent.getEpisode(),
+                findContent.getRating(),
+                categories,
+                countries,
+                directors,
+                casts,
+                platforms
+        );
+    }
+
+    @Override
+    public CursorPageResponse<AdminContentGetResponse> getsAdminContents(Long cursor,
+            int size, String categoryType) {
 
         List<Long> contentIds = queryFactory
                 .select(content.id)
@@ -243,7 +348,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
-                                                    List<Long> allContentIds) {
+            List<Long> allContentIds) {
 
         if (isNullOrEmpty(platforms)) {
             return allContentIds;
@@ -277,7 +382,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByRatings(List<String> ratings,
-                                              List<Long> allContentIds) {
+            List<Long> allContentIds) {
 
         if (isNullOrEmpty(ratings)) {
             return allContentIds;
@@ -290,7 +395,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByOpenDates(List<LocalDateTime> openDates,
-                                                List<Long> allContentIds) {
+            List<Long> allContentIds) {
 
         if (isNullOrEmpty(openDates)) {
             return allContentIds;
@@ -309,7 +414,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByCategories(List<String> categories,
-                                                 List<Long> allContentIds) {
+            List<Long> allContentIds) {
 
         if (isNullOrEmpty(categories)) {
             return allContentIds;
@@ -329,7 +434,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByGenres(List<String> genres,
-                                             List<Long> allContentIds) {
+            List<Long> allContentIds) {
 
         if (isNullOrEmpty(genres)) {
             return allContentIds;
