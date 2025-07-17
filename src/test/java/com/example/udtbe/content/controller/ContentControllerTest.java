@@ -12,7 +12,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -213,15 +212,14 @@ class ContentControllerTest extends ApiSupport {
         contentGenreRepository.saveAll(contentGenres);
 
         // when  // then
-        mockMvc.perform(post("/api/contents")
+        mockMvc.perform(get("/api/contents")
                         .param("size", "3")
-                        .param("contentSearchConditionDTO.platforms", "넷플릭스", "디즈니+")
-                        .param("contentSearchConditionDTO.countries", "한국", "미국")
-                        .param("contentSearchConditionDTO.openDates", "2020-01-01T00:00:00",
-                                "2021-01-01T00:00:00")
-                        .param("contentSearchConditionDTO.ratings", "전체 관람가", "12세 이상")
-                        .param("contentSearchConditionDTO.categories", "영화")
-                        .param("contentSearchConditionDTO.genres", "액션", "스릴러", "SF", "어드벤처")
+                        .param("platforms", "넷플릭스", "디즈니+")
+                        .param("countries", "한국", "미국")
+                        .param("openDates", "2020-01-01T00:00:00", "2021-01-01T00:00:00")
+                        .param("ratings", "전체 관람가", "12세 이상")
+                        .param("categories", "영화")
+                        .param("genres", "액션", "스릴러", "SF", "어드벤처")
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember)
                 )
@@ -325,15 +323,14 @@ class ContentControllerTest extends ApiSupport {
         contentGenreRepository.saveAll(contentGenres);
 
         // when  // then
-        mockMvc.perform(post("/api/contents")
+        mockMvc.perform(get("/api/contents")
                         .param("size", "1")
-                        .param("contentSearchConditionDTO.platforms", "넷플릭스", "디즈니+")
-                        .param("contentSearchConditionDTO.countries", "한국", "미국")
-                        .param("contentSearchConditionDTO.openDates", "2020-01-01T00:00:00",
-                                "2021-01-01T00:00:00")
-                        .param("contentSearchConditionDTO.ratings", "전체 관람가", "12세 이상")
-                        .param("contentSearchConditionDTO.categories", "영화")
-                        .param("contentSearchConditionDTO.genres", "액션", "스릴러", "SF", "어드벤처")
+                        .param("platforms", "넷플릭스", "디즈니+")
+                        .param("countries", "한국", "미국")
+                        .param("openDates", "2020-01-01T00:00:00", "2021-01-01T00:00:00")
+                        .param("ratings", "전체 관람가", "12세 이상")
+                        .param("categories", "영화")
+                        .param("genres", "액션", "스릴러", "SF", "어드벤처")
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember)
                 )
