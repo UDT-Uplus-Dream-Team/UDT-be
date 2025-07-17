@@ -16,6 +16,7 @@ import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
+
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
@@ -23,32 +24,27 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
-import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
-import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
-import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
-import com.example.udtbe.domain.content.entity.Cast;
-import com.example.udtbe.domain.content.entity.Category;
-import com.example.udtbe.domain.content.entity.Content;
-import com.example.udtbe.domain.content.entity.ContentPlatform;
-import com.example.udtbe.domain.content.entity.Country;
-import com.example.udtbe.domain.content.entity.Director;
-import com.example.udtbe.domain.content.entity.Genre;
+import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
+import com.example.udtbe.domain.content.dto.response.*;
+import com.example.udtbe.domain.content.entity.*;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+
+
 
 @Repository
 @RequiredArgsConstructor
@@ -214,17 +210,17 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .fetch();
 
         List<Long> filteredByPlatForms = getContentIdsByPlatformTypes(
-                request.contentSearchConditionDTO().platforms(), allContentIds);
+                request.platforms(), allContentIds);
         List<Long> filteredByCountries = getContentIdsByCountries(
-                request.contentSearchConditionDTO().countries(), allContentIds);
+                request.countries(), allContentIds);
         List<Long> filteredByOpenDates = getContentIdsByOpenDates(
-                request.contentSearchConditionDTO().openDates(), allContentIds);
+                request.openDates(), allContentIds);
         List<Long> filteredRatings = getContentIdsByRatings(
-                request.contentSearchConditionDTO().ratings(), allContentIds);
+                request.ratings(), allContentIds);
         List<Long> filteredCategories = getContentIdsByCategories(
-                request.contentSearchConditionDTO().categories(), allContentIds);
+                request.categories(), allContentIds);
         List<Long> filteredGenres = getContentIdsByGenres(
-                request.contentSearchConditionDTO().genres(), allContentIds);
+                request.genres(), allContentIds);
 
         Set<Long> filteredContentIds = new HashSet<>(filteredByPlatForms);
         filteredContentIds.retainAll(filteredByCountries);
@@ -323,8 +319,28 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         );
     }
 
+    @Override
+    public List<WeeklyRecommendedContentsResponse> getWeeklyRecommendedContents(
+            WeeklyRecommendationRequest request, List<GenreType> genreTypes) {
+
+        List<WeeklyRecommendedContentsResponse> items = queryFactory
+                .select(new QWeeklyRecommendedContentsResponse(content))
+                .from(content)
+                .leftJoin(content.contentGenres, contentGenre)
+                .leftJoin(contentGenre.genre, genre)
+                .where(
+                        deletedFilter(),
+                        genresFilter(genreTypes)
+                )
+                .orderBy(content.id.desc())
+                .limit(request.size())
+                .fetch();
+
+        return items;
+    }
+
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
-            List<Long> allContentIds) {
+                                                    List<Long> allContentIds) {
 
         if (isNullOrEmpty(platforms)) {
             return allContentIds;
@@ -358,7 +374,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByRatings(List<String> ratings,
-            List<Long> allContentIds) {
+                                              List<Long> allContentIds) {
 
         if (isNullOrEmpty(ratings)) {
             return allContentIds;
@@ -371,7 +387,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByOpenDates(List<LocalDateTime> openDates,
-            List<Long> allContentIds) {
+                                                List<Long> allContentIds) {
 
         if (isNullOrEmpty(openDates)) {
             return allContentIds;
@@ -390,7 +406,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByCategories(List<String> categories,
-            List<Long> allContentIds) {
+                                                 List<Long> allContentIds) {
 
         if (isNullOrEmpty(categories)) {
             return allContentIds;
@@ -410,7 +426,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByGenres(List<String> genres,
-            List<Long> allContentIds) {
+                                             List<Long> allContentIds) {
 
         if (isNullOrEmpty(genres)) {
             return allContentIds;
@@ -452,6 +468,13 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .from(content)
                 .where(content.id.eq(contentId))
                 .fetchOne();
+    }
+
+    private BooleanExpression genresFilter(List<GenreType> genreTypes) {
+        if (Objects.isNull(genreTypes) || genreTypes.isEmpty()) {
+            return null;
+        }
+        return genre.genreType.in(genreTypes);
     }
 
     private BooleanExpression cursorFilter(Long cursor) {

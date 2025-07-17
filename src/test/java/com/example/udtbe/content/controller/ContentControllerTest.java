@@ -1,65 +1,30 @@
 package com.example.udtbe.content.controller;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.example.udtbe.common.fixture.CastFixture;
-import com.example.udtbe.common.fixture.CategoryFixture;
-import com.example.udtbe.common.fixture.ContentCastFixture;
-import com.example.udtbe.common.fixture.ContentCategoryFixture;
-import com.example.udtbe.common.fixture.ContentCountryFixture;
-import com.example.udtbe.common.fixture.ContentDirectorFixture;
-import com.example.udtbe.common.fixture.ContentFixture;
-import com.example.udtbe.common.fixture.ContentGenreFixture;
-import com.example.udtbe.common.fixture.ContentPlatformFixture;
-import com.example.udtbe.common.fixture.CountryFixture;
-import com.example.udtbe.common.fixture.DirectorFixture;
-import com.example.udtbe.common.fixture.GenreFixture;
-import com.example.udtbe.common.fixture.PlatformFixture;
+import com.example.udtbe.common.fixture.*;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.content.controller.ContentController;
-import com.example.udtbe.domain.content.entity.Cast;
-import com.example.udtbe.domain.content.entity.Category;
-import com.example.udtbe.domain.content.entity.Content;
-import com.example.udtbe.domain.content.entity.ContentCast;
-import com.example.udtbe.domain.content.entity.ContentCategory;
-import com.example.udtbe.domain.content.entity.ContentCountry;
-import com.example.udtbe.domain.content.entity.ContentDirector;
-import com.example.udtbe.domain.content.entity.ContentGenre;
-import com.example.udtbe.domain.content.entity.ContentPlatform;
-import com.example.udtbe.domain.content.entity.Country;
-import com.example.udtbe.domain.content.entity.Director;
-import com.example.udtbe.domain.content.entity.Genre;
-import com.example.udtbe.domain.content.entity.Platform;
-import com.example.udtbe.domain.content.repository.CastRepository;
-import com.example.udtbe.domain.content.repository.CategoryRepository;
-import com.example.udtbe.domain.content.repository.ContentCastRepository;
-import com.example.udtbe.domain.content.repository.ContentCategoryRepository;
-import com.example.udtbe.domain.content.repository.ContentCountryRepository;
-import com.example.udtbe.domain.content.repository.ContentDirectorRepository;
-import com.example.udtbe.domain.content.repository.ContentGenreRepository;
-import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
-import com.example.udtbe.domain.content.repository.ContentRepository;
-import com.example.udtbe.domain.content.repository.CountryRepository;
-import com.example.udtbe.domain.content.repository.DirectorRepository;
-import com.example.udtbe.domain.content.repository.GenreRepository;
-import com.example.udtbe.domain.content.repository.PlatformRepository;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import com.example.udtbe.domain.content.entity.*;
+import com.example.udtbe.domain.content.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static java.time.DayOfWeek.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ContentControllerTest extends ApiSupport {
 
@@ -204,15 +169,14 @@ class ContentControllerTest extends ApiSupport {
         contentGenreRepository.saveAll(contentGenres);
 
         // when  // then
-        mockMvc.perform(post("/api/contents")
+        mockMvc.perform(get("/api/contents")
                         .param("size", "3")
-                        .param("contentSearchConditionDTO.platforms", "넷플릭스", "디즈니+")
-                        .param("contentSearchConditionDTO.countries", "한국", "미국")
-                        .param("contentSearchConditionDTO.openDates", "2020-01-01T00:00:00",
-                                "2021-01-01T00:00:00")
-                        .param("contentSearchConditionDTO.ratings", "전체 관람가", "12세 이상")
-                        .param("contentSearchConditionDTO.categories", "영화")
-                        .param("contentSearchConditionDTO.genres", "액션", "스릴러", "SF", "어드벤처")
+                        .param("platforms", "넷플릭스", "디즈니+")
+                        .param("countries", "한국", "미국")
+                        .param("openDates", "2020-01-01T00:00:00", "2021-01-01T00:00:00")
+                        .param("ratings", "전체 관람가", "12세 이상")
+                        .param("categories", "영화")
+                        .param("genres", "액션", "스릴러", "SF", "어드벤처")
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember)
                 )
@@ -316,15 +280,14 @@ class ContentControllerTest extends ApiSupport {
         contentGenreRepository.saveAll(contentGenres);
 
         // when  // then
-        mockMvc.perform(post("/api/contents")
+        mockMvc.perform(get("/api/contents")
                         .param("size", "1")
-                        .param("contentSearchConditionDTO.platforms", "넷플릭스", "디즈니+")
-                        .param("contentSearchConditionDTO.countries", "한국", "미국")
-                        .param("contentSearchConditionDTO.openDates", "2020-01-01T00:00:00",
-                                "2021-01-01T00:00:00")
-                        .param("contentSearchConditionDTO.ratings", "전체 관람가", "12세 이상")
-                        .param("contentSearchConditionDTO.categories", "영화")
-                        .param("contentSearchConditionDTO.genres", "액션", "스릴러", "SF", "어드벤처")
+                        .param("platforms", "넷플릭스", "디즈니+")
+                        .param("countries", "한국", "미국")
+                        .param("openDates", "2020-01-01T00:00:00", "2021-01-01T00:00:00")
+                        .param("ratings", "전체 관람가", "12세 이상")
+                        .param("categories", "영화")
+                        .param("genres", "액션", "스릴러", "SF", "어드벤처")
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember)
                 )
@@ -428,13 +391,82 @@ class ContentControllerTest extends ApiSupport {
         ;
     }
 
+    @DisplayName("요일별 추천 콘텐츠 목록을 조회한다.")
+    @Test
+    void getWeeklyRecommendedContents() throws Exception {
+        // given
+
+        List<Content> contents = new ArrayList<>();
+        contents.add(ContentFixture.content("버라이어티", "버라이어티"));
+        contents.add(ContentFixture.content("코미디", "코미디"));
+        contents.add(ContentFixture.content("액션", "액션"));
+        contents.add(ContentFixture.content("어드벤처", "어드벤처"));
+        contents.add(ContentFixture.content("범죄", "범죄"));
+        contents.add(ContentFixture.content("스릴러", "스릴러"));
+        contents.add(ContentFixture.content("멜로/로맨스", "멜로/로맨스"));
+        contents.add(ContentFixture.content("다큐멘터리", "다큐멘터리"));
+
+        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
+        List<Content> savedContents = contentRepository.saveAll(contents);
+        List<Genre> savedGenres = genreRepository.saveAll(
+                GenreFixture.genres(savedCategories.get(0)));
+
+        List<ContentGenre> contentGenres = new ArrayList<>();
+        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(19));
+        initContentGenre(contentGenres, savedContents.get(1), savedGenres.get(7));
+        initContentGenre(contentGenres, savedContents.get(2), savedGenres.get(0));
+        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(6));
+        initContentGenre(contentGenres, savedContents.get(4), savedGenres.get(14));
+        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(3));
+        initContentGenre(contentGenres, savedContents.get(6), savedGenres.get(9));
+        initContentGenre(contentGenres, savedContents.get(7), savedGenres.get(13));
+        contentGenreRepository.saveAll(contentGenres);
+
+        DayOfWeek today = LocalDate.now().getDayOfWeek();
+        Map<DayOfWeek, List<Long>> expectedContentIdsByGenre = Map.of(
+                MONDAY, List.of(savedContents.get(1).getId(), savedContents.get(0).getId()),
+                TUESDAY, List.of(savedContents.get(3).getId(), savedContents.get(2).getId()),
+                WEDNESDAY, List.of(savedContents.get(5).getId(), savedContents.get(4).getId()),
+                FRIDAY, List.of(savedContents.get(6).getId()),
+                SATURDAY, List.of(savedContents.get(7).getId())
+        );
+
+        List<Long> expectedIds = expectedContentIdsByGenre.getOrDefault(today, List.of());
+
+        // when  // then
+        if (today == DayOfWeek.THURSDAY || today == DayOfWeek.SUNDAY) {
+            mockMvc.perform(get("/api/contents/weekly")
+                            .param("size", "4")
+                            .contentType(APPLICATION_JSON)
+                            .cookie(accessTokenOfMember)
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.length()").value(4))
+            ;
+        } else {
+            mockMvc.perform(get("/api/contents/weekly")
+                            .param("size", "2")
+                            .contentType(APPLICATION_JSON)
+                            .cookie(accessTokenOfMember)
+                    )
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[*].contentId", containsInAnyOrder(
+                            expectedIds.stream()
+                                    .map(Long::intValue)
+                                    .toArray()
+                    )));
+        }
+    }
+
     private void initContentDirectors(List<ContentDirector> contentDirectors, Content content,
-            Director director) {
+                                      Director director) {
         contentDirectors.add(ContentDirectorFixture.contentDirector(content, director));
     }
 
     private void initContentCasts(List<ContentCast> contentCasts, Content content,
-            Cast cast) {
+                                  Cast cast) {
         contentCasts.add(ContentCastFixture.contentCast(content, cast));
     }
 
@@ -444,22 +476,22 @@ class ContentControllerTest extends ApiSupport {
     }
 
     private void initContentCountry(List<ContentCountry> contentCountries,
-            Content content, Country country) {
+                                    Content content, Country country) {
         contentCountries.add(ContentCountryFixture.contentCountry(content, country));
     }
 
     private void initContentPlatform(List<ContentPlatform> contentPlatforms,
-            Content content, Platform platform) {
+                                     Content content, Platform platform) {
         contentPlatforms.add(ContentPlatformFixture.contentPlatform(content, platform));
     }
 
     private void initContentCategory(List<ContentCategory> contentCategories,
-            Content content, Category category) {
+                                     Content content, Category category) {
         contentCategories.add(ContentCategoryFixture.contentCategory(content, category));
     }
 
     private void initContentGenre(List<ContentGenre> contentGenres,
-            Content content, Genre genre) {
+                                  Content content, Genre genre) {
         contentGenres.add(ContentGenreFixture.contentGenre(content, genre));
     }
 }

@@ -1,19 +1,16 @@
 package com.example.udtbe.member.service;
 
-import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-
+import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
+import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.repository.CuratedContentRepository;
+import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
+import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.MemberInfoResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdateGenreResponse;
 import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse;
@@ -22,15 +19,25 @@ import com.example.udtbe.domain.member.service.MemberQuery;
 import com.example.udtbe.domain.member.service.MemberService;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -41,10 +48,14 @@ class MemberServiceTest {
     @Mock
     private SurveyQuery surveyQuery;
 
+    @Mock
+    private CuratedContentRepository curatedContentRepository;
+
     @InjectMocks
     private MemberService memberService;
 
-    @DisplayName("마이페이지에서 회원 정보를 조회할 수 있다..")
+
+    @DisplayName("마이페이지에서 회원 정보를 조회할 수 있다.")
     @Test
     void getMemberInfo() {
         // given
@@ -70,7 +81,68 @@ class MemberServiceTest {
                 () -> assertThat(response.genres()).isEqualTo(survey.getGenreTag()),
                 () -> assertThat(response.profileImageUrl()).isEqualTo(member.getProfileImageUrl())
         );
+    }
 
+    @DisplayName("마이페이지에서 엄선된 추천 콘텐츠 목록을 무한스크롤로 조회할 수 있다.")
+    @Test
+    void getCuratedContents() {
+        // given
+        final String email = "test@email.com";
+
+        Member member = MemberFixture.member(email, ROLE_USER);
+
+        Content content1 = ContentFixture.content("test_content1", "description1");
+        Content content2 = ContentFixture.content("test_content2", "description2");
+        Content content3 = ContentFixture.content("test_content3", "description3");
+
+        MemberCuratedContentGetResponse response1 = new MemberCuratedContentGetResponse(
+                1L, "test_content1", "poster1.jpg"
+        );
+        MemberCuratedContentGetResponse response2 = new MemberCuratedContentGetResponse(
+                2L, "test_content2", "poster2.jpg"
+        );
+        MemberCuratedContentGetResponse response3 = new MemberCuratedContentGetResponse(
+                3L, "test_content3", "poster3.jpg"
+        );
+
+        MemberCuratedContentGetsRequest firstRequest = new MemberCuratedContentGetsRequest(null, 2);
+        CursorPageResponse<MemberCuratedContentGetResponse> firstPageResponse =
+                new CursorPageResponse<>(List.of(response1, response2), "2", true);
+
+        given(curatedContentRepository.getCuratedContentByCursor(null, 2, member))
+                .willReturn(firstPageResponse);
+
+        MemberCuratedContentGetsRequest secondRequest = new MemberCuratedContentGetsRequest(2L, 2);
+        CursorPageResponse<MemberCuratedContentGetResponse> secondPageResponse =
+                new CursorPageResponse<>(List.of(response3), null, false);
+
+        given(curatedContentRepository.getCuratedContentByCursor(2L, 2, member))
+                .willReturn(secondPageResponse);
+
+        // when
+        CursorPageResponse<MemberCuratedContentGetResponse> firstResponse =
+                memberService.getCuratedContents(firstRequest, member);
+
+        CursorPageResponse<MemberCuratedContentGetResponse> secondResponse =
+                memberService.getCuratedContents(secondRequest, member);
+
+
+        // then
+        assertAll(
+                () -> assertThat(firstResponse.item()).hasSize(2),
+                () -> assertThat(firstResponse.item().get(0).contentId()).isEqualTo(1L),
+                () -> assertThat(firstResponse.item().get(1).contentId()).isEqualTo(2L),
+                () -> assertThat(firstResponse.nextCursor()).isEqualTo("2"),
+                () -> assertThat(firstResponse.hasNext()).isTrue()
+        );
+
+        // then 2
+        assertAll(
+                () -> assertThat(secondResponse.item()).hasSize(1),
+                () -> assertThat(secondResponse.item().get(0).contentId()).isEqualTo(3L),
+                () -> assertThat(secondResponse.nextCursor()).isNull(),
+                () -> assertThat(secondResponse.hasNext()).isFalse()
+        );
     }
 
     @DisplayName("마이페이지에서 회원 선호 장르를 수정할 수 있다.")

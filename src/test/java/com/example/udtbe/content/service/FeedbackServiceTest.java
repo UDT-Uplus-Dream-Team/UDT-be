@@ -8,10 +8,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
-import com.example.udtbe.domain.content.dto.response.FeedbackGetBulkResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
@@ -21,6 +21,7 @@ import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -73,9 +74,9 @@ public class FeedbackServiceTest {
         // given
         Member member = member("test@example.com", Role.ROLE_USER);
 
-        Content content1 = content("test_content1", "test_description1");
-        Content content2 = content("test_content2", "test_description2");
-        Content content3 = content("test_content3", "test_description3");
+        Content content1 = content("test_content1", "description11");
+        Content content2 = content("test_content2", "description2");
+        Content content3 = content("test_content3", "description3");
 
         Feedback feedback1 = Feedback.of(
                 FeedbackType.LIKE, false, member, content1
@@ -98,10 +99,11 @@ public class FeedbackServiceTest {
         given(feedbackQuery.getFeedbacksByCursor(member, request)).willReturn(feedbacks);
 
         // when
-        FeedbackGetBulkResponse result = feedbackService.getFeedbackList(request, member);
+        CursorPageResponse<FeedbackContentDTO> result
+                = feedbackService.getFeedbackList(request, member);
 
         // then
-        assertThat(result.contents()).hasSize(2);
+        assertThat(result.item()).hasSize(2);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.nextCursor()).isEqualTo(feedbacks.get(1).getId());
     }
@@ -112,7 +114,7 @@ public class FeedbackServiceTest {
         // given
         Member member = member("test@example.com", Role.ROLE_USER);
 
-        Content content = content("test_content", "test_description");
+        Content content = content("test_content", "description");
 
         Feedback feedback = Feedback.of(FeedbackType.LIKE, false, member, content);
 
