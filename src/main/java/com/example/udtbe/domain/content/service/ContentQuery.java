@@ -1,8 +1,11 @@
 package com.example.udtbe.domain.content.service;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -17,6 +20,7 @@ import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -44,5 +48,10 @@ public class ContentQuery {
 
     public ContentDetailsGetResponse getContentDetails(Long contentId) {
         return contentRepository.getContentDetails(contentId);
+    }
+
+    public List<WeeklyRecommendedContentsResponse> getWeeklyRecommendedContents(
+            WeeklyRecommendationRequest request, List<GenreType> genreTypes) {
+        return contentRepository.getWeeklyRecommendedContents(request, genreTypes);
     }
 }
