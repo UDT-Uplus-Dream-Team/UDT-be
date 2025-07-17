@@ -35,7 +35,6 @@ import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
@@ -120,17 +119,17 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .fetch();
 
         List<Long> filteredByPlatForms = getContentIdsByPlatformTypes(
-                request.contentSearchConditionDTO().platforms(), allContentIds);
+                request.platforms(), allContentIds);
         List<Long> filteredByCountries = getContentIdsByCountries(
-                request.contentSearchConditionDTO().countries(), allContentIds);
+                request.countries(), allContentIds);
         List<Long> filteredByOpenDates = getContentIdsByOpenDates(
-                request.contentSearchConditionDTO().openDates(), allContentIds);
+                request.openDates(), allContentIds);
         List<Long> filteredRatings = getContentIdsByRatings(
-                request.contentSearchConditionDTO().ratings(), allContentIds);
+                request.ratings(), allContentIds);
         List<Long> filteredCategories = getContentIdsByCategories(
-                request.contentSearchConditionDTO().categories(), allContentIds);
+                request.categories(), allContentIds);
         List<Long> filteredGenres = getContentIdsByGenres(
-                request.contentSearchConditionDTO().genres(), allContentIds);
+                request.genres(), allContentIds);
 
         Set<Long> filteredContentIds = new HashSet<>(filteredByPlatForms);
         filteredContentIds.retainAll(filteredByCountries);
