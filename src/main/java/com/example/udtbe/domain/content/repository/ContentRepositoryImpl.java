@@ -1,5 +1,28 @@
 package com.example.udtbe.domain.content.repository;
 
+import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
+import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
+import com.example.udtbe.domain.content.dto.response.*;
+import com.example.udtbe.domain.content.entity.*;
+import com.example.udtbe.domain.content.entity.enums.CategoryType;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
+import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.exception.ContentErrorCode;
+import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import static com.example.udtbe.domain.content.entity.QCast.cast;
 import static com.example.udtbe.domain.content.entity.QCategory.category;
 import static com.example.udtbe.domain.content.entity.QContent.content;
@@ -16,38 +39,6 @@ import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
-import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
-import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
-import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
-import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
-import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
-import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
-import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
-import com.example.udtbe.domain.content.dto.response.QWeeklyRecommendedContentsResponse;
-import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
-import com.example.udtbe.domain.content.entity.Cast;
-import com.example.udtbe.domain.content.entity.Category;
-import com.example.udtbe.domain.content.entity.Content;
-import com.example.udtbe.domain.content.entity.ContentPlatform;
-import com.example.udtbe.domain.content.entity.Country;
-import com.example.udtbe.domain.content.entity.Director;
-import com.example.udtbe.domain.content.entity.Genre;
-import com.example.udtbe.domain.content.entity.enums.CategoryType;
-import com.example.udtbe.domain.content.entity.enums.GenreType;
-import com.example.udtbe.domain.content.entity.enums.PlatformType;
-import com.example.udtbe.domain.content.exception.ContentErrorCode;
-import com.example.udtbe.global.dto.CursorPageResponse;
-import com.example.udtbe.global.exception.RestApiException;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 @Repository
 @RequiredArgsConstructor
 public class ContentRepositoryImpl implements ContentRepositoryCustom {
@@ -57,7 +48,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 
     @Override
     public CursorPageResponse<AdminContentGetResponse> getsAdminContentsByCursor(Long cursor,
-            int size, String categoryType) {
+                                                                                 int size, String categoryType) {
 
         List<Long> contentIds = queryFactory
                 .select(content.id)
@@ -252,7 +243,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,
-            List<Long> allContentIds) {
+                                                    List<Long> allContentIds) {
 
         if (isNullOrEmpty(platforms)) {
             return allContentIds;
@@ -286,7 +277,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByRatings(List<String> ratings,
-            List<Long> allContentIds) {
+                                              List<Long> allContentIds) {
 
         if (isNullOrEmpty(ratings)) {
             return allContentIds;
@@ -299,7 +290,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByOpenDates(List<LocalDateTime> openDates,
-            List<Long> allContentIds) {
+                                                List<Long> allContentIds) {
 
         if (isNullOrEmpty(openDates)) {
             return allContentIds;
@@ -318,7 +309,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByCategories(List<String> categories,
-            List<Long> allContentIds) {
+                                                 List<Long> allContentIds) {
 
         if (isNullOrEmpty(categories)) {
             return allContentIds;
@@ -338,7 +329,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private List<Long> getContentIdsByGenres(List<String> genres,
-            List<Long> allContentIds) {
+                                             List<Long> allContentIds) {
 
         if (isNullOrEmpty(genres)) {
             return allContentIds;
@@ -383,6 +374,9 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     private BooleanExpression genresFilter(List<GenreType> genreTypes) {
+        if (Objects.isNull(genreTypes) || genreTypes.isEmpty()) {
+            return null;
+        }
         return genre.genreType.in(genreTypes);
     }
 
