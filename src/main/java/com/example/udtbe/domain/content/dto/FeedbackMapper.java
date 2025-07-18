@@ -2,10 +2,12 @@ package com.example.udtbe.domain.content.dto;
 
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
+import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.member.entity.Member;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FeedbackMapper {
@@ -42,6 +44,18 @@ public class FeedbackMapper {
         return feedbacks.stream()
                 .map(FeedbackMapper::toResponse)
                 .toList();
+    }
+
+    public static List<PopularContentsResponse> toPopularContentsResponses(List<Content> contents) {
+        List<PopularContentsResponse> popularContentsResponses = new ArrayList<>();
+
+        for (Content content : contents) {
+            popularContentsResponses.add(new PopularContentsResponse(
+                    content.getId(), content.getPosterUrl()
+            ));
+        }
+
+        return popularContentsResponses;
     }
 
 }
