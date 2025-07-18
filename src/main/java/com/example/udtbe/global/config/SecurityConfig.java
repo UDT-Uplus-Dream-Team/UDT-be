@@ -93,6 +93,7 @@ public class SecurityConfig {
                         "https://banditbool.com",
                         "https://dev.banditbool.com",
                         "http://localhost:3000",
+                        "https://localhost:3000",
                         "http://localhost:8080"
                 ));
         configuration.setAllowedMethods(
