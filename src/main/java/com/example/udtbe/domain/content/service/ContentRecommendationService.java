@@ -37,44 +37,90 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContentRecommendationService {
 
     private final ContentRecommendationQuery contentRecommendationQuery;
-
     private final LuceneIndexService luceneIndexService;
-
     private final LuceneSearchService luceneSearchService;
 
     @Transactional(readOnly = true)
     public List<ContentRecommendationResponse> recommendContents(Member member, int limit) {
+        return performRecommendation(member, limit, false);
+    }
 
+    @Transactional(readOnly = true)
+    public List<ContentRecommendationResponse> recommendCuratedContents(Member member, int limit) {
+        return performRecommendation(member, limit, true);
+    }
+
+    private List<ContentRecommendationResponse> performRecommendation(Member member, int limit,
+            boolean isCurated) {
         try {
-            Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(
-                    member.getId());
-
-            return searchRecommendations(userSurvey, member, limit);
-
+            Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
+            return executeRecommendationSearch(userSurvey, member, limit, isCurated);
         } catch (IOException | ParseException | RestApiException e) {
             log.error("추천 시스템 오류 발생: memberId={}, error={}", member.getId(), e.getMessage(), e);
             return getPopularContents(limit);
         }
     }
 
-    public List<ContentRecommendationResponse> searchRecommendations(Survey userSurvey,
-            Member member, int limit)
+    private List<ContentRecommendationResponse> executeRecommendationSearch(
+            Survey userSurvey, Member member, int limit, boolean isCurated)
             throws IOException, ParseException {
 
         // TODO: 모든 ContentMetadata를 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
-
         List<Long> platformFilteredContentIds = getPlatformFilteredContentIds(
                 userSurvey.getPlatformTag(), metadataCache);
 
-        List<String> userGenres = userSurvey.getGenreTag();
-        TopDocs topDocs = luceneSearchService.searchRecommendations(
-                platformFilteredContentIds, userGenres, limit);
+        if (isCurated) {
+            return executeCuratedRecommendation(userSurvey, member, limit, metadataCache,
+                    platformFilteredContentIds);
+        } else {
+            return executeRegularRecommendation(userSurvey, member, limit, metadataCache,
+                    platformFilteredContentIds);
+        }
+    }
+
+    private List<ContentRecommendationResponse> executeCuratedRecommendation(
+            Survey userSurvey, Member member, int limit,
+            Map<Long, ContentMetadata> metadataCache, List<Long> platformFilteredContentIds)
+            throws IOException, ParseException {
+
+        List<String> feedbackBasedGenres = extractPreferredGenresFromFeedback(member,
+                metadataCache);
+        List<String> surveyGenres = GenreType.toKoreanTypes(userSurvey.getGenreTag());
+        TopDocs topDocs = luceneSearchService.searchCuratedRecommendations(
+                platformFilteredContentIds, feedbackBasedGenres, limit);
+
+        List<ContentRecommendationDTO> recommendations = processLuceneScoring(
+                topDocs, feedbackBasedGenres, surveyGenres, member, metadataCache, true);
+
+        return buildFinalResponse(recommendations, limit, metadataCache);
+    }
+
+    private List<ContentRecommendationResponse> executeRegularRecommendation(
+            Survey userSurvey, Member member, int limit,
+            Map<Long, ContentMetadata> metadataCache, List<Long> platformFilteredContentIds)
+            throws IOException, ParseException {
+
+        List<String> englishUserGenres = userSurvey.getGenreTag();
+        List<String> koreanUserGenres = GenreType.toKoreanTypes(englishUserGenres);
+        TopDocs topDocs = luceneSearchService.searchRecommendations(platformFilteredContentIds,
+                koreanUserGenres, limit);
+
+        List<ContentRecommendationDTO> recommendations = processLuceneScoring(
+                topDocs, koreanUserGenres, null, member, metadataCache, false);
+
+        return buildFinalResponse(recommendations, limit, metadataCache);
+    }
+
+    private List<ContentRecommendationDTO> processLuceneScoring(
+            TopDocs topDocs, List<String> primaryGenres, List<String> secondaryGenres,
+            Member member, Map<Long, ContentMetadata> metadataCache, boolean isCurated)
+            throws IOException {
 
         DirectoryReader reader = luceneIndexService.getIndexReader();
         IndexSearcher searcher = new IndexSearcher(reader);
-
         List<ContentRecommendationDTO> recommendations = new ArrayList<>();
+        debugTopDocs(topDocs, searcher);
 
         Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache);
 
@@ -82,37 +128,41 @@ public class ContentRecommendationService {
             ScoreDoc scoreDoc = topDocs.scoreDocs[i];
             Document doc = searcher.storedFields().document(scoreDoc.doc);
             Long contentId = Long.valueOf(doc.get("contentId"));
-            // TF-IDF 점수
-            float luceneScore = scoreDoc.score;
-            //설문 기반 선호도
-            float genreBoost = calculateGenreBoost(doc, userGenres);
-            //실제 행동 기반 선호도
-            float feedbackScore = calculateGenreFeedbackBoost(doc, feedbackScores);
 
-            float finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
+            float luceneScore = scoreDoc.score * 3.0f;
+            float feedbackScore = calculateGenreFeedbackBoost(doc, feedbackScores);
+            float finalScore;
+
+            if (isCurated) {//엄선된 추천은 설문조사 점수가 들어가진다.
+                float feedbackGenreBoost = calculateGenreBoost(doc, primaryGenres);
+                float surveyGenreBoost = calculateGenreBoost(doc, secondaryGenres);
+                finalScore =
+                        luceneScore + feedbackGenreBoost * 2.0f + surveyGenreBoost + feedbackScore;
+            } else {//일반 추천은
+                float genreBoost = calculateGenreBoost(doc, primaryGenres);
+                finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
+            }
 
             recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
         }
 
-        reader.close();
+        return recommendations;
+    }
 
-        List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
-                .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
-                .limit(limit)
-                .toList();
+    private List<String> extractPreferredGenresFromFeedback(Member member,
+            Map<Long, ContentMetadata> metadataCache) {
 
-        List<Long> sortedContentIds = sortedRecommendations.stream()
-                .map(ContentRecommendationDTO::contentId)
-                .toList();
+        Map<String, Float> genreScores = calculateGenreFeedbackScores(member, metadataCache);
 
-        List<Content> contents = contentRecommendationQuery.findContentsByIds(sortedContentIds);
-
-        List<ContentMetadata> metadataList = contents.stream()
-                .map(content -> metadataCache.get(content.getId()))
-                .filter(Objects::nonNull)
+        List<String> preferredGenres = genreScores.entrySet().stream()
+                .filter(entry -> entry.getValue() > 0.5f) // 긍정적 피드백만
+                .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
+                .limit(3) // 상위 3개 장르만
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        return ContentRecommendationMapper.toResponseList(contents, metadataList);
+        log.info("추출된 선호 장르: {}", preferredGenres);
+        return preferredGenres;
     }
 
     private List<Long> getPlatformFilteredContentIds(List<String> platformTags,
@@ -154,19 +204,12 @@ public class ContentRecommendationService {
             return 0.0f;
         }
 
-        List<String> koreanUserGenres = GenreType.toKoreanTypes(userGenres);
-
-        if (koreanUserGenres.isEmpty()) {
-            log.warn("장르 태그 변환 실패");
-            return 0.0f;
-        }
-
         float boost = 0.0f;
         String[] docGenres = genreTag.split(",");
-        for (String koreanUserGenre : koreanUserGenres) {
-            if (koreanUserGenre != null && !koreanUserGenre.trim().isEmpty()) {
+        for (String userGenre : userGenres) {
+            if (userGenre != null && !userGenre.trim().isEmpty()) {
                 for (String docGenre : docGenres) {
-                    if (docGenre.trim().equals(koreanUserGenre.trim())) {
+                    if (docGenre.trim().equals(userGenre.trim())) {
                         boost += 1.0f;
                         break;
                     }
@@ -204,13 +247,14 @@ public class ContentRecommendationService {
         for (Feedback feedback : feedbacks) {
             if (!feedback.isDeleted()) {
                 Long contentId = feedback.getContent().getId();
-                ContentMetadata metadata = metadataCache.get(contentId);
+                ContentMetadata metadata = metadataCache.get(
+                        contentId); // 사용자가 좋아요를 했지만 해당 플랫폼을 구독을 취소했었다면 포함이 안된다.
 
                 if (metadata != null && metadata.getGenreTag() != null) {
                     float score = switch (feedback.getFeedbackType()) {
                         case LIKE -> 1.0f;
                         case DISLIKE -> -1.0f;
-                        case UNINTERESTED -> -0.5f;
+                        case UNINTERESTED -> 0.2f;
                     };
 
                     for (String genre : metadata.getGenreTag()) {
@@ -236,6 +280,60 @@ public class ContentRecommendationService {
                 .map(ContentMetadata::getContent)
                 .toList();
         return ContentRecommendationMapper.toResponseList(contents, metadataList);
+    }
+
+    private List<ContentRecommendationResponse> buildFinalResponse(
+            List<ContentRecommendationDTO> recommendations, int limit,
+            Map<Long, ContentMetadata> metadataCache) {
+
+        List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
+                .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
+                .limit(limit)
+                .toList();
+
+        List<Long> sortedContentIds = sortedRecommendations.stream()
+                .map(ContentRecommendationDTO::contentId)
+                .toList();
+
+        List<Content> contents = contentRecommendationQuery.findContentsByIds(sortedContentIds);
+        List<ContentMetadata> metadataList = contents.stream()
+                .map(content -> metadataCache.get(content.getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        for (Content content : contents) {
+            log.info("추출된 순서 : {}", String.join(", ", content.getTitle()));
+        }
+
+        return ContentRecommendationMapper.toResponseList(contents, metadataList);
+    }
+
+    private void debugTopDocs(TopDocs topDocs, IndexSearcher searcher) throws IOException {
+        log.info("🔍 ===== TopDocs 상세 분석 =====");
+        log.info("총 매치된 문서 수: {}", topDocs.totalHits.value);
+        log.info("반환된 문서 수: {}", topDocs.scoreDocs.length);
+
+        if (topDocs.scoreDocs.length == 0) {
+            log.warn("❌ 검색 결과가 없습니다!");
+            return;
+        }
+
+        log.info("📋 상위 {}개 문서 상세:", Math.min(10, topDocs.scoreDocs.length));
+
+        for (int i = 0; i < Math.min(10, topDocs.scoreDocs.length); i++) {
+            ScoreDoc scoreDoc = topDocs.scoreDocs[i];
+            Document doc = searcher.storedFields().document(scoreDoc.doc);
+
+            String contentId = doc.get("contentId");
+            String title = doc.get("title");
+            String genreTag = doc.get("genreTag");
+            String platformTag = doc.get("platformTag");
+
+            log.info("  {}위: contentId={}, score={}, title='{}', genres='{}', platforms='{}'",
+                    i + 1, contentId, scoreDoc.score, title, genreTag, platformTag);
+        }
+
+        log.info("🔍 ===== TopDocs 분석 완료 =====");
     }
 
 }
