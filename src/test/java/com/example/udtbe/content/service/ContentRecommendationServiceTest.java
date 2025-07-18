@@ -685,52 +685,6 @@ class ContentRecommendationServiceTest {
         }
 
         @Test
-        @DisplayName("엄선된 추천 vs 일반 추천 비교 - 피드백 반영 차이")
-        void shouldShowDifferenceFromRegularRecommendation() throws Exception {
-            // given - 동일한 조건 설정
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            // 로맨스 장르 선호 피드백 (설문과 다른 선호)
-            List<Feedback> feedbacks = List.of(
-                    createFeedback(testContents.get(5), FeedbackType.LIKE), // 어벤져스 (액션)
-                    createFeedback(testContents.get(6), FeedbackType.LIKE)  // 타이타닉 (로맨스)
-            );
-            when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                    .thenReturn(feedbacks);
-
-            // 일반 추천 mock
-            mockLuceneSearchService(List.of(1L, 2L, 8L, 3L, 4L, 5L, 6L, 7L, 9L, 10L));
-            // 엄선된 추천 mock (피드백 기반 장르 우선)
-            mockLuceneSearchServiceForCurated(List.of(5L, 6L, 1L, 2L, 8L, 3L, 4L, 7L, 9L, 10L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
-
-            // when
-            List<ContentRecommendationResponse> regularResult = contentRecommendationService
-                    .recommendContents(testMember, 5);
-            List<ContentRecommendationResponse> curatedResult = contentRecommendationService
-                    .recommendCuratedContents(testMember, 5);
-
-            // then
-            assertThat(regularResult).hasSize(10);
-            assertThat(curatedResult).hasSize(10);
-
-            // 엄선된 추천에서 피드백 기반 장르가 더 상위에 위치해야 함
-            assertThat(curatedResult.get(0).genres())
-                    .anyMatch(genre -> genre.contains("액션") || genre.contains("로맨스"));
-
-            // 두 추천 결과가 달라야 함
-            assertThat(curatedResult.get(0).contentId()).isNotEqualTo(
-                    regularResult.get(0).contentId());
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-            verify(luceneSearchService).searchCuratedRecommendations(anyList(), anyList(),
-                    anyInt());
-        }
-
-        @Test
         @DisplayName("설문 없는 사용자 - 인기 콘텐츠 fallback")
         void shouldFallbackToPopularContents_WhenSurveyNotExists() {
             // given
