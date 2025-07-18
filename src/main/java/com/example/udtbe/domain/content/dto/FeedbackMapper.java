@@ -23,10 +23,10 @@ public class FeedbackMapper {
                 .toList();
     }
 
-    public static FeedbackContentDTO toResponse(Feedback feedback) {
-        Content content = feedback.getContent();
+    public static FeedbackContentDTO toResponse(Feedback feedback, Content content) {
 
         return new FeedbackContentDTO(
+                feedback.getId(),
                 content.getId(),
                 content.getTitle(),
                 content.getPosterUrl(),
@@ -40,7 +40,7 @@ public class FeedbackMapper {
 
     public static List<FeedbackContentDTO> toResponseList(List<Feedback> feedbacks) {
         return feedbacks.stream()
-                .map(FeedbackMapper::toResponse)
+                .map(f -> FeedbackMapper.toResponse(f, f.getContent()))
                 .toList();
     }
 

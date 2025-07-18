@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record FeedbackContentDTO(
+        Long feedbackId,
         Long contentId,
         String title,
         String posterUrl,
