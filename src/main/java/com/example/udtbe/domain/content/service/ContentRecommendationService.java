@@ -73,10 +73,10 @@ public class ContentRecommendationService {
         if (isCurated) {
             return executeCuratedRecommendation(userSurvey, member, limit, metadataCache,
                     platformFilteredContentIds);
-        } else {
-            return executeRegularRecommendation(userSurvey, member, limit, metadataCache,
-                    platformFilteredContentIds);
         }
+
+        return executeRegularRecommendation(userSurvey, member, limit, metadataCache,
+                platformFilteredContentIds);
     }
 
     private List<ContentRecommendationResponse> executeCuratedRecommendation(
@@ -133,12 +133,12 @@ public class ContentRecommendationService {
             float feedbackScore = calculateGenreFeedbackBoost(doc, feedbackScores);
             float finalScore;
 
-            if (isCurated) {//엄선된 추천은 설문조사 점수가 들어가진다.
+            if (isCurated) {
                 float feedbackGenreBoost = calculateGenreBoost(doc, primaryGenres);
                 float surveyGenreBoost = calculateGenreBoost(doc, secondaryGenres);
                 finalScore =
                         luceneScore + feedbackGenreBoost * 2.0f + surveyGenreBoost + feedbackScore;
-            } else {//일반 추천은
+            } else {
                 float genreBoost = calculateGenreBoost(doc, primaryGenres);
                 finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
             }
@@ -299,7 +299,7 @@ public class ContentRecommendationService {
         List<ContentMetadata> metadataList = contents.stream()
                 .map(content -> metadataCache.get(content.getId()))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .toList();
 
         for (Content content : contents) {
             log.info("추출된 순서 : {}", String.join(", ", content.getTitle()));
