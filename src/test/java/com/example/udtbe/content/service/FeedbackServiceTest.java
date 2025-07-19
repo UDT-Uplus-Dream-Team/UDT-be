@@ -14,7 +14,6 @@ import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
@@ -91,7 +90,7 @@ public class FeedbackServiceTest {
         );
 
         FeedbackContentGetRequest request = new FeedbackContentGetRequest(
-                null, 2, FeedbackType.LIKE, FeedbackSortType.NEWEST
+                null, 2, "LIKE", "NEWEST"
         );
 
         List<Feedback> feedbacks = List.of(feedback1, feedback2, feedback3);
