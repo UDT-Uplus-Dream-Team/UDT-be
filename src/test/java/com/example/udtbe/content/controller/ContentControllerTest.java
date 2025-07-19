@@ -1,30 +1,73 @@
 package com.example.udtbe.content.controller;
 
-import com.example.udtbe.common.fixture.*;
+import static java.time.DayOfWeek.FRIDAY;
+import static java.time.DayOfWeek.MONDAY;
+import static java.time.DayOfWeek.SATURDAY;
+import static java.time.DayOfWeek.TUESDAY;
+import static java.time.DayOfWeek.WEDNESDAY;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.example.udtbe.common.fixture.CastFixture;
+import com.example.udtbe.common.fixture.CategoryFixture;
+import com.example.udtbe.common.fixture.ContentCastFixture;
+import com.example.udtbe.common.fixture.ContentCategoryFixture;
+import com.example.udtbe.common.fixture.ContentCountryFixture;
+import com.example.udtbe.common.fixture.ContentDirectorFixture;
+import com.example.udtbe.common.fixture.ContentFixture;
+import com.example.udtbe.common.fixture.ContentGenreFixture;
+import com.example.udtbe.common.fixture.ContentPlatformFixture;
+import com.example.udtbe.common.fixture.CountryFixture;
+import com.example.udtbe.common.fixture.DirectorFixture;
+import com.example.udtbe.common.fixture.GenreFixture;
+import com.example.udtbe.common.fixture.PlatformFixture;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.content.controller.ContentController;
-import com.example.udtbe.domain.content.entity.*;
-import com.example.udtbe.domain.content.repository.*;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
-
+import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.content.entity.Category;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentCast;
+import com.example.udtbe.domain.content.entity.ContentCategory;
+import com.example.udtbe.domain.content.entity.ContentCountry;
+import com.example.udtbe.domain.content.entity.ContentDirector;
+import com.example.udtbe.domain.content.entity.ContentGenre;
+import com.example.udtbe.domain.content.entity.ContentPlatform;
+import com.example.udtbe.domain.content.entity.Country;
+import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.Genre;
+import com.example.udtbe.domain.content.entity.Platform;
+import com.example.udtbe.domain.content.repository.CastRepository;
+import com.example.udtbe.domain.content.repository.CategoryRepository;
+import com.example.udtbe.domain.content.repository.ContentCastRepository;
+import com.example.udtbe.domain.content.repository.ContentCategoryRepository;
+import com.example.udtbe.domain.content.repository.ContentCountryRepository;
+import com.example.udtbe.domain.content.repository.ContentDirectorRepository;
+import com.example.udtbe.domain.content.repository.ContentGenreRepository;
+import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
+import com.example.udtbe.domain.content.repository.ContentRepository;
+import com.example.udtbe.domain.content.repository.CountryRepository;
+import com.example.udtbe.domain.content.repository.DirectorRepository;
+import com.example.udtbe.domain.content.repository.GenreRepository;
+import com.example.udtbe.domain.content.repository.PlatformRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static java.time.DayOfWeek.*;
-import static org.hamcrest.Matchers.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class ContentControllerTest extends ApiSupport {
 
@@ -361,7 +404,7 @@ class ContentControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.openDate", startsWith(openDate.toString())))
                 .andExpect(jsonPath("$.rating").value(rating))
                 .andExpect(jsonPath("$.platforms[0].platformType").value("웨이브"))
-                .andExpect(jsonPath("$.platforms[1].platformType").value("Apple TV"))
+                .andExpect(jsonPath("$.platforms[1].platformType").value("애플티비"))
                 .andExpect(jsonPath("$.casts[0].castName").value("마동석"))
                 .andExpect(jsonPath("$.casts[1].castName").value("황정민"))
                 .andExpect(jsonPath("$.casts[2].castName").value("토니스타크"))
@@ -461,12 +504,12 @@ class ContentControllerTest extends ApiSupport {
     }
 
     private void initContentDirectors(List<ContentDirector> contentDirectors, Content content,
-                                      Director director) {
+            Director director) {
         contentDirectors.add(ContentDirectorFixture.contentDirector(content, director));
     }
 
     private void initContentCasts(List<ContentCast> contentCasts, Content content,
-                                  Cast cast) {
+            Cast cast) {
         contentCasts.add(ContentCastFixture.contentCast(content, cast));
     }
 
@@ -476,22 +519,22 @@ class ContentControllerTest extends ApiSupport {
     }
 
     private void initContentCountry(List<ContentCountry> contentCountries,
-                                    Content content, Country country) {
+            Content content, Country country) {
         contentCountries.add(ContentCountryFixture.contentCountry(content, country));
     }
 
     private void initContentPlatform(List<ContentPlatform> contentPlatforms,
-                                     Content content, Platform platform) {
+            Content content, Platform platform) {
         contentPlatforms.add(ContentPlatformFixture.contentPlatform(content, platform));
     }
 
     private void initContentCategory(List<ContentCategory> contentCategories,
-                                     Content content, Category category) {
+            Content content, Category category) {
         contentCategories.add(ContentCategoryFixture.contentCategory(content, category));
     }
 
     private void initContentGenre(List<ContentGenre> contentGenres,
-                                  Content content, Genre genre) {
+            Content content, Genre genre) {
         contentGenres.add(ContentGenreFixture.contentGenre(content, genre));
     }
 }
