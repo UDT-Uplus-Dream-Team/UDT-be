@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -46,6 +47,7 @@ public class InMemoryPopularContentStore implements PopularContentStore {
         return cache.isEmpty();
     }
 
+    @Transactional(readOnly = true)
     public CopyOnWriteArrayList<PopularContentsResponse> initCache() {
         List<PopularContentsResponse> popularContentsResponses = buildPopularContentReponses();
         return new CopyOnWriteArrayList<>(popularContentsResponses);

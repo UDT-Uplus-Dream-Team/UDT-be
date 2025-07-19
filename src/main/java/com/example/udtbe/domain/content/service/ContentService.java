@@ -42,7 +42,6 @@ public class ContentService {
         return contentQuery.getWeeklyRecommendedContents(request, genreTypes);
     }
 
-    @Transactional(readOnly = true)
     public List<PopularContentsResponse> getPopularContents(PopularContentsRequest request) {
         List<PopularContentsResponse> popularContentsResponses = popularContentStore.get();
         if (popularContentsResponses.size() > request.size()) {
