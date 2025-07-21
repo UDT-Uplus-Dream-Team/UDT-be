@@ -2,8 +2,6 @@ package com.example.udtbe.domain.content.repository;
 
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.entity.enums.FeedbackType;
-import com.example.udtbe.domain.member.entity.Member;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +14,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long>, Feedb
 
     List<Feedback> findByMemberIdAndIsDeletedFalse(Long memberId);
 
-    Optional<Feedback> findByMemberAndContentAndFeedbackType(Member member, Content content,
-            FeedbackType type);
+    Optional<Feedback> findFeedbackByMemberIdAndContentId(Long memberId, Long contentId);
 
     @Query("""
             SELECT c
@@ -32,4 +29,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long>, Feedb
               c.id ASC
             """)
     List<Content> findTopRankedContents(Pageable pageable);
+
+    Long content(Content content);
 }

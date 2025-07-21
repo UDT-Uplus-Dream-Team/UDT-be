@@ -59,8 +59,8 @@ public class FeedbackServiceTest {
 
         Member member = member("test@example.com", Role.ROLE_USER);
 
-        given(feedbackQuery.getContentById(1L)).willReturn(content("content1", "description1"));
-        given(feedbackQuery.getContentById(2L)).willReturn(content("content2", "description2"));
+        given(feedbackQuery.findContentById(1L)).willReturn(content("content1", "description1"));
+        given(feedbackQuery.findContentById(2L)).willReturn(content("content2", "description2"));
 
         // when
         feedbackService.saveFeedbacks(requestDto.feedbacks(), member);
@@ -71,7 +71,7 @@ public class FeedbackServiceTest {
 
     }
 
-    @DisplayName("삭제된 피드백이 다시 저장되면 복구된다.")
+    @DisplayName("삭제된 피드백이 다시 저장되면 새로 남긴 피드백으로 저장된다.")
     @Test
     void saveFeedbacks_restoreDeletedFeedback() {
         // given
@@ -80,9 +80,12 @@ public class FeedbackServiceTest {
         ReflectionTestUtils.setField(content, "id", 1L);
 
         Feedback existing = Feedback.of(FeedbackType.LIKE, true, member, content);
-        assertThat(existing.isDeleted()).isTrue();
 
-        FeedbackCreateDTO request = new FeedbackCreateDTO(content.getId(), FeedbackType.LIKE);
+        FeedbackCreateDTO request = new FeedbackCreateDTO(content.getId(), FeedbackType.DISLIKE);
+
+        given(feedbackQuery.findContentById(1L)).willReturn(content);
+        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(),
+                content.getId())).willReturn(existing);
 
         // when
         feedbackService.saveFeedbacks(List.of(request), member);
@@ -92,10 +95,11 @@ public class FeedbackServiceTest {
         then(feedbackRepository).should().saveAll(captor.capture());
 
         Feedback savedFeedback = captor.getValue().get(0);
+        assertThat(savedFeedback.getFeedbackType()).isEqualTo(FeedbackType.DISLIKE);
         assertThat(savedFeedback.isDeleted()).isFalse();
     }
 
-    @DisplayName("이미 작성된 피드백이 존재하면 아무 동작도 하지 않는다.")
+    @DisplayName("이미 작성된 피드백이 존재하면 현재 남긴 피드백으로 업데이트된다.")
     @Test
     void saveFeedbacks_AlreadyExists() {
         // given
@@ -104,17 +108,17 @@ public class FeedbackServiceTest {
         ReflectionTestUtils.setField(content, "id", 1L);
 
         Feedback existing = Feedback.of(FeedbackType.LIKE, false, member, content);
-        FeedbackCreateDTO request = new FeedbackCreateDTO(1L, FeedbackType.LIKE);
+        FeedbackCreateDTO request = new FeedbackCreateDTO(1L, FeedbackType.DISLIKE);
 
-        given(feedbackQuery.getContentById(1L)).willReturn(content);
-        given(feedbackQuery.findByMemberAndContentAndFeedbackType(member, content,
-                FeedbackType.LIKE))
+        given(feedbackQuery.findContentById(1L)).willReturn(content);
+        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(), content.getId()))
                 .willReturn(existing);
 
         // when
         feedbackService.saveFeedbacks(List.of(request), member);
 
         // then
+        assertThat(existing.getFeedbackType()).isEqualTo(FeedbackType.DISLIKE);
         verify(feedbackRepository, times(1)).saveAll(anyList());
     }
 

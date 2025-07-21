@@ -29,16 +29,17 @@ public class FeedbackService {
         List<Feedback> feedbacks = new ArrayList<>();
 
         for (FeedbackCreateDTO feedbackCreateDTO : requests) {
-            Content content = feedbackQuery.getContentById(feedbackCreateDTO.contentId());
+            Content content = feedbackQuery.findContentById(feedbackCreateDTO.contentId());
 
-            Feedback existing = feedbackQuery.findByMemberAndContentAndFeedbackType(member,
-                    content, feedbackCreateDTO.feedback());
+            Feedback existing = feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(),
+                    content.getId());
 
             if (existing != null) {
                 if (existing.isDeleted()) {
                     existing.switchDeleted();
-                    feedbacks.add(existing);
                 }
+                existing.updateFeedbackType(feedbackCreateDTO.feedback());
+                feedbacks.add(existing);
             } else {
                 Feedback newFeedback = Feedback.of(feedbackCreateDTO.feedback(), false, member,
                         content);

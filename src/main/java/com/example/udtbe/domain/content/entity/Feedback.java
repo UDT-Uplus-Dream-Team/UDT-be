@@ -74,4 +74,8 @@ public class Feedback extends TimeBaseEntity {
     public boolean switchDeleted() {
         return this.isDeleted = !isDeleted;
     }
+
+    public void updateFeedbackType(FeedbackType feedbackType) {
+        this.feedbackType = feedbackType;
+    }
 }
