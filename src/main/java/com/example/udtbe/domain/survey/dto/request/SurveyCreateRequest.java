@@ -11,7 +11,9 @@ public record SurveyCreateRequest(
 
         @NotNull(message = "선호 장르는 필수 값입니다.")
         @Size(min = 1, max = 3, message = "선호 장르는 최소 1개 이상 최대 3개 이하입니다.")
-        List<String> genres
+        List<String> genres,
+
+        List<Long> contentIds
 ) {
 
 }
