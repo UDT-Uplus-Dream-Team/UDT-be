@@ -3,6 +3,7 @@ package com.example.udtbe.domain.content.service;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
 import com.example.udtbe.domain.content.repository.ContentRepository;
@@ -33,5 +34,12 @@ public class FeedbackQuery {
     public List<Feedback> getFeedbacksByCursor(Member member,
             FeedbackContentGetRequest feedbackContentGetRequest) {
         return feedbackRepository.getFeedbacksByCursor(feedbackContentGetRequest, member);
+    }
+
+    public Feedback findByMemberAndContentAndFeedbackType(Member member, Content content,
+            FeedbackType feedbackType) {
+        return feedbackRepository.findByMemberAndContentAndFeedbackType(member, content,
+                        feedbackType)
+                .orElseThrow(() -> new RestApiException(FeedbackErrorCode.FEEDBACK_NOT_FOUND));
     }
 }
