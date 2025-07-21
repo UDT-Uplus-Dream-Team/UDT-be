@@ -38,4 +38,25 @@ public interface RecommendContentControllerApiSpec {
             )
             @RequestParam(defaultValue = "10") int limit
     );
+
+    @Operation(
+            summary = "엄선된 콘텐츠 추천 API",
+            description = "사용자의 설문조사보다 최근 사용자의 피드백 기반으로 개인화된 콘텐츠를 추천합니다. " +
+                    "개인화 추천이 불가능한 경우 인기 콘텐츠를 제공합니다."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "엄선된 추천 콘텐츠 목록 조회 성공",
+            useReturnTypeSchema = true
+    )
+    @GetMapping("/recommendations/curated")
+    ResponseEntity<List<ContentRecommendationResponse>> getCurated(
+            @Parameter(description = "인증된 사용자 정보", required = true)
+            @AuthenticationPrincipal Member member,
+            @Parameter(
+                    description = "추천 콘텐츠 개수 (기본값: 6)",
+                    example = "6"
+            )
+            @RequestParam(defaultValue = "6") int limit
+    );
 }

@@ -2,10 +2,12 @@ package com.example.udtbe.domain.content.dto;
 
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
+import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.member.entity.Member;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FeedbackMapper {
@@ -23,10 +25,10 @@ public class FeedbackMapper {
                 .toList();
     }
 
-    public static FeedbackContentDTO toResponse(Feedback feedback) {
-        Content content = feedback.getContent();
+    public static FeedbackContentDTO toResponse(Feedback feedback, Content content) {
 
         return new FeedbackContentDTO(
+                feedback.getId(),
                 content.getId(),
                 content.getTitle(),
                 content.getPosterUrl(),
@@ -40,8 +42,20 @@ public class FeedbackMapper {
 
     public static List<FeedbackContentDTO> toResponseList(List<Feedback> feedbacks) {
         return feedbacks.stream()
-                .map(FeedbackMapper::toResponse)
+                .map(f -> FeedbackMapper.toResponse(f, f.getContent()))
                 .toList();
+    }
+
+    public static List<PopularContentsResponse> toPopularContentsResponses(List<Content> contents) {
+        List<PopularContentsResponse> popularContentsResponses = new ArrayList<>();
+
+        for (Content content : contents) {
+            popularContentsResponses.add(new PopularContentsResponse(
+                    content.getId(), content.getPosterUrl()
+            ));
+        }
+
+        return popularContentsResponses;
     }
 
 }

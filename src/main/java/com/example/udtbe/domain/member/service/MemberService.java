@@ -33,11 +33,14 @@ public class MemberService {
         Member member = memberQuery.findMemberById(memberId);
         Survey survey = surveyQuery.findSurveyByMemberId(memberId);
 
+        List<String> koreanPlatformTags = PlatformType.toKoreanTypes(survey.getPlatformTag());
+        List<String> koreanGenreTags = GenreType.toKoreanTypes(survey.getGenreTag());
+
         return new MemberInfoResponse(
                 member.getName(),
                 member.getEmail(),
-                survey.getPlatformTag(),
-                survey.getGenreTag(),
+                koreanPlatformTags,
+                koreanGenreTags,
                 member.getProfileImageUrl());
     }
 

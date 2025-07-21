@@ -1,5 +1,13 @@
 package com.example.udtbe.member.service;
 
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
@@ -22,22 +30,13 @@ import com.example.udtbe.domain.survey.service.SurveyQuery;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -77,8 +76,10 @@ class MemberServiceTest {
         assertAll(
                 () -> assertThat(response.name()).isEqualTo(member.getName()),
                 () -> assertThat(response.email()).isEqualTo(member.getEmail()),
-                () -> assertThat(response.platforms()).isEqualTo(survey.getPlatformTag()),
-                () -> assertThat(response.genres()).isEqualTo(survey.getGenreTag()),
+                () -> assertThat(response.platforms()).isEqualTo(
+                        PlatformType.toKoreanTypes(survey.getPlatformTag())),
+                () -> assertThat(response.genres()).isEqualTo(
+                        GenreType.toKoreanTypes(survey.getGenreTag())),
                 () -> assertThat(response.profileImageUrl()).isEqualTo(member.getProfileImageUrl())
         );
     }
@@ -125,7 +126,6 @@ class MemberServiceTest {
 
         CursorPageResponse<MemberCuratedContentGetResponse> secondResponse =
                 memberService.getCuratedContents(secondRequest, member);
-
 
         // then
         assertAll(

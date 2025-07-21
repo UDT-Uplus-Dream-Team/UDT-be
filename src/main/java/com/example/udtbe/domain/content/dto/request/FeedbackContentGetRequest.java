@@ -1,7 +1,5 @@
 package com.example.udtbe.domain.content.dto.request;
 
-import com.example.udtbe.domain.content.entity.enums.FeedbackSortType;
-import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import jakarta.validation.constraints.NotNull;
 
 public record FeedbackContentGetRequest(
@@ -9,9 +7,9 @@ public record FeedbackContentGetRequest(
         @NotNull
         int size,
         @NotNull
-        FeedbackType feedbackType,
+        String feedbackType,
         @NotNull
-        FeedbackSortType feedbackSortType
+        String feedbackSortType
 ) {
 
 }
