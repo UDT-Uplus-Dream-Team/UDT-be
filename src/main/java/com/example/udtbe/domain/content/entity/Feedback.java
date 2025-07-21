@@ -72,6 +72,6 @@ public class Feedback extends TimeBaseEntity {
     }
 
     public boolean switchDeleted() {
-        return !isDeleted;
+        return this.isDeleted = !isDeleted;
     }
 }

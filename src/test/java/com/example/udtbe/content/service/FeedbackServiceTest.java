@@ -5,9 +5,12 @@ import static com.example.udtbe.common.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.udtbe.common.fixture.ContentFixture;
+import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
@@ -25,6 +28,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,6 +70,54 @@ public class FeedbackServiceTest {
         verify(feedbackRepository, times(1)).saveAll(anyList());
 
     }
+
+    @DisplayName("삭제된 피드백이 다시 저장되면 복구된다.")
+    @Test
+    void saveFeedbacks_restoreDeletedFeedback() {
+        // given
+        Member member = MemberFixture.member("user@email.com", Role.ROLE_USER);
+        Content content = ContentFixture.content("title", "description");
+        ReflectionTestUtils.setField(content, "title", 1L);
+
+        Feedback existing = Feedback.of(FeedbackType.LIKE, true, member, content);
+        assertThat(existing.isDeleted()).isTrue();
+
+        FeedbackCreateDTO request = new FeedbackCreateDTO(content.getId(), FeedbackType.LIKE);
+
+        // when
+        feedbackService.saveFeedbacks(List.of(request), member);
+
+        // then
+        ArgumentCaptor<List<Feedback>> captor = ArgumentCaptor.forClass(List.class);
+        then(feedbackRepository).should().saveAll(captor.capture());
+
+        Feedback savedFeedback = captor.getValue().get(0);
+        assertThat(savedFeedback.isDeleted()).isFalse();
+    }
+
+    @DisplayName("이미 작성된 피드백이 존재하면 아무 동작도 하지 않는다.")
+    @Test
+    void saveFeedbacks_AlreadyExists() {
+        // given
+        Member member = MemberFixture.member("test@email.com", Role.ROLE_USER);
+        Content content = ContentFixture.content("title", "description");
+        ReflectionTestUtils.setField(content, "id", 1L);
+
+        Feedback existing = Feedback.of(FeedbackType.LIKE, false, member, content);
+        FeedbackCreateDTO request = new FeedbackCreateDTO(1L, FeedbackType.LIKE);
+
+        given(feedbackQuery.getContentById(1L)).willReturn(content);
+        given(feedbackQuery.findByMemberAndContentAndFeedbackType(member, content,
+                FeedbackType.LIKE))
+                .willReturn(existing);
+
+        // when
+        feedbackService.saveFeedbacks(List.of(request), member);
+
+        // then
+        verify(feedbackRepository, times(1)).saveAll(anyList());
+    }
+
 
     @DisplayName("회원은 피드백들을 무한스크롤로 조회할 수 있다.")
     @Test
