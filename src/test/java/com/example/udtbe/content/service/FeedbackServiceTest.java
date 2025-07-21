@@ -77,7 +77,7 @@ public class FeedbackServiceTest {
         // given
         Member member = MemberFixture.member("user@email.com", Role.ROLE_USER);
         Content content = ContentFixture.content("title", "description");
-        ReflectionTestUtils.setField(content, "title", 1L);
+        ReflectionTestUtils.setField(content, "id", 1L);
 
         Feedback existing = Feedback.of(FeedbackType.LIKE, true, member, content);
         assertThat(existing.isDeleted()).isTrue();
