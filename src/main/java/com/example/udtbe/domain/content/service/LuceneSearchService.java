@@ -1,6 +1,7 @@
 package com.example.udtbe.domain.content.service;
 
-import com.example.udtbe.domain.content.entity.enums.GenreType;
+import static org.apache.lucene.search.BooleanQuery.Builder;
+
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +26,15 @@ public class LuceneSearchService {
 
     private final LuceneIndexService luceneIndexService;
 
-    public TopDocs searchRecommendations(List<Long> platformFilteredContentIds, 
+    public TopDocs searchRecommendations(List<Long> platformFilteredContentIds,
             List<String> userGenres, int limit) throws IOException, ParseException {
-        
+
         DirectoryReader reader = luceneIndexService.getIndexReader();
         IndexSearcher searcher = new IndexSearcher(reader);
         Analyzer analyzer = luceneIndexService.getAnalyzer();
 
-        BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, userGenres, analyzer);
+        BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, userGenres,
+                analyzer);
 
         TopDocs topDocs = searcher.search(query, limit * 3);
 
@@ -40,28 +42,73 @@ public class LuceneSearchService {
         return topDocs;
     }
 
-    private BooleanQuery buildRecommendationQuery(List<Long> platformFilteredContentIds, 
-            List<String> userGenres, Analyzer analyzer) throws ParseException {
-        
-        BooleanQuery.Builder mainQueryBuilder = new BooleanQuery.Builder();
+    public TopDocs searchCuratedRecommendations(List<Long> platformFilteredContentIds,
+            List<String> feedbackGenres, int limit)
+            throws IOException, ParseException {
 
-        BooleanQuery.Builder idFilterBuilder = new BooleanQuery.Builder();
+        DirectoryReader reader = luceneIndexService.getIndexReader();
+        IndexSearcher searcher = new IndexSearcher(reader);
+        Analyzer analyzer = luceneIndexService.getAnalyzer();
+
+        BooleanQuery query = buildCuratedRecommendationQuery(platformFilteredContentIds,
+                feedbackGenres, analyzer);
+
+        TopDocs topDocs = searcher.search(query, limit * 2);
+
+        reader.close();
+        return topDocs;
+    }
+
+    private BooleanQuery buildCuratedRecommendationQuery(List<Long> platformFilteredContentIds,
+            List<String> feedbackGenres, Analyzer analyzer)
+            throws ParseException {
+        Builder mainQueryBuilder = new Builder();
+
+        Builder idFilterBuilder = new Builder();
         for (Long contentId : platformFilteredContentIds) {
             idFilterBuilder.add(new TermQuery(new Term("contentId", contentId.toString())),
                     BooleanClause.Occur.SHOULD);
         }
         mainQueryBuilder.add(idFilterBuilder.build(), BooleanClause.Occur.MUST);
 
-        int genreQueryCount = 0;
-        if (userGenres != null && !userGenres.isEmpty()) {
-            List<String> koreanUserGenres = GenreType.toKoreanTypes(userGenres);
-
-            for (String koreanUserGenre : koreanUserGenres) {
-                if (koreanUserGenre != null && !koreanUserGenre.trim().isEmpty()) {
+        if (feedbackGenres != null && !feedbackGenres.isEmpty()) {
+            for (String feedbackGenre : feedbackGenres) {
+                if (feedbackGenre != null && !feedbackGenre.trim().isEmpty()) {
+                    String escapedGenre = QueryParser.escape(feedbackGenre);
                     QueryParser genreParser = new QueryParser("genreTag", analyzer);
-                    Query genreQuery = genreParser.parse(koreanUserGenre);
+                    Query genreQuery = genreParser.parse(escapedGenre);
+                    // 피드백 기반 장르에 더 높은 우선순위 부여
                     mainQueryBuilder.add(genreQuery, BooleanClause.Occur.SHOULD);
-                    genreQueryCount++;
+                    log.trace("피드백 기반 장르 추가: {}", feedbackGenre);
+                }
+            }
+        }
+
+        return mainQueryBuilder.build();
+
+    }
+
+    //구독중인 플랫폼의 컨텐츠들, 좋아하는 장르(우선순위)를 기준으로 쿼리를 생성
+    private BooleanQuery buildRecommendationQuery(List<Long> platformFilteredContentIds,
+            List<String> userGenres, Analyzer analyzer) throws ParseException {
+
+        Builder mainQueryBuilder = new Builder();
+
+        Builder idFilterBuilder = new Builder();
+        for (Long contentId : platformFilteredContentIds) {
+            idFilterBuilder.add(new TermQuery(new Term("contentId", contentId.toString())),
+                    BooleanClause.Occur.SHOULD);
+        }
+        mainQueryBuilder.add(idFilterBuilder.build(), BooleanClause.Occur.MUST);
+
+        if (userGenres != null && !userGenres.isEmpty()) {
+
+            for (String userGenre : userGenres) {
+                if (userGenre != null && !userGenre.trim().isEmpty()) {
+                    String escapedGenre = QueryParser.escape(userGenre);
+                    QueryParser genreParser = new QueryParser("genreTag", analyzer);
+                    Query genreQuery = genreParser.parse(escapedGenre);
+                    mainQueryBuilder.add(genreQuery, BooleanClause.Occur.SHOULD);
                 }
             }
         }

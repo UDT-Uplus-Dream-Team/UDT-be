@@ -6,7 +6,9 @@ import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.member.entity.Member;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface FeedbackRepository extends JpaRepository<Feedback, Long>, FeedbackQueryDSL {
 
@@ -16,4 +18,18 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long>, Feedb
 
     Optional<Feedback> findByMemberAndContentAndFeedbackType(Member member, Content content,
             FeedbackType type);
+
+    @Query("""
+            SELECT c
+            FROM Feedback f
+            JOIN f.content c
+            WHERE f.isDeleted = false
+            GROUP BY c
+            ORDER BY
+              SUM(CASE WHEN f.feedbackType = 'LIKE'  THEN 1
+                       WHEN f.feedbackType = 'DISLIKE' THEN -1
+                       ELSE 0 END) DESC,
+              c.id ASC
+            """)
+    List<Content> findTopRankedContents(Pageable pageable);
 }

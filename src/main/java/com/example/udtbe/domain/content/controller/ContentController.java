@@ -1,9 +1,11 @@
 package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
+import com.example.udtbe.domain.content.dto.request.PopularContentsRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.service.ContentService;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -36,6 +38,13 @@ public class ContentController implements ContentControllerApiSpec {
             WeeklyRecommendationRequest request) {
         List<WeeklyRecommendedContentsResponse> response =
                 contentService.getWeeklyRecommendedContents(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<List<PopularContentsResponse>> getPopularContents(
+            PopularContentsRequest request) {
+        List<PopularContentsResponse> response = contentService.getPopularContents(request);
         return ResponseEntity.ok(response);
     }
 }

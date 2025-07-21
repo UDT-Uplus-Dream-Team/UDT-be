@@ -7,7 +7,6 @@ import com.example.udtbe.domain.content.entity.ContentMetadata;
 import java.util.Arrays;
 import java.util.List;
 import lombok.NoArgsConstructor;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @NoArgsConstructor(access = PRIVATE)
 public class ContentMetadataFixture {
@@ -149,7 +148,7 @@ public class ContentMetadataFixture {
 
     public static ContentMetadata parasiteMetadata() {
         Content content = ContentFixture.parasite(); // ID 1L 이미 설정됨
-        return createMetadataWithId(content, "기생충", "15세이상관람가", 
+        return createMetadataWithId(content, "기생충", "15세이상관람가",
                 List.of("영화"), List.of("스릴러", "서사/드라마", "범죄"),
                 List.of("넷플릭스", "왓챠"), List.of("봉준호"));
     }
@@ -192,7 +191,7 @@ public class ContentMetadataFixture {
     public static ContentMetadata getOutMetadata() {
         Content content = ContentFixture.getOut(); // ID 7L 이미 설정됨
         return createMetadataWithId(content, "겟 아웃", "15세이상관람가",
-                List.of("영화"), List.of("공포(호러),", "스릴러", "미스터리"),
+                List.of("영화"), List.of("공포(호러)", "스릴러", "미스터리"),
                 List.of("넷플릭스", "왓챠"), List.of("조던 필"));
     }
 
@@ -219,7 +218,8 @@ public class ContentMetadataFixture {
 
     // === Helper 메서드 ===
 
-    private static ContentMetadata createMetadataWithId(Content content, String title, String rating,
+    private static ContentMetadata createMetadataWithId(Content content, String title,
+            String rating,
             List<String> categoryTag, List<String> genreTag,
             List<String> platformTag, List<String> directorTag) {
         ContentMetadata metadata = ContentMetadata.of(

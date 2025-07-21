@@ -26,4 +26,14 @@ public class RecommendContentController implements RecommendContentControllerApi
 
         return ResponseEntity.ok(recommendations);
     }
+
+    @Override
+    public ResponseEntity<List<ContentRecommendationResponse>> getCurated(
+            @AuthenticationPrincipal Member member,
+            @RequestParam(defaultValue = "6") int limit) {
+        List<ContentRecommendationResponse> recommendations = contentRecommendationService.recommendCuratedContents(
+                member, limit);
+
+        return ResponseEntity.ok(recommendations);
+    }
 }

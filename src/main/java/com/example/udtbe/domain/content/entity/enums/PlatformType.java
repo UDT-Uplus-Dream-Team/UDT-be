@@ -17,7 +17,7 @@ public enum PlatformType {
     WAVVE("웨이브"),
     DISNEY_PLUS("디즈니+"),
     WATCHA("왓챠"),
-    APPLE_TV("Apple TV"),
+    APPLE_TV("애플티비"),
     ;
 
     private final String type;

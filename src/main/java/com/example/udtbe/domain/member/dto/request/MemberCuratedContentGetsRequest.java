@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 public record MemberCuratedContentGetsRequest(
         Long cursor,
         @NotNull
-        int size
+        Integer size
 ) {
 
 }
