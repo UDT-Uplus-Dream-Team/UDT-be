@@ -36,9 +36,7 @@ public class FeedbackService {
 
             if (existing != null) {
                 if (existing.isDeleted()) {
-                    System.out.println("✅ switchDeleted() 실행 전: " + existing.isDeleted());
                     existing.switchDeleted();
-                    System.out.println("✅ switchDeleted() 실행 후: " + existing.isDeleted());
                     feedbacks.add(existing);
                 }
             } else {
