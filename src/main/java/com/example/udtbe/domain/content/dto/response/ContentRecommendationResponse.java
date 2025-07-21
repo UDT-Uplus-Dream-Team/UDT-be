@@ -18,4 +18,5 @@ public record ContentRecommendationResponse(
         List<String> casts,
         List<String> platforms
 ) {
+
 }
