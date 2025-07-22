@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.survey.service;
 
+import com.example.udtbe.domain.content.exception.ContentErrorCode;
+import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.exception.SurveyErrorCode;
@@ -14,6 +16,8 @@ public class SurveyQuery {
 
     private final SurveyRepository surveyRepository;
 
+    private final ContentMetadataRepository contentMetadataRepository;
+
     public boolean existsByMember(Member member) {
         return surveyRepository.existsByMember(member);
     }
@@ -23,7 +27,14 @@ public class SurveyQuery {
     }
 
     public Survey findSurveyByMemberId(Long memberId) {
-        return surveyRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new RestApiException(SurveyErrorCode.SURVEY_NOT_FOUND));
+        return surveyRepository.findByMemberId(memberId).orElseThrow(
+                () -> new RestApiException(SurveyErrorCode.SURVEY_NOT_FOUND)
+        );
+    }
+
+    public Long findContentMetadataId(Long contentId) {
+        return contentMetadataRepository.findIdByContent_Id(contentId).orElseThrow(
+                () -> new RestApiException(ContentErrorCode.CONTENT_METADATA_NOT_FOUND)
+        );
     }
 }

@@ -1,19 +1,18 @@
 package com.example.udtbe.domain.content.repository;
 
+import static com.example.udtbe.domain.content.entity.QContent.content;
+import static com.example.udtbe.domain.content.entity.QCuratedContent.curatedContent;
+
 import com.example.udtbe.domain.member.dto.response.MemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.dto.response.QMemberCuratedContentGetResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Objects;
-
-import static com.example.udtbe.domain.content.entity.QContent.content;
-import static com.example.udtbe.domain.content.entity.QCuratedContent.curatedContent;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
