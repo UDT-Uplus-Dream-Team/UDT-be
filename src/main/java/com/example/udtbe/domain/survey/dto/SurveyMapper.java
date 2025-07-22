@@ -14,12 +14,12 @@ import lombok.NoArgsConstructor;
 
 public class SurveyMapper {
 
-    public static Survey toEntity(SurveyCreateRequest request, Member member) {
-        // TODO : 2차 MVP Contents 변경
+    public static Survey toEntity(SurveyCreateRequest request, Member member,
+            List<String> contentMetaDataIds) {
         return Survey.of(
                 PlatformType.toPlatformTypes(request.platforms()),
                 GenreType.toGenreTypes(request.genres()),
-                List.of(""),
+                contentMetaDataIds,
                 false,
                 member
         );

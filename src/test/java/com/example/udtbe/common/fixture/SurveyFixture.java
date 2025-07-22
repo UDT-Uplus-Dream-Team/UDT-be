@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
+import java.util.Collections;
 import java.util.List;
 import lombok.NoArgsConstructor;
 
@@ -15,7 +16,7 @@ public class SurveyFixture {
         return Survey.of(
                 platformTypes,
                 genreTypes,
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -37,7 +38,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("NETFLIX", "WATCHA"),
                 List.of("ACTION", "THRILLER"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -47,7 +48,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("DISNEY_PLUS", "NETFLIX"),
                 List.of("SF", "FANTASY"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -57,7 +58,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("NETFLIX"),
                 List.of("ACTION", "DRAMA"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -67,7 +68,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("DISNEY_PLUS"),
                 List.of("ACTION", "ADVENTURE"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -77,7 +78,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("NETFLIX", "WATCHA", "TVING"),
                 List.of("MUSICAL", "ROMANCE"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -87,7 +88,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("NETFLIX", "WATCHA"),
                 List.of("HORROR", "THRILLER", "MYSTERY"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -97,7 +98,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of("DISNEY_PLUS", "NETFLIX"),
                 List.of("ANIMATION", "ADVENTURE", "FAMILY"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );
@@ -107,7 +108,7 @@ public class SurveyFixture {
         return Survey.of(
                 List.of(), // 빈 플랫폼 리스트
                 List.of("ACTION"),
-                List.of(""),
+                Collections.emptyList(),
                 false,
                 member
         );

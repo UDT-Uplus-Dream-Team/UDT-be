@@ -19,6 +19,7 @@ import com.example.udtbe.domain.survey.service.SurveyService;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.token.cookie.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,8 @@ class SurveyServiceTest {
         Member member = MemberFixture.member(email, ROLE_GUEST);
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디", "범죄");
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        List<Long> contentId = Collections.emptyList();
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentId);
 
         given(surveyQuery.existsByMember(member)).willReturn(Boolean.FALSE);
         given(surveyQuery.save(any(Survey.class))).willReturn(null);
@@ -76,10 +78,12 @@ class SurveyServiceTest {
         Member member = MemberFixture.member(email, ROLE_GUEST);
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디", "범죄");
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        List<Long> contentId = Collections.emptyList();
+
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentId);
 
         given(surveyQuery.existsByMember(member)).willReturn(Boolean.TRUE);
-        
+
         // when  // then
         assertThatThrownBy(() -> surveyService.createSurvey(request, member, response))
                 .isInstanceOf(RestApiException.class)

@@ -5,7 +5,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.ContentFixture;
+import com.example.udtbe.common.fixture.ContentMetadataFixture;
 import com.example.udtbe.common.support.ApiSupport;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentMetadata;
+import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
+import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.member.repository.MemberRepository;
 import com.example.udtbe.domain.survey.controller.SurveyController;
 import com.example.udtbe.domain.survey.dto.SurveyMapper;
@@ -29,6 +35,12 @@ class SurveyControllerTest extends ApiSupport {
     @Autowired
     MemberRepository memberRepository;
 
+    @Autowired
+    ContentRepository contentRepository;
+
+    @Autowired
+    ContentMetadataRepository contentMetadataRepository;
+
     @AfterEach
     void tearDown() {
         surveyRepository.deleteAll();
@@ -39,10 +51,14 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void createSurvey() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디", "범죄");
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -57,12 +73,19 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyAlreadyExistsForMember() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        ContentMetadata savedContentMetadata = contentMetadataRepository.save(
+                ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디", "범죄");
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
-        surveyRepository.save(SurveyMapper.toEntity(request, loginTempMember));
+        surveyRepository.save(SurveyMapper.toEntity(
+                request, loginTempMember, List.of(String.valueOf(savedContentMetadata.getId()))
+        ));
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -79,10 +102,14 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyPlatformIsNull() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = null;
         List<String> genres = List.of("코미디", "범죄");
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -99,10 +126,14 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyPlatformCountIsLessThanOne() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = Collections.emptyList();
         List<String> genres = List.of("코미디", "범죄");
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -119,12 +150,16 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyPlatformCountExceedsSeven() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = List.of(
                 "넷플릭스", "디즈니+", "티빙", "쿠팡플레이", "웨이브", "왓챠", "Apple TV", "유튜브"
         );
         List<String> genres = List.of("코미디", "범죄");
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -141,10 +176,14 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyGenreIsNull() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = null;
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -161,10 +200,14 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyGenreCountIsLessThanOne() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = Collections.emptyList();
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -181,10 +224,14 @@ class SurveyControllerTest extends ApiSupport {
     @Test
     void throwExceptionIfSurveyGenreCountExceedsThree() throws Exception {
         // given
+        Content savedContent = contentRepository.save(ContentFixture.content("드라마", "드라마입니다."));
+        contentMetadataRepository.save(ContentMetadataFixture.dramaMetadata(savedContent));
+
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디", "범죄", "액션", "뮤지컬");
+        List<Long> contentIds = List.of(savedContent.getId());
 
-        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
 
         // when  // then
         mockMvc.perform(post("/api/survey")
@@ -195,5 +242,24 @@ class SurveyControllerTest extends ApiSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("404"))
                 .andExpect(jsonPath("$.message").value("선호 장르는 최소 1개 이상 최대 3개 이하입니다."));
+    }
+
+    @DisplayName("설문조사 시 보신 콘텐츠 선택하지 않을 수 있다.")
+    @Test
+    void createSurveyWithoutWatchedContents() throws Exception {
+        // given
+        List<String> platforms = List.of("넷플릭스", "디즈니+");
+        List<String> genres = List.of("코미디", "범죄");
+        List<Long> contentIds = Collections.emptyList();
+
+        SurveyCreateRequest request = new SurveyCreateRequest(platforms, genres, contentIds);
+
+        // when  // then
+        mockMvc.perform(post("/api/survey")
+                        .content(toJson(request))
+                        .contentType(APPLICATION_JSON)
+                        .cookie(accessTokenOfTempMember)
+                )
+                .andExpect(status().isNoContent());
     }
 }

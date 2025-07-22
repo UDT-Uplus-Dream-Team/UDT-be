@@ -10,6 +10,8 @@ import com.example.udtbe.domain.survey.exception.SurveyErrorCode;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.token.cookie.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +30,12 @@ public class SurveyService {
             throw new RestApiException(SurveyErrorCode.SURVEY_ALREADY_EXISTS_FOR_MEMBER);
         }
 
-        Survey survey = SurveyMapper.toEntity(request, member);
+        List<String> contentMetaDataIds = new ArrayList<>();
+        for (Long contentId : request.contentIds()) {
+            contentMetaDataIds.add(String.valueOf(surveyQuery.findContentMetadataId(contentId)));
+        }
+
+        Survey survey = SurveyMapper.toEntity(request, member, contentMetaDataIds);
         surveyQuery.save(survey);
 
         member.updateRole(ROLE_USER);
