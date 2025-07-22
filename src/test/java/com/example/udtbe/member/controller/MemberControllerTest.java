@@ -13,6 +13,7 @@ import com.example.udtbe.domain.member.repository.MemberRepository;
 import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import com.example.udtbe.domain.survey.repository.SurveyRepository;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,8 +41,13 @@ class MemberControllerTest extends ApiSupport {
         // given
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디");
+        List<Long> contentIds = Collections.emptyList();
 
-        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(
+                platforms,
+                genres,
+                contentIds
+        );
 
         mockMvc.perform(post("/api/survey")
                 .content(toJson(surveyCreateRequest))
@@ -71,8 +77,13 @@ class MemberControllerTest extends ApiSupport {
         // given
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디");
+        List<Long> contentIds = Collections.emptyList();
 
-        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(
+                platforms,
+                genres,
+                contentIds
+        );
 
         mockMvc.perform(post("/api/survey")
                 .content(toJson(surveyCreateRequest))
@@ -101,8 +112,13 @@ class MemberControllerTest extends ApiSupport {
     void updateZeroGenre() throws Exception {
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디");
+        List<Long> contentIds = Collections.emptyList();
 
-        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(
+                platforms,
+                genres,
+                contentIds
+        );
 
         mockMvc.perform(post("/api/survey")
                 .content(toJson(surveyCreateRequest))
@@ -130,8 +146,13 @@ class MemberControllerTest extends ApiSupport {
         // given
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디");
+        List<Long> contentIds = Collections.emptyList();
 
-        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(
+                platforms,
+                genres,
+                contentIds
+        );
 
         mockMvc.perform(post("/api/survey")
                 .content(toJson(surveyCreateRequest))
@@ -161,8 +182,13 @@ class MemberControllerTest extends ApiSupport {
         // given
         List<String> platforms = List.of("넷플릭스", "디즈니+");
         List<String> genres = List.of("코미디");
+        List<Long> contentIds = Collections.emptyList();
 
-        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(platforms, genres);
+        SurveyCreateRequest surveyCreateRequest = new SurveyCreateRequest(
+                platforms,
+                genres,
+                contentIds
+        );
 
         mockMvc.perform(post("/api/survey")
                 .content(toJson(surveyCreateRequest))

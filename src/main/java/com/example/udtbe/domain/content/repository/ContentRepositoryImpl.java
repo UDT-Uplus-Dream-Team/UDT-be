@@ -103,10 +103,12 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                                 list(genre.genreType.stringValue())
                         )
                 ));
+
         categories = categories.stream()
                 .map(c -> new AdminCategoryDTO(
                         CategoryType.from(c.categoryType()).getType(),
                         c.genres().stream()
+                                .distinct()
                                 .map(g -> GenreType.from(g).getType()).toList()
                 )).toList();
 
