@@ -10,4 +10,7 @@ public interface CuratedContentRepository extends JpaRepository<CuratedContent, 
         CuratedContentQueryDSL {
 
     Optional<CuratedContent> findCuratedContentById(Long id);
+
+    Optional<CuratedContent> findByMemberIdAndContentId(Long memberId, Long contentId);
+
 }

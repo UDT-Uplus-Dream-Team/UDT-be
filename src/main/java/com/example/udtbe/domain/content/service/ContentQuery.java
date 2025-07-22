@@ -5,6 +5,8 @@ import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
@@ -16,11 +18,13 @@ import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.CountryRepository;
+import com.example.udtbe.domain.content.repository.CuratedContentRepository;
 import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +45,7 @@ public class ContentQuery {
     private final ContentDirectorRepository contentDirectorRepository;
     private final ContentMetadataRepository contentMetadataRepository;
     private final ContentPlatformRepository contentPlatformRepository;
+    private final CuratedContentRepository curatedContentRepository;
 
     public CursorPageResponse<ContentsGetResponse> getContents(ContentsGetRequest request) {
         return contentRepository.getContents(request);
@@ -54,4 +59,18 @@ public class ContentQuery {
             WeeklyRecommendationRequest request, List<GenreType> genreTypes) {
         return contentRepository.getWeeklyRecommendedContents(request, genreTypes);
     }
+
+    public Content getReferenceById(Long contentId) {
+        return contentRepository.getReferenceById(contentId);
+    }
+
+    public void saveCuratedContent(CuratedContent curatedContent) {
+        curatedContentRepository.save(curatedContent);
+    }
+
+    public Optional<CuratedContent> findCuratedContentByMemberIdAndContentId(Long memberId,
+            Long contentId) {
+        return curatedContentRepository.findByMemberIdAndContentId(memberId, contentId);
+    }
+
 }
