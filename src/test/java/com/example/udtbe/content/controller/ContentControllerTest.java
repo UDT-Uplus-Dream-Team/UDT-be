@@ -458,7 +458,7 @@ class ContentControllerTest extends ApiSupport {
         initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(19));
         initContentGenre(contentGenres, savedContents.get(1), savedGenres.get(7));
         initContentGenre(contentGenres, savedContents.get(2), savedGenres.get(0));
-        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(6));
+        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(5));
         initContentGenre(contentGenres, savedContents.get(4), savedGenres.get(14));
         initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(3));
         initContentGenre(contentGenres, savedContents.get(6), savedGenres.get(9));
