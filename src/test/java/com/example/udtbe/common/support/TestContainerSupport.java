@@ -17,6 +17,7 @@ public abstract class TestContainerSupport {
     private static final String REDIS_IMAGE = "redis:7.2.5";
     private static final int MYSQL_PORT = 3306;
     private static final int REDIS_PORT = 6379;
+    private static final String REDIS_PASSWORD = "test_password";
 
     private static final JdbcDatabaseContainer<?> MYSQL;
     private static final GenericContainer<?> REDIS;
@@ -26,6 +27,7 @@ public abstract class TestContainerSupport {
                 .withExposedPorts(MYSQL_PORT)
                 .withReuse(true);
         REDIS = new GenericContainer<>(DockerImageName.parse(REDIS_IMAGE))
+                .withCommand("redis-server --requirepass " + REDIS_PASSWORD)
                 .withExposedPorts(REDIS_PORT)
                 .withReuse(true);
 
@@ -41,6 +43,7 @@ public abstract class TestContainerSupport {
         registry.add("spring.datasource.password", MYSQL::getPassword);
 
         registry.add("spring.data.redis.host", REDIS::getHost);
+        registry.add("spring.data.redis.password", () -> REDIS_PASSWORD);
         registry.add("spring.data.redis.port",
                 () -> String.valueOf(REDIS.getMappedPort(REDIS_PORT)));
     }
