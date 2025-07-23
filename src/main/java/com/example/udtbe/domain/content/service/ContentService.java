@@ -76,11 +76,12 @@ public class ContentService {
     }
 
     @Transactional
-    public void deleteCuratedContent(Long memberId, Long contentId) {
-        Optional<CuratedContent> curatedContent = contentQuery.findCuratedContentByMemberIdAndContentId(
-                memberId, contentId);
-        if (curatedContent.isPresent() && !curatedContent.get().isDeleted()) {
-            curatedContent.get().softDelete();
-        }
+    public void deleteCuratedContents(Long memberId, List<Long> contentIds) {
+        List<CuratedContent> curatedContents = contentQuery
+                .findCuratedContentsByMemberIdAndContentIds(memberId, contentIds);
+
+        curatedContents.stream()
+                .filter(content -> !content.isDeleted())
+                .forEach(CuratedContent::softDelete);
     }
 }

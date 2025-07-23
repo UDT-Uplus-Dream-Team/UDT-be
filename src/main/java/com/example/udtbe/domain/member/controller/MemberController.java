@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.member.controller;
 
+import com.example.udtbe.domain.content.dto.request.CuratedContentListDeleteRequest;
 import com.example.udtbe.domain.content.service.ContentService;
 import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
@@ -59,8 +60,9 @@ public class MemberController implements MemberControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<Void> deleteCuratedContent(Long contentId, Member member) {
-        contentService.deleteCuratedContent(member.getId(), contentId);
+    public ResponseEntity<Void> deleteCuratedContents(CuratedContentListDeleteRequest request,
+            Member member) {
+        contentService.deleteCuratedContents(member.getId(), request.contentIds());
         return ResponseEntity.ok().build();
     }
 

@@ -73,4 +73,8 @@ public class ContentQuery {
         return curatedContentRepository.findByMemberIdAndContentId(memberId, contentId);
     }
 
+    public List<CuratedContent> findCuratedContentsByMemberIdAndContentIds(Long memberId, List<Long> contentIds) {
+        return curatedContentRepository.findByMemberIdAndContentIdIn(memberId, contentIds);
+    }
+
 }
