@@ -2,6 +2,7 @@ package com.example.udtbe.domain.survey.service;
 
 import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
 
+import com.example.udtbe.domain.auth.service.AuthQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.dto.SurveyMapper;
 import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SurveyService {
 
     private final SurveyQuery surveyQuery;
+    private final AuthQuery authQuery;
     private final CookieUtil cookieUtil;
 
     @Transactional
@@ -39,6 +41,8 @@ public class SurveyService {
         surveyQuery.save(survey);
 
         member.updateRole(ROLE_USER);
+        authQuery.save(member);
+
         cookieUtil.deleteCookie(response);
     }
 }
