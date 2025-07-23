@@ -17,4 +17,22 @@ public class CuratedContentFixture {
                 content
         );
     }
+
+    public static CuratedContent activeCuratedContent(Member member, Content content) {
+        return CuratedContent.of(
+                false,
+                member,
+                content
+        );
+    }
+
+    public static CuratedContent deletedCuratedContent(Member member, Content content) {
+        CuratedContent curatedContent = CuratedContent.of(
+                false,
+                member,
+                content
+        );
+        curatedContent.softDelete();
+        return curatedContent;
+    }
 }

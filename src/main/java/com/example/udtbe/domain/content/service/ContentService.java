@@ -7,12 +7,18 @@ import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
+import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.util.PopularContentStore;
+import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.config.WeeklyGenrePolicyProperties;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,5 +55,33 @@ public class ContentService {
         }
 
         return popularContentsResponses;
+    }
+
+    @Transactional
+    public void saveCuratedContent(Long contentId, Member member) {
+        Optional<CuratedContent> findCuratedContent = contentQuery
+                .findCuratedContentByMemberIdAndContentId(member.getId(), contentId);
+
+        if (findCuratedContent.isPresent()) {
+            CuratedContent curatedContent = findCuratedContent.get();
+            if (!curatedContent.isDeleted()) {
+                throw new RestApiException(ContentErrorCode.ALREADY_CURATED_CONTENT);
+            }
+            curatedContent.reactivate();
+        } else {
+            Content content = contentQuery.getReferenceById(contentId);
+            CuratedContent curatedContent = CuratedContent.of(false, member, content);
+            contentQuery.saveCuratedContent(curatedContent);
+        }
+    }
+
+    @Transactional
+    public void deleteCuratedContents(Long memberId, List<Long> contentIds) {
+        List<CuratedContent> curatedContents = contentQuery
+                .findCuratedContentsByMemberIdAndContentIds(memberId, contentIds);
+
+        curatedContents.stream()
+                .filter(content -> !content.isDeleted())
+                .forEach(CuratedContent::softDelete);
     }
 }
