@@ -7,7 +7,7 @@ on:
     branches: [ "prod" ]
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/udt:latest
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/udt-prod:latest
 
 jobs:
   ############################################################
@@ -34,7 +34,7 @@ jobs:
       - name: Generate application.yml files
         run: |
           mkdir -p ./src/main/resources ./src/test/resources
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION_PROD }}" > ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_TEST }}" > ./src/test/resources/application.yml
 
       - name: Gradle Caching
@@ -76,7 +76,7 @@ jobs:
       - name: Generate application.yml files
         run: |
           mkdir -p ./src/main/resources ./src/test/resources
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION_PROD }}" > ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_TEST }}" > ./src/test/resources/application.yml
 
       - name: Grant execute permission for gradlew
@@ -109,6 +109,6 @@ jobs:
             docker stop udt_server firefly-redis || true
             docker rm udt_server firefly-redis || true
             cd ~/udt
-            docker pull ${{ secrets.DOCKER_USERNAME }}/udt:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/udt-prod:latest
             docker-compose pull
             docker-compose up -d --force-recreate
