@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.example.udtbe.common.fixture.MemberFixture;
+import com.example.udtbe.domain.auth.service.AuthQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import com.example.udtbe.domain.survey.entity.Survey;
@@ -38,6 +39,9 @@ class SurveyServiceTest {
     @Mock
     CookieUtil cookieUtil;
 
+    @Mock
+    AuthQuery authQuery;
+
     @InjectMocks
     SurveyService surveyService;
 
@@ -56,6 +60,7 @@ class SurveyServiceTest {
 
         given(surveyQuery.existsByMember(member)).willReturn(Boolean.FALSE);
         given(surveyQuery.save(any(Survey.class))).willReturn(null);
+        given(authQuery.save(any(Member.class))).willReturn(null);
         willDoNothing().given(cookieUtil).deleteCookie(any(HttpServletResponse.class));
 
         // when
