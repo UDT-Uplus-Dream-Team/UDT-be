@@ -20,6 +20,8 @@ import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.config.WeeklyGenrePolicyProperties;
 import com.example.udtbe.global.exception.RestApiException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -111,59 +113,85 @@ class ContentServiceTest {
         verify(contentQuery, never()).saveCuratedContent(any(CuratedContent.class));
     }
 
-    @DisplayName("엄선된 콘텐츠를 삭제할 수 있다.")
+    @DisplayName("여러 엄선된 콘텐츠를 한 번에 삭제할 수 있다.")
     @Test
-    void deleteCuratedContent_Success() {
+    void deleteCuratedContentsBulk_Success() {
         // Given
-        Long contentId = 1L;
+        List<Long> contentIds = Arrays.asList(1L, 2L, 3L);
         Member member = MemberFixture.member(email, Role.ROLE_USER);
-        Content content = ContentFixture.content("해리포터", "삭제될예정");
-        CuratedContent activeCuratedContent = CuratedContentFixture.activeCuratedContent(member,
-                content);
+        Content content1 = ContentFixture.content("해리포터1", "대량삭제1");
+        Content content2 = ContentFixture.content("해리포터2", "대량삭제2");
+        Content content3 = ContentFixture.content("해리포터3", "대량삭제3");
 
-        given(contentQuery.findCuratedContentByMemberIdAndContentId(member.getId(), contentId))
-                .willReturn(Optional.of(activeCuratedContent));
+        CuratedContent curatedContent1 = CuratedContentFixture.activeCuratedContent(member,
+                content1);
+        CuratedContent curatedContent2 = CuratedContentFixture.activeCuratedContent(member,
+                content2);
+        CuratedContent curatedContent3 = CuratedContentFixture.activeCuratedContent(member,
+                content3);
+
+        List<CuratedContent> curatedContents = Arrays.asList(curatedContent1, curatedContent2,
+                curatedContent3);
+
+        given(contentQuery.findCuratedContentsByMemberIdAndContentIds(member.getId(), contentIds))
+                .willReturn(curatedContents);
 
         // When
-        contentService.deleteCuratedContent(member.getId(), contentId);
+        contentService.deleteCuratedContents(member.getId(), contentIds);
 
         // Then
-        verify(contentQuery).findCuratedContentByMemberIdAndContentId(member.getId(), contentId);
-        assertThat(activeCuratedContent.isDeleted()).isTrue();
+        verify(contentQuery).findCuratedContentsByMemberIdAndContentIds(member.getId(), contentIds);
+        assertThat(curatedContent1.isDeleted()).isTrue();
+        assertThat(curatedContent2.isDeleted()).isTrue();
+        assertThat(curatedContent3.isDeleted()).isTrue();
     }
 
-    @DisplayName("이미 삭제된 콘텐츠를 다시 삭제해도 에러가 발생하지 않는다.")
+    @DisplayName("일부는 이미 삭제된 콘텐츠가 포함된 대량 삭제에서는 활성 콘텐츠만 삭제된다.")
     @Test
-    void deleteCuratedContent_AlreadyDeleted_NoError() {
+    void deleteCuratedContentsBulk_WithSomeDeleted_OnlyActiveDeleted() {
         // Given
-        Long contentId = 1L;
+        List<Long> contentIds = Arrays.asList(1L, 2L, 3L);
         Member member = MemberFixture.member(email, Role.ROLE_USER);
-        Content content = ContentFixture.content("해리포터", "이미삭제됨");
+        Content content1 = ContentFixture.content("해리포터1", "혼합삭제1");
+        Content content2 = ContentFixture.content("해리포터2", "혼합삭제2");
+        Content content3 = ContentFixture.content("해리포터3", "혼합삭제3");
+
+        CuratedContent activeCuratedContent = CuratedContentFixture.activeCuratedContent(member,
+                content1);
         CuratedContent deletedCuratedContent = CuratedContentFixture.deletedCuratedContent(member,
-                content);
+                content2);
+        CuratedContent anotherActiveCuratedContent = CuratedContentFixture.activeCuratedContent(
+                member, content3);
 
-        given(contentQuery.findCuratedContentByMemberIdAndContentId(member.getId(), contentId))
-                .willReturn(Optional.of(deletedCuratedContent));
+        List<CuratedContent> curatedContents = Arrays.asList(activeCuratedContent,
+                deletedCuratedContent, anotherActiveCuratedContent);
 
-        // When & Then (예외 발생하지 않아야 함)
-        contentService.deleteCuratedContent(member.getId(), contentId);
+        given(contentQuery.findCuratedContentsByMemberIdAndContentIds(member.getId(), contentIds))
+                .willReturn(curatedContents);
 
-        verify(contentQuery).findCuratedContentByMemberIdAndContentId(member.getId(), contentId);
+        // When
+        contentService.deleteCuratedContents(member.getId(), contentIds);
+
+        // Then
+        verify(contentQuery).findCuratedContentsByMemberIdAndContentIds(member.getId(), contentIds);
+        assertThat(activeCuratedContent.isDeleted()).isTrue();
+        assertThat(deletedCuratedContent.isDeleted()).isTrue(); // 이미 삭제된 상태 유지
+        assertThat(anotherActiveCuratedContent.isDeleted()).isTrue();
     }
 
-    @DisplayName("존재하지 않는 엄선된 콘텐츠 삭제 시도시에도 에러가 발생하지 않는다.")
+    @DisplayName("존재하지 않는 콘텐츠 ID가 포함된 대량 삭제도 에러 없이 처리된다.")
     @Test
-    void deleteCuratedContent_NotExists_NoError() {
+    void deleteCuratedContentsBulk_WithNonExistentIds_NoError() {
         // Given
-        Long contentId = 1L;
+        List<Long> contentIds = Arrays.asList(999L, 1000L);
         Member member = MemberFixture.member(email, Role.ROLE_USER);
 
-        given(contentQuery.findCuratedContentByMemberIdAndContentId(member.getId(), contentId))
-                .willReturn(Optional.empty());
+        given(contentQuery.findCuratedContentsByMemberIdAndContentIds(member.getId(), contentIds))
+                .willReturn(Arrays.asList()); // 빈 리스트 반환
 
         // When & Then (예외 발생하지 않아야 함)
-        contentService.deleteCuratedContent(member.getId(), contentId);
+        contentService.deleteCuratedContents(member.getId(), contentIds);
 
-        verify(contentQuery).findCuratedContentByMemberIdAndContentId(member.getId(), contentId);
+        verify(contentQuery).findCuratedContentsByMemberIdAndContentIds(member.getId(), contentIds);
     }
 }
