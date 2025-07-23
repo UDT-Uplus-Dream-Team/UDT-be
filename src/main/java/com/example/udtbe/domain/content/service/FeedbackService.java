@@ -32,12 +32,12 @@ public class FeedbackService {
         for (FeedbackCreateDTO feedbackCreateDTO : requests) {
             Content content = feedbackQuery.findContentById(feedbackCreateDTO.contentId());
 
-            Optional<Feedback> existing = feedbackQuery.findFeedback(
+            Optional<Feedback> findFeedback = feedbackQuery.findFeedbackByMemberIdAndContentId(
                     member.getId(),
                     content.getId());
 
-            if (existing.isPresent()) {
-                Feedback feedback = existing.get();
+            if (findFeedback.isPresent()) {
+                Feedback feedback = findFeedback.get();
                 if (feedback.isDeleted()) {
                     feedback.switchDeleted();
                 }

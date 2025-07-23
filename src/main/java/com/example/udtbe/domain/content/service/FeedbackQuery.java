@@ -36,7 +36,7 @@ public class FeedbackQuery {
         return feedbackRepository.getFeedbacksByCursor(feedbackContentGetRequest, member);
     }
 
-    public Optional<Feedback> findFeedback(Long memberId, Long contentId) {
+    public Optional<Feedback> findFeedbackByMemberIdAndContentId(Long memberId, Long contentId) {
         return feedbackRepository.findFeedbackByMemberIdAndContentId(memberId, contentId);
     }
 }

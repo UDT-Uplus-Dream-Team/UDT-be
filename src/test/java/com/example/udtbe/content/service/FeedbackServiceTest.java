@@ -80,13 +80,13 @@ public class FeedbackServiceTest {
         Content content = ContentFixture.content("title", "description");
         ReflectionTestUtils.setField(content, "id", 1L);
 
-        Feedback existing = Feedback.of(FeedbackType.LIKE, true, member, content);
+        Feedback feedback = Feedback.of(FeedbackType.LIKE, true, member, content);
 
         FeedbackCreateDTO request = new FeedbackCreateDTO(content.getId(), FeedbackType.DISLIKE);
 
         given(feedbackQuery.findContentById(1L)).willReturn(content);
-        given(feedbackQuery.findFeedback(member.getId(),
-                content.getId())).willReturn(Optional.ofNullable(existing));
+        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(),
+                content.getId())).willReturn(Optional.ofNullable(feedback));
 
         // when
         feedbackService.saveFeedbacks(List.of(request), member);
@@ -108,18 +108,18 @@ public class FeedbackServiceTest {
         Content content = ContentFixture.content("title", "description");
         ReflectionTestUtils.setField(content, "id", 1L);
 
-        Feedback existing = Feedback.of(FeedbackType.LIKE, false, member, content);
+        Feedback savedFeedback = Feedback.of(FeedbackType.LIKE, false, member, content);
         FeedbackCreateDTO request = new FeedbackCreateDTO(1L, FeedbackType.DISLIKE);
 
         given(feedbackQuery.findContentById(1L)).willReturn(content);
-        given(feedbackQuery.findFeedback(member.getId(), content.getId()))
-                .willReturn(Optional.ofNullable(existing));
+        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(), content.getId()))
+                .willReturn(Optional.ofNullable(savedFeedback));
 
         // when
         feedbackService.saveFeedbacks(List.of(request), member);
 
         // then
-        assertThat(existing.getFeedbackType()).isEqualTo(FeedbackType.DISLIKE);
+        assertThat(savedFeedback.getFeedbackType()).isEqualTo(FeedbackType.DISLIKE);
         verify(feedbackRepository, times(1)).saveAll(anyList());
     }
 
