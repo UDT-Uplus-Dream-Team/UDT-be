@@ -59,11 +59,11 @@ public class ContentService {
 
     @Transactional
     public void saveCuratedContent(Long contentId, Member member) {
-        Optional<CuratedContent> existingCuratedContent = contentQuery
+        Optional<CuratedContent> findCuratedContent = contentQuery
                 .findCuratedContentByMemberIdAndContentId(member.getId(), contentId);
 
-        if (existingCuratedContent.isPresent()) {
-            CuratedContent curatedContent = existingCuratedContent.get();
+        if (findCuratedContent.isPresent()) {
+            CuratedContent curatedContent = findCuratedContent.get();
             if (!curatedContent.isDeleted()) {
                 throw new RestApiException(ContentErrorCode.ALREADY_CURATED_CONTENT);
             }

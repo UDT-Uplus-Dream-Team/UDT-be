@@ -1,6 +1,7 @@
 package com.example.udtbe.content.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -128,6 +129,7 @@ class ContentServiceTest {
 
         // Then
         verify(contentQuery).findCuratedContentByMemberIdAndContentId(member.getId(), contentId);
+        assertThat(activeCuratedContent.isDeleted()).isTrue();
     }
 
     @DisplayName("이미 삭제된 콘텐츠를 다시 삭제해도 에러가 발생하지 않는다.")
