@@ -6,6 +6,7 @@ import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -24,4 +25,6 @@ public interface ContentRepositoryCustom {
 
     List<WeeklyRecommendedContentsResponse> getWeeklyRecommendedContents(
             WeeklyRecommendationRequest request, List<GenreType> genreTypes);
+
+    List<RecentContentsResponse> getRecentContents(int size);
 }

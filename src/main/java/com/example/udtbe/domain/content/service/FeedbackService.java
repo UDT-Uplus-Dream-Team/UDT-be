@@ -12,6 +12,7 @@ import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,9 @@ public class FeedbackService {
     public CursorPageResponse<FeedbackContentDTO> getFeedbackList(FeedbackContentGetRequest request,
             Member member) {
         List<Feedback> feedbacks = feedbackQuery.getFeedbacksByCursor(member, request);
+        if (feedbacks == null) {
+            feedbacks = Collections.emptyList();
+        }
 
         boolean hasNext = feedbacks.size() > request.size();
         List<Feedback> limited = hasNext ? feedbacks.subList(0, request.size()) : feedbacks;

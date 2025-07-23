@@ -27,7 +27,9 @@ import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.QRecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.QWeeklyRecommendedContentsResponse;
+import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
@@ -347,6 +349,39 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .fetch();
 
         return items;
+    }
+
+    @Override
+    public List<RecentContentsResponse> getRecentContents(int size) {
+        List<Long> contentIds = queryFactory
+                .select(content.id)
+                .from(content)
+                .leftJoin(content.contentCategories, contentCategory)
+                .leftJoin(contentCategory.category, category)
+                .where(deletedFilter())
+                .orderBy(content.openDate.desc(), content.id.desc())
+                .limit(size)
+                .fetch();
+
+        return queryFactory
+                .from(content)
+                .leftJoin(content.contentCategories, contentCategory)
+                .leftJoin(contentCategory.category, category)
+                .leftJoin(content.contentGenres, contentGenre)
+                .leftJoin(contentGenre.genre, genre)
+                .where(content.id.in(contentIds))
+                .orderBy(content.openDate.desc(), content.id.desc())
+                .transform(
+                        groupBy(content.id).list(
+                                new QRecentContentsResponse(
+                                        content.id,
+                                        content.title,
+                                        content.posterUrl,
+                                        list(category.categoryType.stringValue()),
+                                        list(genre.genreType.stringValue())
+                                )
+                        )
+                );
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,

@@ -2,10 +2,12 @@ package com.example.udtbe.domain.content.service;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
 import com.example.udtbe.domain.content.dto.request.PopularContentsRequest;
+import com.example.udtbe.domain.content.dto.request.RecentContentsRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
+import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.CuratedContent;
@@ -55,6 +57,10 @@ public class ContentService {
         }
 
         return popularContentsResponses;
+    }
+
+    public List<RecentContentsResponse> getRecentContents(RecentContentsRequest request) {
+        return contentQuery.getRecentContents(request.size());
     }
 
     @Transactional
