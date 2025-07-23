@@ -14,7 +14,7 @@ public class FeedbackMapper {
 
     private static Feedback createFeedback(FeedbackCreateDTO req, Member member,
             FeedbackQuery feedbackQuery) {
-        Content content = feedbackQuery.getContentById(req.contentId());
+        Content content = feedbackQuery.findContentById(req.contentId());
         return Feedback.of(req.feedback(), false, member, content);
     }
 
