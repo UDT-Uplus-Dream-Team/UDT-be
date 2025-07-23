@@ -10,6 +10,7 @@ import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class FeedbackQuery {
     private final ContentRepository contentRepository;
     private final FeedbackRepository feedbackRepository;
 
-    public Content getContentById(Long id) {
+    public Content findContentById(Long id) {
         return contentRepository.findById(id)
                 .orElseThrow(() -> new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND));
     }
@@ -33,5 +34,9 @@ public class FeedbackQuery {
     public List<Feedback> getFeedbacksByCursor(Member member,
             FeedbackContentGetRequest feedbackContentGetRequest) {
         return feedbackRepository.getFeedbacksByCursor(feedbackContentGetRequest, member);
+    }
+
+    public Optional<Feedback> findFeedbackByMemberIdAndContentId(Long memberId, Long contentId) {
+        return feedbackRepository.findFeedbackByMemberIdAndContentId(memberId, contentId);
     }
 }
