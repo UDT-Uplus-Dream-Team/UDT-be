@@ -25,6 +25,7 @@ import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,8 +85,8 @@ public class FeedbackServiceTest {
         FeedbackCreateDTO request = new FeedbackCreateDTO(content.getId(), FeedbackType.DISLIKE);
 
         given(feedbackQuery.findContentById(1L)).willReturn(content);
-        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(),
-                content.getId())).willReturn(existing);
+        given(feedbackQuery.findFeedback(member.getId(),
+                content.getId())).willReturn(Optional.ofNullable(existing));
 
         // when
         feedbackService.saveFeedbacks(List.of(request), member);
@@ -111,8 +112,8 @@ public class FeedbackServiceTest {
         FeedbackCreateDTO request = new FeedbackCreateDTO(1L, FeedbackType.DISLIKE);
 
         given(feedbackQuery.findContentById(1L)).willReturn(content);
-        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(), content.getId()))
-                .willReturn(existing);
+        given(feedbackQuery.findFeedback(member.getId(), content.getId()))
+                .willReturn(Optional.ofNullable(existing));
 
         // when
         feedbackService.saveFeedbacks(List.of(request), member);

@@ -29,6 +29,4 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long>, Feedb
               c.id ASC
             """)
     List<Content> findTopRankedContents(Pageable pageable);
-
-    Long content(Content content);
 }

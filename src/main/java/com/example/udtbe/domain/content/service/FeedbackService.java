@@ -13,6 +13,7 @@ import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,15 +32,17 @@ public class FeedbackService {
         for (FeedbackCreateDTO feedbackCreateDTO : requests) {
             Content content = feedbackQuery.findContentById(feedbackCreateDTO.contentId());
 
-            Feedback existing = feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(),
+            Optional<Feedback> existing = feedbackQuery.findFeedback(
+                    member.getId(),
                     content.getId());
 
-            if (existing != null) {
-                if (existing.isDeleted()) {
-                    existing.switchDeleted();
+            if (existing.isPresent()) {
+                Feedback feedback = existing.get();
+                if (feedback.isDeleted()) {
+                    feedback.switchDeleted();
                 }
-                existing.updateFeedbackType(feedbackCreateDTO.feedback());
-                feedbacks.add(existing);
+                feedback.updateFeedbackType(feedbackCreateDTO.feedback());
+                feedbacks.add(feedback);
             } else {
                 Feedback newFeedback = Feedback.of(feedbackCreateDTO.feedback(), false, member,
                         content);
