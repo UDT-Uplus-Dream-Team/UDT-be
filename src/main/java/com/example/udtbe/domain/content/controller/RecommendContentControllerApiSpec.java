@@ -1,15 +1,19 @@
 package com.example.udtbe.domain.content.controller;
 
+import com.example.udtbe.domain.content.dto.request.CuratedContentRequest;
 import com.example.udtbe.domain.content.dto.response.ContentRecommendationResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -59,4 +63,11 @@ public interface RecommendContentControllerApiSpec {
             )
             @RequestParam(defaultValue = "6") int limit
     );
+
+    @Operation(summary = "엄선된 콘텐츠 저장 API", description = "엄선된 콘텐츠들을 저장한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/recommendations/contents")
+    ResponseEntity<Void> saveCuratedContent(
+            @RequestBody @Valid CuratedContentRequest curatedContentRequest,
+            @AuthenticationPrincipal Member member);
 }

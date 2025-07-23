@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.member.controller;
 
+import com.example.udtbe.domain.content.dto.request.CuratedContentListDeleteRequest;
+import com.example.udtbe.domain.content.service.ContentService;
 import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController implements MemberControllerApiSpec {
 
     private final MemberService memberService;
+    private final ContentService contentService;
 
     @Override
     public ResponseEntity<MemberInfoResponse> getMemberInfo(Member member) {
@@ -54,6 +57,13 @@ public class MemberController implements MemberControllerApiSpec {
         );
         return ResponseEntity.ok(memberUpdatePlatformResponse);
 
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteCuratedContents(CuratedContentListDeleteRequest request,
+            Member member) {
+        contentService.deleteCuratedContents(member.getId(), request.contentIds());
+        return ResponseEntity.ok().build();
     }
 
 }

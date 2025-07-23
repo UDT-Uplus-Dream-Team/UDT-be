@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.member.controller;
 
+import com.example.udtbe.domain.content.dto.request.CuratedContentListDeleteRequest;
 import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -55,4 +57,11 @@ public interface MemberControllerApiSpec {
             @AuthenticationPrincipal Member member,
             @Valid @RequestBody MemberUpdatePlatformRequest memberUpdateGenreRequest
     );
+
+    @Operation(summary = "엄선된 콘텐츠 대량 삭제 API", description = "여러 엄선된 콘텐츠를 한 번에 삭제한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @DeleteMapping("/api/users/me/curated/contents/bulk")
+    ResponseEntity<Void> deleteCuratedContents(
+            @RequestBody @Valid CuratedContentListDeleteRequest request,
+            @AuthenticationPrincipal Member member);
 }
