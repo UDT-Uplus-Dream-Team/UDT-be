@@ -7,6 +7,7 @@ import static java.time.DayOfWeek.TUESDAY;
 import static java.time.DayOfWeek.WEDNESDAY;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
@@ -501,6 +502,45 @@ class ContentControllerTest extends ApiSupport {
                                     .toArray()
                     )));
         }
+    }
+
+    @DisplayName("최신 콘텐츠 목록을 조회할 수 있다.")
+    @Test
+    void getRecentContents() throws Exception {
+        // given
+        List<Content> contents = List.of(
+                ContentFixture.content("버라이어티", "버라이어티"),
+                ContentFixture.content("코미디", "코미디"),
+                ContentFixture.content("액션", "액션")
+        );
+        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
+        List<Content> savedContents = contentRepository.saveAll(contents);
+
+        List<ContentCategory> contentCategories = new ArrayList<>();
+        initContentCategory(contentCategories, savedContents.get(0), savedCategories.get(0));
+        initContentCategory(contentCategories, savedContents.get(1), savedCategories.get(1));
+        initContentCategory(contentCategories, savedContents.get(2), savedCategories.get(2));
+
+        contentCategoryRepository.saveAll(contentCategories);
+
+        // when // then
+        mockMvc.perform(get("/api/contents/recent")
+                        .param("size", "2")
+                        .contentType(APPLICATION_JSON)
+                        .cookie(accessTokenOfMember))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].title").value("액션"))
+                .andExpect(jsonPath("$[0].posterUrl").exists())
+                .andExpect(jsonPath("$[0].categories").isArray())
+                .andExpect(jsonPath("$[0].categories",
+                        contains(savedCategories.get(2).getCategoryType().getType())))
+                .andExpect(jsonPath("$[1].title").value("코미디"))
+                .andExpect(jsonPath("$[1].posterUrl").exists())
+                .andExpect(jsonPath("$[1].categories").isArray())
+                .andExpect(jsonPath("$[1].categories",
+                        contains(savedCategories.get(1).getCategoryType().getType())));
     }
 
     private void initContentDirectors(List<ContentDirector> contentDirectors, Content content,
