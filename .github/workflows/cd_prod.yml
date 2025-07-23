@@ -100,14 +100,12 @@ jobs:
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
+          host: ${{ secrets.EC2_HOST_PROD }}
+          username: ${{ secrets.EC2_USERNAME_PROD }}
+          key: ${{ secrets.EC2_KEY_PROD }}
           port: 22
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-            docker stop udt_server firefly-redis || true
-            docker rm udt_server firefly-redis || true
             cd ~/udt
             docker pull ${{ secrets.DOCKER_USERNAME }}/udt-prod:latest
             docker-compose pull
