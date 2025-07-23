@@ -28,6 +28,9 @@ public class Director extends TimeBaseEntity {
     @Column(name = "director_name", nullable = false)
     private String directorName;
 
+    @Column(name = "director_image_url")
+    private String directorImageUrl;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
