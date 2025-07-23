@@ -14,6 +14,8 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long>, Feedb
 
     List<Feedback> findByMemberIdAndIsDeletedFalse(Long memberId);
 
+    Optional<Feedback> findFeedbackByMemberIdAndContentId(Long memberId, Long contentId);
+
     @Query("""
             SELECT c
             FROM Feedback f

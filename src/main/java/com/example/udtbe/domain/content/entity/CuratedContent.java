@@ -60,4 +60,12 @@ public class CuratedContent extends TimeBaseEntity {
                 .content(content)
                 .build();
     }
+
+    public void reactivate() {
+        this.isDeleted = false;
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+    }
 }

@@ -4,13 +4,16 @@ import com.example.udtbe.domain.content.dto.FeedbackMapper;
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
+import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +27,29 @@ public class FeedbackService {
 
     @Transactional
     public void saveFeedbacks(List<FeedbackCreateDTO> requests, Member member) {
-        List<Feedback> feedbacks = FeedbackMapper.mapToFeedbackList(requests, member,
-                feedbackQuery);
+        List<Feedback> feedbacks = new ArrayList<>();
+
+        for (FeedbackCreateDTO feedbackCreateDTO : requests) {
+            Content content = feedbackQuery.findContentById(feedbackCreateDTO.contentId());
+
+            Optional<Feedback> findFeedback = feedbackQuery.findFeedbackByMemberIdAndContentId(
+                    member.getId(),
+                    content.getId());
+
+            if (findFeedback.isPresent()) {
+                Feedback feedback = findFeedback.get();
+                if (feedback.isDeleted()) {
+                    feedback.switchDeleted();
+                }
+                feedback.updateFeedbackType(feedbackCreateDTO.feedback());
+                feedbacks.add(feedback);
+            } else {
+                Feedback newFeedback = Feedback.of(feedbackCreateDTO.feedback(), false, member,
+                        content);
+                feedbacks.add(newFeedback);
+            }
+        }
+
         feedbackRepository.saveAll(feedbacks);
     }
 
@@ -53,7 +77,7 @@ public class FeedbackService {
             throw new RestApiException(FeedbackErrorCode.FEEDBACK_OWNER_MISSMATCH);
         }
 
-        feedback.softDeleted();
+        feedback.switchDeleted();
     }
 
 }
