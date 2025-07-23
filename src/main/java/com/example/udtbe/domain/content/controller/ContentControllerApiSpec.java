@@ -1,14 +1,12 @@
 package com.example.udtbe.domain.content.controller;
 
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
-import com.example.udtbe.domain.content.dto.request.CuratedContentRequest;
 import com.example.udtbe.domain.content.dto.request.PopularContentsRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
-import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,23 +14,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "콘텐츠 API", description = "콘텐츠 관련 API")
 public interface ContentControllerApiSpec {
-
-    @Operation(summary = "엄선된 콘텐츠 저장 API", description = "엄선된 콘텐츠들을 저장한다.")
-    @ApiResponse(useReturnTypeSchema = true)
-    @PostMapping("/recommend/contents")
-    ResponseEntity<Void> saveCuratedContent(
-            @RequestBody @Valid CuratedContentRequest curatedContentRequest,
-            @AuthenticationPrincipal Member member);
-
 
     @Operation(summary = "콘텐츠 필터링 목록 조회 API", description = "필터링 조건에 따른 콘텐츠 목록을 가져온다.")
     @ApiResponse(useReturnTypeSchema = true)
