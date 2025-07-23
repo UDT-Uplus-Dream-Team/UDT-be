@@ -9,6 +9,7 @@ import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,16 @@ public class CuratedContentQueryDSLImpl implements CuratedContentQueryDSL {
                                 content.title,
                                 content.posterUrl
                         )
-                ).from(curatedContent).fetchJoin()
+                ).from(curatedContent)
+                .join(curatedContent.content, content)
                 .where(baseFilter(member).and(cursorFilter(cursor)))
                 .orderBy(curatedContent.id.desc())
                 .limit(size + 1)
                 .fetch();
+
+        if (curatedContentGetResponses == null) {
+            curatedContentGetResponses = Collections.emptyList();
+        }
 
         boolean hasNext = isNext(curatedContentGetResponses.size(), size);
 
