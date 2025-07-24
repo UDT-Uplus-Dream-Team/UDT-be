@@ -41,6 +41,7 @@ out/
 /src/main/generated/
 /src/test/resources/**
 /src/main/resources/**
+!/src/main/resources/logback-spring.xml
 
 !/src/main/resources/data.sql
 !/src/test/resources/data-test.sql
