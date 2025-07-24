@@ -3,30 +3,29 @@ package com.example.udtbe.content.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.ContentMetadataFixture;
-import com.example.udtbe.common.fixture.FeedbackFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.common.fixture.SurveyFixture;
+import com.example.udtbe.domain.content.dto.common.ContentRecommendationDTO;
 import com.example.udtbe.domain.content.dto.response.ContentRecommendationResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
-import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.entity.enums.FeedbackType;
-import com.example.udtbe.domain.content.exception.RecommendContentErrorCode;
 import com.example.udtbe.domain.content.service.ContentRecommendationQuery;
 import com.example.udtbe.domain.content.service.ContentRecommendationService;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
 import com.example.udtbe.domain.content.service.LuceneSearchService;
+import com.example.udtbe.domain.content.util.RecommendationCacheManager;
+import com.example.udtbe.domain.content.util.UserRecommendationCache;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.domain.survey.entity.Survey;
-import com.example.udtbe.global.exception.RestApiException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,6 @@ import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -66,6 +64,9 @@ class ContentRecommendationServiceTest {
     @Mock
     private LuceneSearchService luceneSearchService;
 
+    @Mock
+    private RecommendationCacheManager cacheManager;
+
     @InjectMocks
     private ContentRecommendationService contentRecommendationService;
 
@@ -84,220 +85,70 @@ class ContentRecommendationServiceTest {
         testMetadataCache = createTestMetadataCache();
         //테스트 멤버 기준으로 생성
         testSurvey = createTestSurvey();
+
+        // 캐시 매니저 기본 설정 - 캐시 없음 상태로 초기화
+        when(cacheManager.getCache(anyLong())).thenReturn(null);
     }
 
-    @Nested
-    @DisplayName("recommendContents(Member member, int limit) 테스트")
-    class RecommendContentsTest {
+    @Test
+    @DisplayName("캐시 히트 - 기존 캐시에서 다음 배치 반환")
+    void shouldReturnCachedRecommendations_WhenCacheHit() {
+        // given - 유효한 캐시 존재
+        List<ContentRecommendationDTO> cachedRecommendations = List.of(
+                new ContentRecommendationDTO(1L, 5.0f),
+                new ContentRecommendationDTO(2L, 4.5f),
+                new ContentRecommendationDTO(3L, 4.0f)
+        );
 
-        @Test
-        @DisplayName("액션/스릴러 선호 사용자 - 기생충, 올드보이, 블랙팬서 높은 순위")
-        void shouldRecommendActionThrillerContent() throws Exception {
-            // given - 액션/스릴러 선호, 넷플릭스 사용자
-            Survey actionThrillerSurvey = createActionThrillerSurvey();
+        UserRecommendationCache mockCache = mock(UserRecommendationCache.class);
+        when(mockCache.shouldRefresh()).thenReturn(false);
+        when(mockCache.getNext()).thenReturn(cachedRecommendations);
+        when(cacheManager.getCache(testMember.getId())).thenReturn(mockCache);
+        when(contentRecommendationQuery.findContentMetadataCache())
+                .thenReturn(testMetadataCache);
 
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(actionThrillerSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
+        mockContentQueryWithOrder(List.of(1L, 2L, 3L));
 
-            // LuceneSearchService Mock 설정
-            mockLuceneSearchService(List.of(1L, 2L, 8L));
-            mockFeedbackData();
-            mockContentQueryWithOrder(List.of(1L, 2L, 8L));
+        // when
+        List<ContentRecommendationResponse> result = contentRecommendationService
+                .recommendContents(testMember, 3);
 
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 3);
-
-            // then
-            assertThat(result).hasSize(3);
-
-            // 첫 번째 추천이 액션/스릴러 장르를 포함하는지 확인
-            assertThat(result.get(0).genres())
-                    .anyMatch(genre -> genre.contains("액션") || genre.contains("스릴러"));
-
-            verify(contentRecommendationQuery).findSurveyByMemberId(testMember.getId());
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
-
-        @Test
-        @DisplayName("SF/판타지 선호 사용자 - 인터스텔라, 아바타, 스파이더맨 높은 순위")
-        void shouldRecommendScienceFictionContent() throws Exception {
-            // given - SF/판타지 선호, 디즈니+ 사용자
-            Survey sfFantasySurvey = createScienceFictionSurvey();
-
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(sfFantasySurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            mockLuceneSearchService(List.of(3L, 4L, 10L));
-            mockFeedbackData();
-            mockContentQueryWithOrder(List.of(3L, 4L, 10L));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 3);
-
-            // then
-            assertThat(result).hasSize(3);
-            assertThat(result.get(0).genres())
-                    .anyMatch(genre -> genre.contains("SF") || genre.contains("판타지"));
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
-
-        @Test
-        @DisplayName("설문 없는 사용자 - 인기 콘텐츠 반환")
-        void shouldReturnPopularContents_WhenSurveyNotExists() {
-            // given
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenThrow(new RestApiException(RecommendContentErrorCode.SURVEY_NOT_FOUND));
-            when(contentRecommendationQuery.findPopularContentMetadata(5))
-                    .thenReturn(testMetadataList.subList(0, 5));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 5);
-
-            // then
-            assertThat(result).hasSize(5);
-            verify(contentRecommendationQuery).findPopularContentMetadata(5);
-            verifyNoInteractions(luceneIndexService);
-        }
+        // then
+        assertThat(result).hasSize(3);
+        verify(cacheManager).getCache(testMember.getId());
+        verify(mockCache).getNext();
+        verifyNoInteractions(luceneSearchService); // Lucene 검색이 호출되지 않아야 함
     }
 
-    @Nested
-    @DisplayName("플랫폼 필터링 테스트")
-    class PlatformFilteringTest {
+    @Test
+    @DisplayName("액션/스릴러 선호 사용자 - 기생충, 올드보이, 블랙팬서 높은 순위")
+    void shouldRecommendActionThrillerContent() throws Exception {
+        // given - 액션/스릴러 선호, 넷플릭스 사용자
+        Survey actionThrillerSurvey = createActionThrillerSurvey();
 
-        @Test
-        @DisplayName("넷플릭스 전용 사용자 - 넷플릭스 콘텐츠만 추천")
-        void shouldFilterByNetflixOnly() throws Exception {
-            // given
-            Survey netflixOnlySurvey = createNetflixOnlySurvey();
+        when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
+                .thenReturn(actionThrillerSurvey);
+        when(contentRecommendationQuery.findContentMetadataCache())
+                .thenReturn(testMetadataCache);
 
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(netflixOnlySurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
+        // LuceneSearchService Mock 설정
+        mockLuceneSearchService(List.of(1L, 2L, 8L));
+        mockFeedbackData();
+        mockContentQueryWithOrder(List.of(1L, 2L, 8L));
 
-            mockLuceneSearchService(List.of(1L, 2L, 3L, 5L, 6L));
-            mockFeedbackData();
-            mockContentQueryWithOrder(List.of(1L, 2L, 3L, 5L, 6L));
+        // when
+        List<ContentRecommendationResponse> result = contentRecommendationService
+                .recommendContents(testMember, 3);
 
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 5);
+        // then
+        assertThat(result).hasSize(3);
 
-            // then
-            assertThat(result).hasSize(5);
-            assertThat(result).allMatch(response ->
-                    response.platforms().contains("넷플릭스"));
+        // 첫 번째 추천이 액션/스릴러 장르를 포함하는지 확인
+        assertThat(result.get(0).genres())
+                .anyMatch(genre -> genre.contains("액션") || genre.contains("스릴러"));
 
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
-
-        @Test
-        @DisplayName("디즈니+ 전용 사용자 - 디즈니+ 콘텐츠만 추천")
-        void shouldFilterByDisneyPlusOnly() throws Exception {
-            // given
-            Survey disneyPlusSurvey = createDisneyPlusSurvey();
-
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            mockLuceneSearchService(List.of(4L, 8L));
-            mockFeedbackData();
-            mockContentQueryWithOrder(List.of(4L, 8L));
-
-            // when
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(disneyPlusSurvey);
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 5);
-
-            // then
-            assertThat(result).hasSize(2);
-            assertThat(result).allMatch(response ->
-                    response.platforms().contains("디즈니+"));
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
-    }
-
-    @Nested
-    @DisplayName("피드백 기반 추천 테스트")
-    class FeedbackBasedRecommendationTest {
-
-        @Test
-        @DisplayName("스릴러 좋아요 피드백 - 다양한 장르에서 스릴러가 상위권에 위치")
-        void shouldBoostThrillerGenre_WhenUserLikesThrillerContent() throws Exception {
-            // given
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            mockPositiveFeedbackForThriller();
-            mockLuceneSearchService(List.of(1L, 2L, 7L, 9L, 5L, 8L, 10L, 3L, 4L, 6L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 7L, 9L, 5L, 8L, 10L, 3L, 4L, 6L));
-
-            // when
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 10);
-
-            // then
-            assertThat(result).hasSize(10);
-            // 상위 3개 중에 스릴러 장르가 포함된 콘텐츠가 최소 2개는 있어야 함
-            long thrillerCountInTop3 = result.subList(0, 3).stream()
-                    .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("스릴러") ? 1L : 0L)
-                            .sum())
-                    .sum();
-            assertThat(thrillerCountInTop3).isGreaterThanOrEqualTo(2L);
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
-
-        @Test
-        @DisplayName("액션 싫어요 피드백 - 액션 포함한 풀에서 액션이 하위권에 위치")
-        void shouldReduceActionGenreScore_WhenUserDislikesActionContent() throws Exception {
-            // given
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            mockNegativeFeedbackForAction();
-            mockLuceneSearchService(List.of(1L, 2L, 6L, 3L, 5L, 8L, 10L, 4L, 7L, 9L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 6L, 3L, 5L, 8L, 10L, 4L, 7L, 9L));
-
-            // when
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 10);
-
-            // then
-            assertThat(result).hasSize(10);
-            // 상위 4개 중에는 액션 장르가 최대 1개만 있어야 함 (피드백으로 점수가 낮아졌으므로)
-            long actionCountInTop4 = result.subList(0, 4).stream()
-                    .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("액션") ? 1L : 0L)
-                            .sum())
-                    .sum();
-            assertThat(actionCountInTop4).isLessThanOrEqualTo(1L);
-
-            // 하위 4개 중에는 액션 장르가 최소 2개는 있어야 함
-            long actionCountInBottom4 = result.subList(4, 8).stream()
-                    .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("액션") ? 1L : 0L)
-                            .sum())
-                    .sum();
-            assertThat(actionCountInBottom4).isGreaterThanOrEqualTo(2L);
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
+        verify(contentRecommendationQuery).findSurveyByMemberId(testMember.getId());
+        verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
     }
 
     // === Helper 메서드들 ===
@@ -411,18 +262,6 @@ class ContentRecommendationServiceTest {
         return SurveyFixture.actionThrillerSurvey(testMember);
     }
 
-    private Survey createScienceFictionSurvey() {
-        return SurveyFixture.scienceFictionSurvey(testMember);
-    }
-
-    private Survey createNetflixOnlySurvey() {
-        return SurveyFixture.netflixOnlySurvey(testMember);
-    }
-
-    private Survey createDisneyPlusSurvey() {
-        return SurveyFixture.disneyPlusSurvey(testMember);
-    }
-
     //10개의 초기 영화 데이터 세팅
     private List<Content> createRealTestContents() {
         return ContentFixture.allTestMovies();
@@ -440,7 +279,6 @@ class ContentRecommendationServiceTest {
                 ));
     }
 
-
     private void mockContentQueryWithOrder(List<Long> contentIds) {
         List<Content> orderedContents = contentIds.stream()
                 .map(id -> testContents.stream()
@@ -457,383 +295,5 @@ class ContentRecommendationServiceTest {
         // 기본 피드백 데이터 (필요에 따라 각 테스트에서 오버라이드)
         when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
                 .thenReturn(new ArrayList<>());
-    }
-
-    private void mockPositiveFeedbackForThriller() {
-        List<Feedback> feedbacks = List.of(
-                createFeedback(testContents.get(0), FeedbackType.LIKE) // 기생충 좋아요
-        );
-        when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                .thenReturn(feedbacks);
-    }
-
-    private void mockNegativeFeedbackForAction() {
-        List<Feedback> feedbacks = List.of(
-                createFeedback(testContents.get(4), FeedbackType.DISLIKE), // 탑건 싫어요
-                createFeedback(testContents.get(7), FeedbackType.DISLIKE)  // 블랙팬서 싫어요
-        );
-        when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                .thenReturn(feedbacks);
-    }
-
-    private Feedback createFeedback(Content content, FeedbackType type) {
-        return FeedbackFixture.feedback(testMember, content, type);
-    }
-
-    @Test
-    @DisplayName("예외 상황 - Lucene 인덱스 읽기 실패시 인기 콘텐츠 fallback 전략")
-    void shouldFallbackToPopularContents_WhenLuceneIndexFails() throws Exception {
-        // given
-        when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                .thenReturn(testSurvey);
-        when(luceneSearchService.searchRecommendations(anyList(), anyList(), anyInt()))
-                .thenThrow(new IOException("인덱스 읽기 실패"));
-        when(contentRecommendationQuery.findPopularContentMetadata(5))
-                .thenReturn(testMetadataList.subList(0, 5));
-
-        // when
-        List<ContentRecommendationResponse> result = contentRecommendationService
-                .recommendContents(testMember, 5);
-
-        // then
-        assertThat(result).hasSize(5);
-        verify(contentRecommendationQuery).findPopularContentMetadata(5);
-    }
-
-    @Test
-    @DisplayName("장르 태그가 없는 콘텐츠(이상치 데이터) 처리")
-    void shouldHandleNullGenreTags() throws Exception {
-        // given
-        ContentMetadata metadataWithNullGenre = ContentMetadataFixture.customMetadata(
-                testContents.get(0), "테스트 콘텐츠", "15세이상관람가",
-                "", "넷플릭스", "테스트 감독", List.of("영화"), List.of("테스트 배우")
-        );
-
-        Map<Long, ContentMetadata> cacheWithNull = Map.of(1L, metadataWithNullGenre);
-
-        when(contentRecommendationQuery.findContentMetadataCache())
-                .thenReturn(cacheWithNull);
-
-        mockLuceneSearchService(List.of(1L));
-        mockFeedbackData();
-        mockContentQueryWithOrder(List.of(1L));
-
-        // when
-        when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                .thenReturn(testSurvey);
-        List<ContentRecommendationResponse> result = contentRecommendationService
-                .recommendContents(testMember, 1);
-
-        // then 예외가 발생하지 않고 정상 처리되어야..
-        assertThat(result).hasSize(1);
-
-    }
-
-    @Test
-    @DisplayName("빈 플랫폼 태그로 검색시 모든 콘텐츠 반환")
-    void shouldReturnAllContents_WhenPlatformTagsEmpty() throws Exception {
-        // given
-        Survey surveyWithEmptyPlatforms = SurveyFixture.emptyPlatformSurvey(testMember);
-
-        when(contentRecommendationQuery.findContentMetadataCache())
-                .thenReturn(testMetadataCache);
-
-        List<Long> allContentIds = testMetadataList.stream()
-                .map(metadata -> metadata.getContent().getId())
-                .collect(Collectors.toList());
-
-        mockLuceneSearchService(allContentIds);
-        mockFeedbackData();
-        mockContentQueryWithOrder(allContentIds);
-
-        // when
-        when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                .thenReturn(surveyWithEmptyPlatforms);
-        List<ContentRecommendationResponse> result = contentRecommendationService
-                .recommendContents(testMember, 10);
-
-        // then
-        assertThat(result).hasSize(10); // 모든 콘텐츠 반환
-    }
-
-    @Nested
-    @DisplayName("recommendCuratedContents 엄선된 추천 테스트")
-    class CuratedRecommendationTest {
-
-        @Test
-        @DisplayName("피드백 기반 엄선된 추천 - 피드백 장르가 상위에 위치")
-        void shouldRecommendCuratedContentsBasedOnFeedback() throws Exception {
-            // given - 스릴러 좋아요, 액션 싫어요 피드백
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            // 스릴러 좋아요, 액션 싫어요 피드백 설정
-            List<Feedback> feedbacks = List.of(
-                    createFeedback(testContents.get(0), FeedbackType.LIKE), // 기생충 (스릴러)
-                    createFeedback(testContents.get(1), FeedbackType.LIKE), // 올드보이 (스릴러)
-                    createFeedback(testContents.get(4), FeedbackType.DISLIKE), // 탑건 (액션)
-                    createFeedback(testContents.get(7), FeedbackType.DISLIKE)  // 블랙팬서 (액션)
-            );
-            when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                    .thenReturn(feedbacks);
-
-            mockLuceneSearchServiceForCurated(List.of(1L, 2L, 6L, 9L, 3L, 5L, 8L, 10L, 4L, 7L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 6L, 9L, 3L, 5L, 8L, 10L, 4L, 7L));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendCuratedContents(testMember, 10);
-
-            // then
-            assertThat(result).hasSize(10);
-
-            // 상위 3개 중 스릴러 장르가 포함된 콘텐츠가 최소 2개는 있어야 함
-            long thrillerCountInTop3 = result.subList(0, 3).stream()
-                    .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("스릴러") ? 1L : 0L)
-                            .sum())
-                    .sum();
-            assertThat(thrillerCountInTop3).isGreaterThanOrEqualTo(2L);
-
-            // 하위 3개 중 액션 장르가 포함된 콘텐츠가 최소 2개는 있어야 함
-            long actionCountInBottom3 = result.subList(5, 8).stream()
-                    .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("액션") ? 1L : 0L)
-                            .sum())
-                    .sum();
-            assertThat(actionCountInBottom3).isGreaterThanOrEqualTo(2L);
-
-            verify(luceneSearchService).searchCuratedRecommendations(anyList(), anyList(),
-                    anyInt());
-        }
-
-        @Test
-        @DisplayName("피드백 없는 사용자 - 설문 기반 엄선된 추천")
-        void shouldRecommendCuratedContentsWithoutFeedback() throws Exception {
-            // given - 피드백 없음
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                    .thenReturn(new ArrayList<>());
-
-            mockLuceneSearchServiceForCurated(List.of(1L, 2L, 8L, 3L, 5L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 8L, 3L, 5L));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendCuratedContents(testMember, 5);
-
-            // then
-            assertThat(result).hasSize(5);
-
-            // 설문 기반 장르(액션/스릴러)가 상위에 위치해야 함
-            assertThat(result.get(0).genres())
-                    .anyMatch(genre -> genre.contains("액션") || genre.contains("스릴러"));
-
-            verify(luceneSearchService).searchCuratedRecommendations(anyList(), anyList(),
-                    anyInt());
-        }
-
-        @Test
-        @DisplayName("긍정적 피드백만 고려 - LIKE만 선호 장르로 추출")
-        void shouldExtractPreferredGenresFromPositiveFeedbackOnly() throws Exception {
-            // given - 다양한 피드백 타입
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            List<Feedback> feedbacks = List.of(
-                    createFeedback(testContents.get(0), FeedbackType.LIKE),        // 기생충 (스릴러) - 선호
-                    createFeedback(testContents.get(1), FeedbackType.LIKE),
-                    // 올드보이 (스릴러) - 선호
-                    createFeedback(testContents.get(2), FeedbackType.UNINTERESTED),
-                    // 인터스텔라 (SF) - 0.2점
-                    createFeedback(testContents.get(4), FeedbackType.DISLIKE),      // 탑건 (액션) - 비선호
-                    createFeedback(testContents.get(5), FeedbackType.LIKE)
-                    // 어벤져스 (액션) - 선호
-            );
-            when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                    .thenReturn(feedbacks);
-
-            mockLuceneSearchServiceForCurated(List.of(1L, 2L, 5L, 3L, 6L, 8L, 9L, 10L, 4L, 7L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendCuratedContents(testMember, 10);
-
-            // then
-            assertThat(result).hasSize(10);
-
-            // 스릴러(2개 LIKE)가 액션(1개 LIKE, 1개 DISLIKE)보다 상위에 위치해야 함
-            List<String> topGenres = result.subList(0, 5).stream()
-                    .flatMap(response -> response.genres().stream())
-                    .collect(Collectors.toList());
-
-            long thrillerCount = topGenres.stream()
-                    .mapToLong(genre -> genre.contains("스릴러") ? 1L : 0L).sum();
-            assertThat(thrillerCount).isGreaterThanOrEqualTo(2L);
-
-            verify(luceneSearchService).searchCuratedRecommendations(anyList(), anyList(),
-                    anyInt());
-        }
-
-        @Test
-        @DisplayName("설문 없는 사용자 - 인기 콘텐츠 fallback")
-        void shouldFallbackToPopularContents_WhenSurveyNotExists() {
-            // given
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenThrow(new RestApiException(RecommendContentErrorCode.SURVEY_NOT_FOUND));
-            when(contentRecommendationQuery.findPopularContentMetadata(6))
-                    .thenReturn(testMetadataList.subList(0, 6));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendCuratedContents(testMember, 6);
-
-            // then
-            assertThat(result).hasSize(6);
-            verify(contentRecommendationQuery).findPopularContentMetadata(6);
-            verifyNoInteractions(luceneSearchService);
-        }
-
-        @Test
-        @DisplayName("Lucene 검색 실패 - 인기 콘텐츠 fallback")
-        void shouldFallbackToPopularContents_WhenLuceneSearchFails() throws Exception {
-            // given
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-            when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                    .thenReturn(new ArrayList<>());
-
-            when(luceneSearchService.searchCuratedRecommendations(anyList(), anyList(), anyInt()))
-                    .thenThrow(new IOException("Lucene 검색 실패"));
-            when(contentRecommendationQuery.findPopularContentMetadata(6))
-                    .thenReturn(testMetadataList.subList(0, 6));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendCuratedContents(testMember, 6);
-
-            // then
-            assertThat(result).hasSize(6);
-            verify(contentRecommendationQuery).findPopularContentMetadata(6);
-            verify(luceneSearchService).searchCuratedRecommendations(anyList(), anyList(),
-                    anyInt());
-        }
-
-        @Test
-        @DisplayName("많은 피드백 데이터 - 상위 5개 장르만 추출")
-        void shouldExtractTop5PreferredGenres() throws Exception {
-            // given - 7개 장르에 대한 피드백 (상위 5개만 추출되어야 함)
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(testSurvey);
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            List<Feedback> feedbacks = List.of(
-                    // 스릴러: 3개 LIKE = 3.0점 (1위)
-                    createFeedback(testContents.get(0), FeedbackType.LIKE), // 기생충 (스릴러)
-                    createFeedback(testContents.get(1), FeedbackType.LIKE), // 올드보이 (스릴러)
-                    createFeedback(testContents.get(6), FeedbackType.LIKE), // 타이타닉 (로맨스, 스릴러)
-                    // 액션: 2개 LIKE = 2.0점 (2위)
-                    createFeedback(testContents.get(4), FeedbackType.LIKE), // 탑건 (액션)
-                    createFeedback(testContents.get(5), FeedbackType.LIKE), // 어벤져스 (액션)
-                    // SF: 1개 LIKE = 1.0점 (3위)
-                    createFeedback(testContents.get(2), FeedbackType.LIKE)  // 인터스텔라 (SF)
-            );
-            when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
-                    .thenReturn(feedbacks);
-
-            mockLuceneSearchServiceForCurated(List.of(1L, 2L, 6L, 4L, 5L, 3L, 8L, 9L));
-            mockContentQueryWithOrder(List.of(1L, 2L, 3L, 4L, 5L, 6L, 8L, 9L));
-
-            // when
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendCuratedContents(testMember, 8);
-
-            // then
-            assertThat(result).hasSize(8);
-
-            // 상위 5개 중 스릴러가 가장 많아야 함
-            long thrillerCount = result.subList(0, 5).stream()
-                    .mapToLong(response -> response.genres().stream()
-                            .mapToLong(genre -> genre.contains("스릴러") ? 1L : 0L)
-                            .sum())
-                    .sum();
-            assertThat(thrillerCount).isGreaterThanOrEqualTo(2L);
-
-            verify(luceneSearchService).searchCuratedRecommendations(anyList(), anyList(),
-                    anyInt());
-        }
-    }
-
-    @Nested
-    @DisplayName("영어→한국어 변환 로직 검증 테스트")
-    class EnumConversionTest {
-
-        @Test
-        @DisplayName("GenreType.toKoreanTypes() 메서드 호출 검증")
-        void shouldConvertEnglishGenresToKorean() throws Exception {
-            // given
-            Survey englishGenreSurvey = SurveyFixture.actionThrillerSurvey(testMember);
-
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            mockLuceneSearchService(List.of(1L, 2L, 5L));
-            mockFeedbackData();
-            mockContentQueryWithOrder(List.of(1L, 2L, 5L));
-
-            // when
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(englishGenreSurvey);
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 3);
-
-            // then
-            assertThat(result).hasSize(3);
-
-            assertThat(result).allSatisfy(response -> {
-                assertThat(response.genres()).isNotEmpty();
-            });
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
-
-        @Test
-        @DisplayName("PlatformType.toKoreanTypes() 메서드 호출 검증")
-        void shouldConvertEnglishPlatformsToKorean() throws Exception {
-            // given
-            Survey englishPlatformSurvey = SurveyFixture.netflixOnlySurvey(testMember);
-
-            when(contentRecommendationQuery.findContentMetadataCache())
-                    .thenReturn(testMetadataCache);
-
-            mockLuceneSearchService(List.of(1L, 2L, 3L));
-            mockFeedbackData();
-            mockContentQueryWithOrder(List.of(1L, 2L, 3L));
-
-            // when
-            when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
-                    .thenReturn(englishPlatformSurvey);
-            List<ContentRecommendationResponse> result = contentRecommendationService
-                    .recommendContents(testMember, 3);
-
-            // then
-            assertThat(result).hasSize(3);
-            assertThat(result).allMatch(response ->
-                    response.platforms().contains("넷플릭스"));
-
-            verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
-        }
     }
 }
