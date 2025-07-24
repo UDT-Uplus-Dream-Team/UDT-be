@@ -14,6 +14,7 @@ import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.log.annotation.LogReturn;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,7 @@ public class MemberService {
     }
 
     @Transactional
+    @LogReturn()
     public MemberUpdateGenreResponse updateMemberGenres(Long memberId,
             MemberUpdateGenreRequest memberUpdateGenreRequest) {
         Survey survey = surveyQuery.findSurveyByMemberId(memberId);
@@ -74,6 +76,7 @@ public class MemberService {
     }
 
     @Transactional
+    @LogReturn()
     public MemberUpdatePlatformResponse updateMemberPlatforms(Long memberId,
             MemberUpdatePlatformRequest memberUpdatePlatformRequest) {
         Survey survey = surveyQuery.findSurveyByMemberId(memberId);
