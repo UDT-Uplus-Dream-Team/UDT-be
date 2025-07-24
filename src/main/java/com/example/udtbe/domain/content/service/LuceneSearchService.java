@@ -29,8 +29,8 @@ public class LuceneSearchService {
     public TopDocs searchRecommendations(List<Long> platformFilteredContentIds,
             List<String> userGenres, int limit) throws IOException, ParseException {
 
-        try (DirectoryReader reader = luceneIndexService.getIndexReader()) {
-            IndexSearcher searcher = new IndexSearcher(reader);
+        try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
             Analyzer analyzer = luceneIndexService.getAnalyzer();
 
             BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, userGenres,
@@ -44,8 +44,8 @@ public class LuceneSearchService {
             List<String> feedbackGenres, int limit)
             throws IOException, ParseException {
 
-        try (DirectoryReader reader = luceneIndexService.getIndexReader()) {
-            IndexSearcher searcher = new IndexSearcher(reader);
+        try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
             Analyzer analyzer = luceneIndexService.getAnalyzer();
 
             BooleanQuery query = buildCuratedRecommendationQuery(platformFilteredContentIds,

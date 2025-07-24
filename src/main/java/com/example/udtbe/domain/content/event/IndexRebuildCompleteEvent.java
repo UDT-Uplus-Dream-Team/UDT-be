@@ -14,4 +14,8 @@ public class IndexRebuildCompleteEvent extends ApplicationEvent {
         this.indexedCount = indexedCount;
         this.buildTimeMs = buildTimeMs;
     }
+
+    public static IndexRebuildCompleteEvent of(Object source, int indexedCount, long buildTimeMs) {
+        return new IndexRebuildCompleteEvent(source, indexedCount, buildTimeMs);
+    }
 }

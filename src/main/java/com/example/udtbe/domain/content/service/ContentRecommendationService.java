@@ -136,8 +136,8 @@ public class ContentRecommendationService {
             Member member, Map<Long, ContentMetadata> metadataCache, boolean isCurated)
             throws IOException {
 
-        try (DirectoryReader reader = luceneIndexService.getIndexReader()) {
-            IndexSearcher searcher = new IndexSearcher(reader);
+        try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
             List<ContentRecommendationDTO> recommendations = new ArrayList<>();
             debugTopDocs(topDocs, searcher);
 
@@ -340,7 +340,7 @@ public class ContentRecommendationService {
 
             return buildResponseFromRecommendations(firstBatch, metadataCache);
         }
-        
+
         List<ContentRecommendationDTO> limitedRecommendations = sortedRecommendations.stream()
                 .limit(limit)
                 .toList();
@@ -352,11 +352,12 @@ public class ContentRecommendationService {
             List<ContentRecommendationDTO> recommendations,
             Map<Long, ContentMetadata> metadataCache) {
 
-        List<Long> contentIds = recommendations.stream()
+        List<Long> recommendedContentIds = recommendations.stream()
                 .map(ContentRecommendationDTO::contentId)
                 .toList();
 
-        List<Content> contents = contentRecommendationQuery.findContentsByIds(contentIds);
+        List<Content> contents = contentRecommendationQuery.findContentsByIds(
+                recommendedContentIds);
         List<ContentMetadata> metadataList = contents.stream()
                 .map(content -> metadataCache.get(content.getId()))
                 .filter(Objects::nonNull)

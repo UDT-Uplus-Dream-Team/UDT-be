@@ -43,26 +43,27 @@ public class LuceneIndexService {
             int successCount = buildIndex();
             long endTime = System.currentTimeMillis();
             long buildTime = endTime - startTime;
-            
+
             log.info("===== Lucene 인덱스 빌드 완료: {}ms =====", buildTime);
-            
+
             // 인덱스 리빌드 완료 이벤트 발행
-            eventPublisher.publishEvent(new IndexRebuildCompleteEvent(this, successCount, buildTime));
+            eventPublisher.publishEvent(
+                    IndexRebuildCompleteEvent.of(this, successCount, buildTime));
         } catch (Exception e) {
             log.error("Lucene 인덱스 빌드 실패", e);
         }
     }
 
     private int buildIndex() throws IOException {
-        List<ContentMetadata> allContentMetadata = contentMetadataRepository.findByIsDeletedFalse();
-        log.info("인덱싱 대상 ContentMetadata: {}개", allContentMetadata.size());
+        List<ContentMetadata> contentMetadataList = contentMetadataRepository.findByIsDeletedFalse();
+        log.info("인덱싱 대상 ContentMetadata: {}개", contentMetadataList.size());
 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
             indexWriter.deleteAll();
 
             int successCount = 0;
-            for (ContentMetadata metadata : allContentMetadata) {
+            for (ContentMetadata metadata : contentMetadataList) {
                 try {
                     Document doc = createDocument(metadata);
                     indexWriter.addDocument(doc);
@@ -75,8 +76,8 @@ public class LuceneIndexService {
 
             indexWriter.commit();
             indexBuilt = true;
-            log.info("인덱싱 완료: {}/{}개 성공", successCount, allContentMetadata.size());
-            
+            log.info("인덱싱 완료: {}/{}개 성공", successCount, contentMetadataList.size());
+
             return successCount;
         }
     }
