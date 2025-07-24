@@ -36,7 +36,7 @@ jobs:
           mkdir -p ./src/main/resources ./src/test/resources
           echo "${{ secrets.APPLICATION_PROD }}" > ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_TEST }}" > ./src/test/resources/application.yml
-          echo "${{ secrets.LOGBACK_PROD }}" > ./src/main/resources/logback-spring.xml
+          echo "${{ secrets.LOGBACK_PROD }}" | base64 -d > ./src/main/resources/logback-spring.xml
 
       - name: Gradle Caching
         uses: actions/cache@v3
@@ -79,7 +79,7 @@ jobs:
           mkdir -p ./src/main/resources ./src/test/resources
           echo "${{ secrets.APPLICATION_PROD }}" > ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_TEST }}" > ./src/test/resources/application.yml
-          echo "${{ secrets.LOGBACK_PROD }}" > ./src/main/resources/logback-spring.xml
+          echo "${{ secrets.LOGBACK_PROD }}" | base64 -d > ./src/main/resources/logback-spring.xml
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
