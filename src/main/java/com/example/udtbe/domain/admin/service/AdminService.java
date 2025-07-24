@@ -37,6 +37,7 @@ import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.log.annotation.LogReturn;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,7 @@ public class AdminService {
     private final ContentDirectorRepository contentDirectorRepository;
 
     @Transactional
+    @LogReturn
     public AdminContentRegisterResponse registerContent(AdminContentRegisterRequest request) {
         Content content = contentRepository.save(AdminContentMapper.toContentEntity(request));
 
@@ -116,6 +118,7 @@ public class AdminService {
     }
 
     @Transactional
+    @LogReturn
     public void deleteContent(Long contentId) {
         Content content = adminQuery.findContentByContentId(contentId);
         content.delete(true);
@@ -125,6 +128,7 @@ public class AdminService {
     }
 
     @Transactional
+    @LogReturn
     public AdminContentUpdateResponse updateContent(Long contentId,
             AdminContentUpdateRequest request) {
         Content content = adminQuery.findContentByContentId(contentId);
@@ -188,6 +192,7 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
+    @LogReturn(summaryOnly = true)
     public CursorPageResponse<AdminContentGetResponse> getContents(
             AdminContentGetsRequest adminContentGetsRequest
     ) {
@@ -199,6 +204,7 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
+    @LogReturn()
     public AdminContentGetDetailResponse getContent(Long contentId) {
         return contentRepository.getAdminContentDetails(contentId);
     }
