@@ -63,7 +63,7 @@ public class ApiTraceAspect {
     }
 
     @Before("controllerPointcut()")
-    public void logControllerRequest(JoinPoint joinPoint) throws Throwable {
+    public void logControllerRequest(JoinPoint joinPoint) {
         String token = cookieUtil.getCookieValue(request);
         String memberId = tokenProvider.getMemberId(token);
 
@@ -75,7 +75,7 @@ public class ApiTraceAspect {
         logRequestArguments(joinPoint);
     }
 
-    private void logRequestMetadata(String memberId) throws Throwable {
+    private void logRequestMetadata(String memberId) {
         String uri = request.getRequestURI();
         String method = request.getMethod();
         String clientIp = request.getRemoteAddr();
@@ -83,7 +83,7 @@ public class ApiTraceAspect {
         log.info("[Request] {} {} from IP: {}, Agent: {}", method, uri, clientIp, memberId);
     }
 
-    private void logRequestArguments(JoinPoint joinPoint) throws Throwable {
+    private void logRequestArguments(JoinPoint joinPoint) {
         String methodName = getMethodName(joinPoint);
         log.info("===== {} Request Detail START =====", methodName);
         Arrays.stream(joinPoint.getArgs())
