@@ -22,6 +22,8 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Aspect
 @Slf4j
@@ -30,7 +32,6 @@ import org.springframework.util.StringUtils;
 public class ApiTraceAspect {
 
     private final ObjectMapper objectMapper;
-    private final HttpServletRequest request;
     private final TokenProvider tokenProvider;
     private final CookieUtil cookieUtil;
 
@@ -64,6 +65,9 @@ public class ApiTraceAspect {
 
     @Before("controllerPointcut()")
     public void logControllerRequest(JoinPoint joinPoint) {
+        HttpServletRequest request =
+                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+
         String token = cookieUtil.getCookieValue(request);
         String memberId = tokenProvider.getMemberId(token);
 
@@ -71,11 +75,11 @@ public class ApiTraceAspect {
             return;
         }
 
-        logRequestMetadata(memberId);
+        logRequestMetadata(memberId, request);
         logRequestArguments(joinPoint);
     }
 
-    private void logRequestMetadata(String memberId) {
+    private void logRequestMetadata(String memberId, HttpServletRequest request) {
         String uri = request.getRequestURI();
         String method = request.getMethod();
         String clientIp = request.getRemoteAddr();
