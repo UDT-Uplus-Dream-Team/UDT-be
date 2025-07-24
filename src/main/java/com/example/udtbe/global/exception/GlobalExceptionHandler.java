@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -29,20 +30,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RestApiException.class)
     public ResponseEntity<Object> handleCustomException(RestApiException e) {
         ErrorCode errorCode = e.getErrorCode();
+        putLogContext(errorCode); // MDC 등록
+        log.warn("[API 예외] {}: {}", errorCode.name(), errorCode.getMessage());
         return handleExceptionInternal(errorCode);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException e) {
-        log.warn("handleIllegalArgument", e);
         ErrorCode errorCode = INVALID_PARAMETER;
+        putLogContext(errorCode);
+        log.warn("[잘못된 요청] {}", e.getMessage(), e);
         return handleExceptionInternal(errorCode);
     }
 
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAllException(Exception ex) {
-        log.warn("handleAllException", ex);
         ErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
+        putLogContext(errorCode);
+        log.error("[예기치 못한 에러] {}", ex.getMessage(), ex);
         return handleExceptionInternal(errorCode);
     }
 
@@ -71,7 +76,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             @NonNull HttpHeaders headers,
             @NonNull HttpStatusCode status,
             @NonNull WebRequest request) {
-        log.warn(ex.getMessage(), ex);
 
         String errMessage;
         if (!ex.getBindingResult().getFieldErrors().isEmpty()) {
@@ -81,6 +85,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         } else {
             errMessage = "잘못된 요청입니다.";
         }
+
+        putLogContext(INVALID_PARAMETER);
+        log.warn("[검증 실패] {}", errMessage);
 
         return ResponseEntity.badRequest()
                 .body(new ErrorResponseDto("404", errMessage, Collections.emptyList()));
@@ -100,6 +107,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             return handleExceptionInternal(errorCode, " in field: " + fieldName);
         }
         return handleExceptionInternal(errorCode);
+    }
+
+    private void putLogContext(ErrorCode errorCode) {
+        MDC.put("status", String.valueOf(errorCode.getHttpStatus().value()));
+        MDC.put("errorCode", errorCode.name());
     }
 
 }
