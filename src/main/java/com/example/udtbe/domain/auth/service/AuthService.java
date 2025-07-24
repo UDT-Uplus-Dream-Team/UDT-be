@@ -8,6 +8,7 @@ import com.example.udtbe.domain.auth.exception.AuthErrorCode;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.exception.RestApiException;
+import com.example.udtbe.global.log.annotation.LogReturn;
 import com.example.udtbe.global.security.dto.AuthInfo;
 import com.example.udtbe.global.security.dto.CustomOauth2User;
 import com.example.udtbe.global.security.dto.Oauth2Response;
@@ -40,6 +41,7 @@ public class AuthService {
     private final CookieUtil cookieUtil;
     private final RedisUtil redisUtil;
 
+    @LogReturn()
     public Member saveOrUpdate(Oauth2Response oauth2Response) {
         Member member = authQuery.getOptionalMemberByEmail(oauth2Response.getEmail())
                 .map(m -> {
@@ -54,6 +56,7 @@ public class AuthService {
         return authQuery.save(member);
     }
 
+    @LogReturn()
     private Member createMemberFromOauth2Response(Oauth2Response oauth2Response) {
         return Member.of(oauth2Response.getEmail(), oauth2Response.getName(), Role.ROLE_GUEST,
                 oauth2Response.getProfileImageUrl(), MAN, LocalDateTime.now(), false);
