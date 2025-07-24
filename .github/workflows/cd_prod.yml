@@ -106,8 +106,8 @@ jobs:
           port: 22
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-            docker stop udt_dev_server || true
-            docker rm udt_dev_server || true
+            docker stop udt_prod_server || true
+            docker rm udt_prod_server || true
             cd ~/udt
             docker pull ${{ secrets.DOCKER_USERNAME }}/udt-prod:latest
             docker-compose pull
