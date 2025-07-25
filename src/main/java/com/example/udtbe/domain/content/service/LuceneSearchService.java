@@ -29,34 +29,30 @@ public class LuceneSearchService {
     public TopDocs searchRecommendations(List<Long> platformFilteredContentIds,
             List<String> userGenres, int limit) throws IOException, ParseException {
 
-        DirectoryReader reader = luceneIndexService.getIndexReader();
-        IndexSearcher searcher = new IndexSearcher(reader);
-        Analyzer analyzer = luceneIndexService.getAnalyzer();
+        try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            Analyzer analyzer = luceneIndexService.getAnalyzer();
 
-        BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, userGenres,
-                analyzer);
+            BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, userGenres,
+                    analyzer);
 
-        TopDocs topDocs = searcher.search(query, limit * 3);
-
-        reader.close();
-        return topDocs;
+            return searcher.search(query, limit * 10);
+        }
     }
 
     public TopDocs searchCuratedRecommendations(List<Long> platformFilteredContentIds,
             List<String> feedbackGenres, int limit)
             throws IOException, ParseException {
 
-        DirectoryReader reader = luceneIndexService.getIndexReader();
-        IndexSearcher searcher = new IndexSearcher(reader);
-        Analyzer analyzer = luceneIndexService.getAnalyzer();
+        try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            Analyzer analyzer = luceneIndexService.getAnalyzer();
 
-        BooleanQuery query = buildCuratedRecommendationQuery(platformFilteredContentIds,
-                feedbackGenres, analyzer);
+            BooleanQuery query = buildCuratedRecommendationQuery(platformFilteredContentIds,
+                    feedbackGenres, analyzer);
 
-        TopDocs topDocs = searcher.search(query, limit * 2);
-
-        reader.close();
-        return topDocs;
+            return searcher.search(query, limit * 2);
+        }
     }
 
     private BooleanQuery buildCuratedRecommendationQuery(List<Long> platformFilteredContentIds,

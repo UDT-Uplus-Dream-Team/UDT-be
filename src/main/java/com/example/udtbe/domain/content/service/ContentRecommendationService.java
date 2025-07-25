@@ -8,11 +8,14 @@ import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.util.MemberRecommendationCache;
+import com.example.udtbe.domain.content.util.RecommendationCacheManager;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +42,7 @@ public class ContentRecommendationService {
     private final ContentRecommendationQuery contentRecommendationQuery;
     private final LuceneIndexService luceneIndexService;
     private final LuceneSearchService luceneSearchService;
+    private final RecommendationCacheManager cacheManager;
 
     @Transactional(readOnly = true)
     public List<ContentRecommendationResponse> recommendContents(Member member, int limit) {
@@ -53,6 +57,13 @@ public class ContentRecommendationService {
     private List<ContentRecommendationResponse> performRecommendation(Member member, int limit,
             boolean isCurated) {
         try {
+            if (!isCurated) {
+                MemberRecommendationCache cache = cacheManager.getCache(member.getId());
+                if (cache != null && !cache.shouldRefresh()) {
+                    return getCachedRecommendations(cache);
+                }
+            }
+
             Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
             return executeRecommendationSearch(userSurvey, member, limit, isCurated);
         } catch (IOException | ParseException | RestApiException e) {
@@ -65,7 +76,7 @@ public class ContentRecommendationService {
             Survey userSurvey, Member member, int limit, boolean isCurated)
             throws IOException, ParseException {
 
-        // TODO: 모든 ContentMetadata를 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
+        // TODO: 모든 ContentMetadata 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
         List<Long> platformFilteredContentIds = getPlatformFilteredContentIds(
                 userSurvey.getPlatformTag(), metadataCache);
@@ -93,7 +104,13 @@ public class ContentRecommendationService {
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
                 topDocs, feedbackBasedGenres, surveyGenres, member, metadataCache, true);
 
-        return buildFinalResponse(recommendations, limit, metadataCache);
+        // Curated 추천은 캐싱하지 않으므로 직접 정렬 후 반환
+        List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
+                .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
+                .limit(limit)
+                .toList();
+
+        return buildResponseFromRecommendations(sortedRecommendations, metadataCache);
     }
 
     private List<ContentRecommendationResponse> executeRegularRecommendation(
@@ -109,7 +126,8 @@ public class ContentRecommendationService {
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
                 topDocs, koreanUserGenres, null, member, metadataCache, false);
 
-        return buildFinalResponse(recommendations, limit, metadataCache);
+        return buildFinalResponse(recommendations, limit, metadataCache, member.getId(),
+                false);
     }
 
     private List<ContentRecommendationDTO> processLuceneScoring(
@@ -117,36 +135,37 @@ public class ContentRecommendationService {
             Member member, Map<Long, ContentMetadata> metadataCache, boolean isCurated)
             throws IOException {
 
-        DirectoryReader reader = luceneIndexService.getIndexReader();
-        IndexSearcher searcher = new IndexSearcher(reader);
-        List<ContentRecommendationDTO> recommendations = new ArrayList<>();
-        debugTopDocs(topDocs, searcher);
+        try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            List<ContentRecommendationDTO> recommendations = new ArrayList<>();
+            debugTopDocs(topDocs, searcher);
 
-        Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache);
+            Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache);
 
-        for (int i = 0; i < topDocs.scoreDocs.length; i++) {
-            ScoreDoc scoreDoc = topDocs.scoreDocs[i];
-            Document doc = searcher.storedFields().document(scoreDoc.doc);
-            Long contentId = Long.valueOf(doc.get("contentId"));
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.storedFields().document(scoreDoc.doc);
+                Long contentId = Long.valueOf(doc.get("contentId"));
 
-            float luceneScore = scoreDoc.score * 3.0f;
-            float feedbackScore = calculateGenreFeedbackBoost(doc, feedbackScores);
-            float finalScore;
+                float luceneScore = scoreDoc.score * 3.0f;
+                float feedbackScore = calculateGenreFeedbackBoost(doc, feedbackScores);
+                float finalScore;
 
-            if (isCurated) {
-                float feedbackGenreBoost = calculateGenreBoost(doc, primaryGenres);
-                float surveyGenreBoost = calculateGenreBoost(doc, secondaryGenres);
-                finalScore =
-                        luceneScore + feedbackGenreBoost * 2.0f + surveyGenreBoost + feedbackScore;
-            } else {
-                float genreBoost = calculateGenreBoost(doc, primaryGenres);
-                finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
+                if (isCurated) {
+                    float feedbackGenreBoost = calculateGenreBoost(doc, primaryGenres);
+                    float surveyGenreBoost = calculateGenreBoost(doc, secondaryGenres);
+                    finalScore =
+                            luceneScore + feedbackGenreBoost * 2.0f + surveyGenreBoost
+                                    + feedbackScore;
+                } else {
+                    float genreBoost = calculateGenreBoost(doc, primaryGenres);
+                    finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
+                }
+
+                recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
             }
 
-            recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
+            return recommendations;
         }
-
-        return recommendations;
     }
 
     private List<String> extractPreferredGenresFromFeedback(Member member,
@@ -282,34 +301,73 @@ public class ContentRecommendationService {
         return ContentRecommendationMapper.toResponseList(contents, metadataList);
     }
 
+    private List<ContentRecommendationResponse> getCachedRecommendations(
+            MemberRecommendationCache cache) {
+
+        List<ContentRecommendationDTO> nextBatch = cache.getNext();
+        if (nextBatch.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        debugCachedRecommendations(nextBatch, cache);
+
+        Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
+        return buildResponseFromRecommendations(nextBatch, metadataCache);
+    }
+
     private List<ContentRecommendationResponse> buildFinalResponse(
             List<ContentRecommendationDTO> recommendations, int limit,
-            Map<Long, ContentMetadata> metadataCache) {
+            Map<Long, ContentMetadata> metadataCache, Long memberId, boolean isCurated) {
 
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
+                .toList();
+
+        if (!isCurated) {
+            List<ContentRecommendationDTO> firstBatch = sortedRecommendations.stream()
+                    .limit(limit)
+                    .toList();
+
+            List<ContentRecommendationDTO> remainingRecommendations = sortedRecommendations.stream()
+                    .skip(limit)
+                    .toList();
+
+            cacheManager.putCache(memberId, remainingRecommendations);
+
+            return buildResponseFromRecommendations(firstBatch, metadataCache);
+        }
+
+        List<ContentRecommendationDTO> limitedRecommendations = sortedRecommendations.stream()
                 .limit(limit)
                 .toList();
 
-        List<Long> sortedContentIds = sortedRecommendations.stream()
+        return buildResponseFromRecommendations(limitedRecommendations, metadataCache);
+    }
+
+    private List<ContentRecommendationResponse> buildResponseFromRecommendations(
+            List<ContentRecommendationDTO> recommendations,
+            Map<Long, ContentMetadata> metadataCache) {
+
+        List<Long> recommendedContentIds = recommendations.stream()
                 .map(ContentRecommendationDTO::contentId)
                 .toList();
 
-        List<Content> contents = contentRecommendationQuery.findContentsByIds(sortedContentIds);
+        List<Content> contents = contentRecommendationQuery.findContentsByIds(
+                recommendedContentIds);
         List<ContentMetadata> metadataList = contents.stream()
                 .map(content -> metadataCache.get(content.getId()))
                 .filter(Objects::nonNull)
                 .toList();
 
         for (Content content : contents) {
-            log.info("추출된 순서 : {}", String.join(", ", content.getTitle()));
+            log.info("추출된 순서 : {}", content.getTitle());
         }
 
         return ContentRecommendationMapper.toResponseList(contents, metadataList);
     }
 
     private void debugTopDocs(TopDocs topDocs, IndexSearcher searcher) throws IOException {
-        log.info("🔍 ===== TopDocs 상세 분석 =====");
+        log.info("===== TopDocs 상세 분석 =====");
         log.info("총 매치된 문서 수: {}", topDocs.totalHits.value);
         log.info("반환된 문서 수: {}", topDocs.scoreDocs.length);
 
@@ -333,7 +391,33 @@ public class ContentRecommendationService {
                     i + 1, contentId, scoreDoc.score, title, genreTag, platformTag);
         }
 
-        log.info("🔍 ===== TopDocs 분석 완료 =====");
+        log.info("===== TopDocs 분석 완료 =====");
+    }
+
+    private void debugCachedRecommendations(List<ContentRecommendationDTO> recommendations,
+            MemberRecommendationCache cache) {
+        log.info("===== 캐싱된 추천 상세 분석 =====");
+        log.info("캐시 소진율: {}% ({}/{})",
+                String.format("%.2f", cache.getConsumptionRate() * 100),
+                cache.getCurrentIndex(),
+                cache.getRecommendations().size());
+        log.info("이번 배치 추천 수: {}", recommendations.size());
+        log.info("남은 추천 수: {}", cache.getRemainingCount());
+
+        if (recommendations.isEmpty()) {
+            log.warn("❌ 캐싱된 추천이 없습니다!");
+            return;
+        }
+
+        log.info("📋 이번 배치 상위 {}개 추천:", Math.min(10, recommendations.size()));
+
+        for (int i = 0; i < Math.min(10, recommendations.size()); i++) {
+            ContentRecommendationDTO rec = recommendations.get(i);
+            log.info("  {}위: contentId={}, score={}",
+                    i + 1, rec.contentId(), rec.score());
+        }
+
+        log.info("===== 캐싱된 추천 분석 완료 =====");
     }
 
 }
