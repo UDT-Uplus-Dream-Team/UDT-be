@@ -21,8 +21,8 @@ import com.example.udtbe.domain.content.service.ContentRecommendationQuery;
 import com.example.udtbe.domain.content.service.ContentRecommendationService;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
 import com.example.udtbe.domain.content.service.LuceneSearchService;
+import com.example.udtbe.domain.content.util.MemberRecommendationCache;
 import com.example.udtbe.domain.content.util.RecommendationCacheManager;
-import com.example.udtbe.domain.content.util.UserRecommendationCache;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.domain.survey.entity.Survey;
@@ -100,7 +100,7 @@ class ContentRecommendationServiceTest {
                 new ContentRecommendationDTO(3L, 4.0f)
         );
 
-        UserRecommendationCache mockCache = mock(UserRecommendationCache.class);
+        MemberRecommendationCache mockCache = mock(MemberRecommendationCache.class);
         when(mockCache.shouldRefresh()).thenReturn(false);
         when(mockCache.getNext()).thenReturn(cachedRecommendations);
         when(cacheManager.getCache(testMember.getId())).thenReturn(mockCache);

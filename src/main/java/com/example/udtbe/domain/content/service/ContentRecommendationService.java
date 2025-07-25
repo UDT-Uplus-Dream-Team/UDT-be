@@ -8,8 +8,8 @@ import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.util.MemberRecommendationCache;
 import com.example.udtbe.domain.content.util.RecommendationCacheManager;
-import com.example.udtbe.domain.content.util.UserRecommendationCache;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.global.exception.RestApiException;
@@ -58,13 +58,12 @@ public class ContentRecommendationService {
             boolean isCurated) {
         try {
             if (!isCurated) {
-                UserRecommendationCache cache = cacheManager.getCache(member.getId());
+                MemberRecommendationCache cache = cacheManager.getCache(member.getId());
                 if (cache != null && !cache.shouldRefresh()) {
                     return getCachedRecommendations(cache);
                 }
             }
 
-            // 2. 캐시 리프래쉬 또는 Curated 추천 시 새로운 추천 생성
             Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
             return executeRecommendationSearch(userSurvey, member, limit, isCurated);
         } catch (IOException | ParseException | RestApiException e) {
@@ -303,7 +302,7 @@ public class ContentRecommendationService {
     }
 
     private List<ContentRecommendationResponse> getCachedRecommendations(
-            UserRecommendationCache cache) {
+            MemberRecommendationCache cache) {
 
         List<ContentRecommendationDTO> nextBatch = cache.getNext();
         if (nextBatch.isEmpty()) {
@@ -324,14 +323,11 @@ public class ContentRecommendationService {
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
                 .toList();
 
-        // 기본 추천만 캐시에 저장 (Curated 추천은 캐싱하지 않음)
         if (!isCurated) {
-            // ✅ 첫 10개는 바로 반환용으로 분리
             List<ContentRecommendationDTO> firstBatch = sortedRecommendations.stream()
                     .limit(limit)
                     .toList();
 
-            // ✅ 나머지만 캐시에 저장 (이미 10개 소비된 상태로)
             List<ContentRecommendationDTO> remainingRecommendations = sortedRecommendations.stream()
                     .skip(limit)
                     .toList();
@@ -371,7 +367,7 @@ public class ContentRecommendationService {
     }
 
     private void debugTopDocs(TopDocs topDocs, IndexSearcher searcher) throws IOException {
-        log.info("🔍 ===== TopDocs 상세 분석 =====");
+        log.info("===== TopDocs 상세 분석 =====");
         log.info("총 매치된 문서 수: {}", topDocs.totalHits.value);
         log.info("반환된 문서 수: {}", topDocs.scoreDocs.length);
 
@@ -395,12 +391,12 @@ public class ContentRecommendationService {
                     i + 1, contentId, scoreDoc.score, title, genreTag, platformTag);
         }
 
-        log.info("🔍 ===== TopDocs 분석 완료 =====");
+        log.info("===== TopDocs 분석 완료 =====");
     }
 
     private void debugCachedRecommendations(List<ContentRecommendationDTO> recommendations,
-            UserRecommendationCache cache) {
-        log.info("🎯 ===== 캐싱된 추천 상세 분석 =====");
+            MemberRecommendationCache cache) {
+        log.info("===== 캐싱된 추천 상세 분석 =====");
         log.info("캐시 소진율: {}% ({}/{})",
                 String.format("%.2f", cache.getConsumptionRate() * 100),
                 cache.getCurrentIndex(),
@@ -421,7 +417,7 @@ public class ContentRecommendationService {
                     i + 1, rec.contentId(), rec.score());
         }
 
-        log.info("🎯 ===== 캐싱된 추천 분석 완료 =====");
+        log.info("===== 캐싱된 추천 분석 완료 =====");
     }
 
 }

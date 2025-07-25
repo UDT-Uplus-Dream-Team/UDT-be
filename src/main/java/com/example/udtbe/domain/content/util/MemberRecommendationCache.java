@@ -10,13 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-public class UserRecommendationCache {
+public class MemberRecommendationCache {
 
     private final List<ContentRecommendationDTO> recommendations;
     private int currentIndex;
     private final LocalDateTime createdAt;
 
-    public UserRecommendationCache(List<ContentRecommendationDTO> recommendations) {
+    public MemberRecommendationCache(List<ContentRecommendationDTO> recommendations) {
         this.recommendations = new ArrayList<>(recommendations);
         this.currentIndex = 0;
         this.createdAt = LocalDateTime.now();
