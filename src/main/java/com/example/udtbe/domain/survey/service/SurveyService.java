@@ -33,10 +33,12 @@ public class SurveyService {
         }
 
         List<String> contentMetaDataIds = new ArrayList<>();
-        for (Long contentId : request.contentIds()) {
-            contentMetaDataIds.add(String.valueOf(surveyQuery.findContentMetadataId(contentId)));
+        if (request.contentIds() != null && !request.contentIds().isEmpty()) {
+            for (Long contentId : request.contentIds()) {
+                contentMetaDataIds.add(
+                        String.valueOf(surveyQuery.findContentMetadataId(contentId)));
+            }
         }
-
         Survey survey = SurveyMapper.toEntity(request, member, contentMetaDataIds);
         surveyQuery.save(survey);
 
