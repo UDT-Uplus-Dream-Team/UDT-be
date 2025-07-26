@@ -38,7 +38,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             "/webjars/**",
             "/.well-known/**",
             "/api/auth/temp-signin",
-            "/api/auth/temp-signup"
+            "/api/auth/temp-signup",
+            "/actuator/health"
     );
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final TokenProvider tokenProvider;
