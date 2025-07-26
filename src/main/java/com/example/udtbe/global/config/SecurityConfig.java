@@ -78,7 +78,7 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/error", "/favicon.ico", "/api/auth/temp-signup",
                         "/api/auth/temp-signin", "/swagger-ui/**", "/v3/api-docs/**",
-                        "/swagger-ui.html"
+                        "/swagger-ui.html", "/actuator/health"
                 );
     }
 

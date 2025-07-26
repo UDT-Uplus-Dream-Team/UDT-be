@@ -36,10 +36,10 @@ public class Content extends TimeBaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "poster_url")
+    @Column(name = "poster_url", columnDefinition = "TEXT")
     private String posterUrl;
 
-    @Column(name = "backdrop_url")
+    @Column(name = "backdrop_url", columnDefinition = "TEXT")
     private String backdropUrl;
 
     @Column(name = "trailer_url")
