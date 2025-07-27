@@ -25,14 +25,7 @@ public class TokenExceptionFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception e) {
 
-            log.error("JWT 검증 실패로 인한 예외 발생 : {}", e.getMessage());
-            log.error("Exception type: {}", e.getClass().getName());
-            log.error("Stack trace: ", e);  // 전체 스택트레이스 출력
-
-            // 원인이 ClassCastException인지 확인
-            if (e instanceof ClassCastException) {
-                log.error("ClassCastException 발생!");
-            }
+            log.warn("JWT 검증 실패로 인한 예외 발생 : {}", e.getMessage());
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
             response.setContentType("application/json");
