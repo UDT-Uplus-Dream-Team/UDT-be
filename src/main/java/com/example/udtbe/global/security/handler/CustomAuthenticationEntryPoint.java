@@ -21,7 +21,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException {
 
-        log.error("비인가 사용자 요청 -> 예외 발생 : {}", authException.getMessage());
+        log.warn("비인가 사용자 요청 -> 예외 발생 : {}", authException.getMessage());
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
         response.setContentType("application/json");

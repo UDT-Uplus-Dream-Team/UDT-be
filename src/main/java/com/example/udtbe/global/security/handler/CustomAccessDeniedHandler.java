@@ -29,11 +29,17 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         setUpResponse(response, SecurityErrorCode.DENIED_ACCESS);
     }
 
+    private boolean matchAuthenticationFromRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(auth -> auth.equals(role));
+    }
+
     private void setUpResponse(
             HttpServletResponse response,
             SecurityErrorCode securityErrorCode
     ) throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);  // 401 Unauthorized
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
