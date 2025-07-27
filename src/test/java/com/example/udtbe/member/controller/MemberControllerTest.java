@@ -2,7 +2,6 @@ package com.example.udtbe.member.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -12,7 +11,9 @@ import com.example.udtbe.domain.member.dto.request.MemberUpdatePlatformRequest;
 import com.example.udtbe.domain.member.repository.MemberRepository;
 import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import com.example.udtbe.domain.survey.repository.SurveyRepository;
+import com.example.udtbe.domain.survey.service.SurveyService;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +29,10 @@ class MemberControllerTest extends ApiSupport {
     MemberRepository memberRepository;
     @Autowired
     SurveyRepository surveyRepository;
+    @Autowired
+    SurveyService surveyService;
+    @Autowired
+    HttpServletResponse response;
 
     @AfterEach
     void tearDown() {
@@ -48,12 +53,7 @@ class MemberControllerTest extends ApiSupport {
                 genres,
                 contentIds
         );
-
-        mockMvc.perform(post("/api/survey")
-                .content(toJson(surveyCreateRequest))
-                .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
-        );
+        surveyService.createSurvey(surveyCreateRequest, loginMember, response);
 
         MemberUpdateGenreRequest memberUpdateGenreRequest = new MemberUpdateGenreRequest(
                 List.of("서사/드라마", "키즈")
@@ -62,7 +62,7 @@ class MemberControllerTest extends ApiSupport {
         ResultActions actions = mockMvc.perform(patch("/api/users/survey/genre")
                 .content(toJson(memberUpdateGenreRequest))
                 .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
+                .cookie(accessTokenOfMember)
         ).andExpect(status().isOk());
 
         for (int i = 0; i < memberUpdateGenreRequest.genres().size(); i++) {
@@ -85,11 +85,7 @@ class MemberControllerTest extends ApiSupport {
                 contentIds
         );
 
-        mockMvc.perform(post("/api/survey")
-                .content(toJson(surveyCreateRequest))
-                .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
-        );
+        surveyService.createSurvey(surveyCreateRequest, loginMember, response);
 
         MemberUpdateGenreRequest memberUpdateGenreRequest = new MemberUpdateGenreRequest(
                 List.of("할래말래", "키즈", "aaaa")
@@ -99,7 +95,7 @@ class MemberControllerTest extends ApiSupport {
         mockMvc.perform(patch("/api/users/survey/genre")
                         .content(toJson(memberUpdateGenreRequest))
                         .contentType(APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfMember)
                 ).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(
                         EnumErrorCode.GENRE_TYPE_BAD_REQUEST.name()))
@@ -120,11 +116,7 @@ class MemberControllerTest extends ApiSupport {
                 contentIds
         );
 
-        mockMvc.perform(post("/api/survey")
-                .content(toJson(surveyCreateRequest))
-                .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
-        );
+        surveyService.createSurvey(surveyCreateRequest, loginMember, response);
 
         MemberUpdateGenreRequest memberUpdateGenreRequest = new MemberUpdateGenreRequest(
                 List.of()
@@ -134,7 +126,7 @@ class MemberControllerTest extends ApiSupport {
         mockMvc.perform(patch("/api/users/survey/genre")
                         .content(toJson(memberUpdateGenreRequest))
                         .contentType(APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfMember)
                 ).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("404"))
                 .andExpect(jsonPath("$.message").value("장르 수정은 최소 1개 이상 최대 3개 이하입니다."));
@@ -154,11 +146,7 @@ class MemberControllerTest extends ApiSupport {
                 contentIds
         );
 
-        mockMvc.perform(post("/api/survey")
-                .content(toJson(surveyCreateRequest))
-                .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
-        );
+        surveyService.createSurvey(surveyCreateRequest, loginMember, response);
 
         MemberUpdatePlatformRequest memberUpdatePlatformRequest = new MemberUpdatePlatformRequest(
                 List.of("왓챠", "티빙")
@@ -167,7 +155,7 @@ class MemberControllerTest extends ApiSupport {
         ResultActions actions = mockMvc.perform(patch("/api/users/survey/platform")
                 .content(toJson(memberUpdatePlatformRequest))
                 .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
+                .cookie(accessTokenOfMember)
         ).andExpect(status().isOk());
 
         for (int i = 0; i < memberUpdatePlatformRequest.platforms().size(); i++) {
@@ -190,11 +178,7 @@ class MemberControllerTest extends ApiSupport {
                 contentIds
         );
 
-        mockMvc.perform(post("/api/survey")
-                .content(toJson(surveyCreateRequest))
-                .contentType(APPLICATION_JSON)
-                .cookie(accessTokenOfTempMember)
-        );
+        surveyService.createSurvey(surveyCreateRequest, loginMember, response);
 
         MemberUpdatePlatformRequest memberUpdatePlatformRequest = new MemberUpdatePlatformRequest(
                 List.of("!!!", "??", "aaaa")
@@ -204,7 +188,7 @@ class MemberControllerTest extends ApiSupport {
         mockMvc.perform(patch("/api/users/survey/platform")
                         .content(toJson(memberUpdatePlatformRequest))
                         .contentType(APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfMember)
                 ).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(
                         EnumErrorCode.PLATFORM_TYPE_BAD_REQUEST.name()))
