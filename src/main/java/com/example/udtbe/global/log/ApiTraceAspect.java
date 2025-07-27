@@ -53,15 +53,16 @@ public class ApiTraceAspect {
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
 
-        String className = joinPoint.getSignature().getDeclaringTypeName();
+        String fullClassName = joinPoint.getSignature().getDeclaringTypeName();
+        String simpleClassName = fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
         String methodName = getMethodName(joinPoint);
-        log.info("[START] {}.{}()", className, methodName);
+        log.info("[START] {}.{}()", simpleClassName, methodName);
         try {
             return joinPoint.proceed();
         } finally {
             long end = System.currentTimeMillis();
             long timeMs = end - start;
-            log.info("[END] {}.{}() ===> {}ms", className, methodName, timeMs);
+            log.info("[END] {}.{}() ===> {}ms", simpleClassName, methodName, timeMs);
         }
     }
 
