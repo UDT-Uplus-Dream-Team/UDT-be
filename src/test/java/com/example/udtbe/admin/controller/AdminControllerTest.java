@@ -113,7 +113,7 @@ public class AdminControllerTest extends ApiSupport {
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
                         .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -142,7 +142,7 @@ public class AdminControllerTest extends ApiSupport {
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
                         .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -154,7 +154,7 @@ public class AdminControllerTest extends ApiSupport {
         mockMvc.perform(patch("/api/admin/contents/{id}", id)
                         .content(objectMapper.writeValueAsString(adminContentUpdateRequest))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk());
     }
@@ -177,7 +177,7 @@ public class AdminControllerTest extends ApiSupport {
             mockMvc.perform(post("/api/admin/contents")
                             .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(accessTokenOfTempMember)
+                            .cookie(accessTokenOfAdmin)
                     )
                     .andExpect(status().isCreated())
                     .andReturn();
@@ -186,7 +186,7 @@ public class AdminControllerTest extends ApiSupport {
         // when & then
         mockMvc.perform(get("/api/admin/contents")
                         .param("size", "2")
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasNext").value(true))
@@ -195,7 +195,7 @@ public class AdminControllerTest extends ApiSupport {
         mockMvc.perform(get("/api/admin/contents")
                         .param("cusror", "3")
                         .param("size", "50")
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasNext").value(false))
@@ -230,7 +230,7 @@ public class AdminControllerTest extends ApiSupport {
             mockMvc.perform(post("/api/admin/contents")
                             .content(objectMapper.writeValueAsString(adminContentRegisterRequest1))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(accessTokenOfTempMember)
+                            .cookie(accessTokenOfAdmin)
                     )
                     .andExpect(status().isCreated())
                     .andReturn();
@@ -240,7 +240,7 @@ public class AdminControllerTest extends ApiSupport {
         mockMvc.perform(get("/api/admin/contents")
                         .param("size", "3")
                         .param("categoryType", "영화")
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasNext").value(false))
@@ -250,7 +250,7 @@ public class AdminControllerTest extends ApiSupport {
         mockMvc.perform(get("/api/admin/contents")
                         .param("size", "3")
                         .param("categoryType", "드라마")
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasNext").value(false))
@@ -265,7 +265,7 @@ public class AdminControllerTest extends ApiSupport {
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
                         .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -275,7 +275,7 @@ public class AdminControllerTest extends ApiSupport {
 
         // when & then
         mockMvc.perform(get("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value(adminContentRegisterRequest.title()))
@@ -291,7 +291,7 @@ public class AdminControllerTest extends ApiSupport {
         MvcResult mr = mockMvc.perform(post("/api/admin/contents")
                         .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -301,7 +301,7 @@ public class AdminControllerTest extends ApiSupport {
 
         // when
         mockMvc.perform(delete("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isNoContent());
 
@@ -310,7 +310,7 @@ public class AdminControllerTest extends ApiSupport {
 
         // 조회 시 404
         mockMvc.perform(get("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfTempMember)
+                        .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isNotFound());
     }
