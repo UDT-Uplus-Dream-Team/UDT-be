@@ -33,7 +33,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             SecurityErrorCode securityErrorCode
     ) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);  // 401 Unauthorized
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
