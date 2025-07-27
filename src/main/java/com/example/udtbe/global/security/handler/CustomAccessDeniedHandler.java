@@ -6,13 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
@@ -29,38 +25,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException {
-        // 현재 인증된 사용자 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.error(authentication.getName());
-        // 사용자 권한에 따라 다른 응답 제공
-        if (!Objects.isNull(accessDeniedException)) {
-            if (!matchAuthenticationFromRole(authentication, ROLE_USER)) {
-                // ROLE_USER 권한이 없는 경우
-                log.info(SecurityErrorCode.FORBIDDEN_USER.getMessage());
-                setUpResponse(response, SecurityErrorCode.FORBIDDEN_USER);
-            } else if (!matchAuthenticationFromRole(authentication, ROLE_GUEST)) {
-                // ROLE_GUEST 권한이 없는 경우
-                log.info(SecurityErrorCode.FORBIDDEN_GUEST.getMessage());
-                setUpResponse(response, SecurityErrorCode.FORBIDDEN_GUEST);
-            } else if (!matchAuthenticationFromRole(authentication, ROLE_ADMIN)) {
-                // ROLE_ADMIN 권한이 없는 경우
-                log.info(SecurityErrorCode.FORBIDDEN_ADMIN.getMessage());
-                setUpResponse(response, SecurityErrorCode.FORBIDDEN_ADMIN);
-            } else {
-                // 기타 권한이 없는 경우
-                log.info(SecurityErrorCode.FORBIDDEN_MISMATCH.getMessage());
-                setUpResponse(response, SecurityErrorCode.FORBIDDEN_MISMATCH);
-            }
-        } else {
-            log.info(SecurityErrorCode.FORBIDDEN_MISMATCH.getMessage());
-            setUpResponse(response, SecurityErrorCode.FORBIDDEN_MISMATCH);
-        }
-    }
-
-    private boolean matchAuthenticationFromRole(Authentication authentication, String role) {
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(auth -> auth.equals(role));
+        log.warn(SecurityErrorCode.DENIED_ACCESS.getMessage());
+        setUpResponse(response, SecurityErrorCode.DENIED_ACCESS);
     }
 
     private void setUpResponse(
