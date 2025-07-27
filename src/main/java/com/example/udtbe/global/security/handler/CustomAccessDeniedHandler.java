@@ -18,21 +18,12 @@ import org.springframework.stereotype.Component;
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
-    private static final String ROLE_GUEST = "ROLE_GUEST";
-    private static final String ROLE_USER = "ROLE_USER";
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException {
         log.warn(SecurityErrorCode.DENIED_ACCESS.getMessage());
         setUpResponse(response, SecurityErrorCode.DENIED_ACCESS);
-    }
-
-    private boolean matchAuthenticationFromRole(Authentication authentication, String role) {
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(auth -> auth.equals(role));
     }
 
     private void setUpResponse(
