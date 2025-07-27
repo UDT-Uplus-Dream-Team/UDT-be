@@ -1,5 +1,9 @@
 package com.example.udtbe.global.config;
 
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_ADMIN;
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_GUEST;
+import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_USER;
+
 import com.example.udtbe.global.security.handler.CustomAccessDeniedHandler;
 import com.example.udtbe.global.security.handler.CustomAuthenticationEntryPoint;
 import com.example.udtbe.global.security.handler.CustomOauth2FailureHandler;
@@ -46,7 +50,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         (auth) -> auth
-                                .requestMatchers("/**").permitAll()
+                                .requestMatchers("/api/survey").hasAnyAuthority(ROLE_GUEST.name())
+                                .requestMatchers("/api/admin/**").hasAnyAuthority(ROLE_ADMIN.name())
+                                .requestMatchers("/api/**")
+                                .hasAnyAuthority(ROLE_USER.name(), ROLE_ADMIN.name())
+                                .requestMatchers("/", "/api/auth/reissue/token").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2Login(
