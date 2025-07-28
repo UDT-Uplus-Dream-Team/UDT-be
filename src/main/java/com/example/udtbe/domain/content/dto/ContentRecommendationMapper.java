@@ -5,6 +5,7 @@ import static lombok.AccessLevel.PRIVATE;
 import com.example.udtbe.domain.content.dto.response.ContentRecommendationResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
+import com.example.udtbe.domain.content.entity.ContentPlatform;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,11 @@ public class ContentRecommendationMapper {
                         : Collections.emptyList(),
                 metadata.getCastTag() != null ? metadata.getCastTag() : Collections.emptyList(),
                 metadata.getPlatformTag() != null ? metadata.getPlatformTag()
-                        : Collections.emptyList()
+                        : Collections.emptyList(),
+                content.getContentPlatforms() != null ? content.getContentPlatforms().stream()
+                        .map(ContentPlatform::getWatchUrl)
+                        .filter(Objects::nonNull)
+                        .toList() : Collections.emptyList()
         );
     }
 
@@ -76,7 +81,11 @@ public class ContentRecommendationMapper {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                content.getContentPlatforms() != null ? content.getContentPlatforms().stream()
+                        .map(contentPlatform -> contentPlatform.getWatchUrl())
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()) : Collections.emptyList()
         );
     }
 }
