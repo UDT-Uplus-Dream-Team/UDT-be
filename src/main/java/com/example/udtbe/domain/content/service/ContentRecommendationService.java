@@ -6,13 +6,13 @@ import com.example.udtbe.domain.content.dto.response.ContentRecommendationRespon
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.Feedback;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.util.MemberRecommendationCache;
 import com.example.udtbe.domain.content.util.RecommendationCacheManager;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
-import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,31 +46,28 @@ public class ContentRecommendationService {
     private final RecommendationCacheManager cacheManager;
 
     @Transactional(readOnly = true)
-    public List<ContentRecommendationResponse> recommendContents(Member member, int limit) {
+    public List<ContentRecommendationResponse> recommendContents(Member member, int limit)
+            throws IOException, ParseException {
         return performRecommendation(member, limit, false);
     }
 
     @Transactional(readOnly = true)
-    public List<ContentRecommendationResponse> recommendCuratedContents(Member member, int limit) {
+    public List<ContentRecommendationResponse> recommendCuratedContents(Member member, int limit)
+            throws IOException, ParseException {
         return performRecommendation(member, limit, true);
     }
 
     private List<ContentRecommendationResponse> performRecommendation(Member member, int limit,
-            boolean isCurated) {
-        try {
-            if (!isCurated) {
-                MemberRecommendationCache cache = cacheManager.getCache(member.getId());
-                if (cache != null && !cache.shouldRefresh()) {
-                    return getCachedRecommendations(cache);
-                }
+            boolean isCurated) throws IOException, ParseException {
+        if (!isCurated) {
+            MemberRecommendationCache cache = cacheManager.getCache(member.getId());
+            if (cache != null && !cache.shouldRefresh()) {
+                return getCachedRecommendations(cache);
             }
-
-            Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
-            return executeRecommendationSearch(userSurvey, member, limit, isCurated);
-        } catch (IOException | ParseException | RestApiException e) {
-            log.error("추천 시스템 오류 발생: memberId={}, error={}", member.getId(), e.getMessage(), e);
-            return getPopularContents(limit);
         }
+
+        Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
+        return executeRecommendationSearch(userSurvey, member, limit, isCurated);
     }
 
     private List<ContentRecommendationResponse> executeRecommendationSearch(
@@ -140,7 +138,8 @@ public class ContentRecommendationService {
             List<ContentRecommendationDTO> recommendations = new ArrayList<>();
             debugTopDocs(topDocs, searcher);
 
-            Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache);
+            Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache,
+                    Optional.empty());
 
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.storedFields().document(scoreDoc.doc);
@@ -171,16 +170,25 @@ public class ContentRecommendationService {
     private List<String> extractPreferredGenresFromFeedback(Member member,
             Map<Long, ContentMetadata> metadataCache) {
 
-        Map<String, Float> genreScores = calculateGenreFeedbackScores(member, metadataCache);
+        Map<String, Float> genreScores = calculateGenreFeedbackScores(member, metadataCache,
+                Optional.of(20));
 
         List<String> preferredGenres = genreScores.entrySet().stream()
-                .filter(entry -> entry.getValue() > 0.5f) // 긍정적 피드백만
+                .filter(entry -> entry.getValue() > 0.0f)
                 .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
-                .limit(3) // 상위 3개 장르만
+                .limit(3)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        log.info("추출된 선호 장르: {}", preferredGenres);
+        if (preferredGenres.isEmpty()) {
+            List<Feedback> allFeedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
+                    member.getId());
+            preferredGenres = extractFallbackGenresFromRecentLikes(allFeedbacks, metadataCache);
+            log.info("선호 장르가 없어 최근 좋아요 기반 장르 사용: {}", preferredGenres);
+        } else {
+            log.info("추출된 선호 장르: {}", preferredGenres);
+        }
+
         return preferredGenres;
     }
 
@@ -254,7 +262,7 @@ public class ContentRecommendationService {
     }
 
     private Map<String, Float> calculateGenreFeedbackScores(Member member,
-            Map<Long, ContentMetadata> metadataCache) {
+            Map<Long, ContentMetadata> metadataCache, Optional<Integer> recentFeedbackLimit) {
         Map<String, Float> genreScores = new HashMap<>();
 
         List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
@@ -263,11 +271,16 @@ public class ContentRecommendationService {
             return genreScores;
         }
 
-        for (Feedback feedback : feedbacks) {
+        List<Feedback> targetFeedbacks;
+        targetFeedbacks = recentFeedbackLimit.map(integer -> feedbacks.stream()
+                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt()))
+                .limit(integer)
+                .toList()).orElse(feedbacks);
+
+        for (Feedback feedback : targetFeedbacks) {
             if (!feedback.isDeleted()) {
                 Long contentId = feedback.getContent().getId();
-                ContentMetadata metadata = metadataCache.get(
-                        contentId); // 사용자가 좋아요를 했지만 해당 플랫폼을 구독을 취소했었다면 포함이 안된다.
+                ContentMetadata metadata = metadataCache.get(contentId);
 
                 if (metadata != null && metadata.getGenreTag() != null) {
                     float score = switch (feedback.getFeedbackType()) {
@@ -291,15 +304,21 @@ public class ContentRecommendationService {
         return genreScores;
     }
 
-    private List<ContentRecommendationResponse> getPopularContents(int limit) {
-        List<ContentMetadata> metadataList = contentRecommendationQuery.findPopularContentMetadata(
-                limit);
 
-        List<Content> contents = metadataList.stream()
-                .map(ContentMetadata::getContent)
+    private List<String> extractFallbackGenresFromRecentLikes(List<Feedback> allFeedbacks,
+            Map<Long, ContentMetadata> metadataCache) {
+        return allFeedbacks.stream()
+                .filter(f -> !f.isDeleted() && f.getFeedbackType() == FeedbackType.LIKE)
+                .sorted((f1, f2) -> f2.getCreatedAt().compareTo(f1.getCreatedAt()))
+                .limit(20)
+                .map(f -> metadataCache.get(f.getContent().getId()))
+                .filter(Objects::nonNull)
+                .flatMap(m -> m.getGenreTag().stream())
+                .distinct()
+                .limit(3)
                 .toList();
-        return ContentRecommendationMapper.toResponseList(contents, metadataList);
     }
+
 
     private List<ContentRecommendationResponse> getCachedRecommendations(
             MemberRecommendationCache cache) {
