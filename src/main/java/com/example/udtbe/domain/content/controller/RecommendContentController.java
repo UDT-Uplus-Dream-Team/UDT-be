@@ -27,7 +27,6 @@ public class RecommendContentController implements RecommendContentControllerApi
         List<ContentRecommendationResponse> recommendations = contentRecommendationService.recommendContents(
                 member,
                 limit);
-
         return ResponseEntity.ok(recommendations);
     }
 
@@ -37,7 +36,6 @@ public class RecommendContentController implements RecommendContentControllerApi
             @RequestParam(defaultValue = "6") int limit) {
         List<ContentRecommendationResponse> recommendations = contentRecommendationService.recommendCuratedContents(
                 member, limit);
-
         return ResponseEntity.ok(recommendations);
     }
 
