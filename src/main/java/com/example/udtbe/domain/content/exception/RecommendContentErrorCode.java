@@ -21,6 +21,8 @@ public enum RecommendContentErrorCode implements ErrorCode {
     LUCENE_INDEX_NOT_BUILT(HttpStatus.INTERNAL_SERVER_ERROR, "검색 인덱스가 구축되지 않았습니다."),
     LUCENE_SEARCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "검색 실행에 실패했습니다."),
     DATABASE_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 연결에 실패했습니다."),
+    LUCENE_SEARCH_IO_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Lucene 검색 중 입출력 오류가 발생했습니다."),
+    LUCENE_SEARCH_PARSE_ERROR(HttpStatus.BAD_REQUEST, "Lucene 검색 쿼리 파싱에 실패했습니다."),
     ;
 
     private final HttpStatus httpStatus;

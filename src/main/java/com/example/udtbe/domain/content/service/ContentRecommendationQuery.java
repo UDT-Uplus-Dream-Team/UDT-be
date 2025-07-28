@@ -49,10 +49,10 @@ public class ContentRecommendationQuery {
                             metadata -> metadata
                     ));
         } catch (OutOfMemoryError e) {
-            log.error("!!!메모리 부족으로 ContentMetadata 캐시 생성 실패 - OOM!!! ", e);
+            log.error("!!!메모리 부족으로 ContentMetadata 캐시 생성 실패 - OOM!!! \n {}", e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.CONTENT_METADATA_CACHE_ERROR);
         } catch (Exception e) {
-            log.warn("ContentMetadata 캐시 생성 실패: {}", e.getMessage(), e);
+            log.warn("ContentMetadata 캐시 생성 실패: {}", e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.CONTENT_METADATA_CACHE_ERROR);
         }
     }
@@ -64,7 +64,7 @@ public class ContentRecommendationQuery {
         try {
             return feedbackRepository.findByMemberIdAndIsDeletedFalse(memberId);
         } catch (Exception e) {
-            log.warn("피드백 조회 실패: memberId={}, error={}", memberId, e.getMessage(), e);
+            log.warn("피드백 조회 실패: memberId={}, error={}", memberId, e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.FEEDBACK_RETRIEVAL_ERROR);
         }
     }
@@ -79,7 +79,7 @@ public class ContentRecommendationQuery {
         try {
             return contentRepository.findAllById(contentIds);
         } catch (Exception e) {
-            log.warn("컨텐츠 조회 실패: error={}", e.getMessage(), e);
+            log.warn("컨텐츠 조회 실패: error={}", e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.CONTENT_BATCH_RETRIEVAL_ERROR);
         }
     }

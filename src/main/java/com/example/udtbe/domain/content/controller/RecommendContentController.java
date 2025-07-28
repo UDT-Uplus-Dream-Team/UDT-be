@@ -5,10 +5,8 @@ import com.example.udtbe.domain.content.dto.response.ContentRecommendationRespon
 import com.example.udtbe.domain.content.service.ContentRecommendationService;
 import com.example.udtbe.domain.content.service.ContentService;
 import com.example.udtbe.domain.member.entity.Member;
-import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +23,7 @@ public class RecommendContentController implements RecommendContentControllerApi
     @Override
     public ResponseEntity<List<ContentRecommendationResponse>> getRecommendations(
             @AuthenticationPrincipal Member member,
-            @RequestParam(defaultValue = "10") int limit) throws IOException, ParseException {
+            @RequestParam(defaultValue = "10") int limit) {
         List<ContentRecommendationResponse> recommendations = contentRecommendationService.recommendContents(
                 member,
                 limit);
@@ -35,7 +33,7 @@ public class RecommendContentController implements RecommendContentControllerApi
     @Override
     public ResponseEntity<List<ContentRecommendationResponse>> getCurated(
             @AuthenticationPrincipal Member member,
-            @RequestParam(defaultValue = "6") int limit) throws IOException, ParseException {
+            @RequestParam(defaultValue = "6") int limit) {
         List<ContentRecommendationResponse> recommendations = contentRecommendationService.recommendCuratedContents(
                 member, limit);
         return ResponseEntity.ok(recommendations);

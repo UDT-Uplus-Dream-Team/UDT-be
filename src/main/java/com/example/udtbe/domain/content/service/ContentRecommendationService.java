@@ -9,10 +9,12 @@ import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
+import com.example.udtbe.domain.content.exception.RecommendContentErrorCode;
 import com.example.udtbe.domain.content.util.MemberRecommendationCache;
 import com.example.udtbe.domain.content.util.RecommendationCacheManager;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.survey.entity.Survey;
+import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,28 +48,32 @@ public class ContentRecommendationService {
     private final RecommendationCacheManager cacheManager;
 
     @Transactional(readOnly = true)
-    public List<ContentRecommendationResponse> recommendContents(Member member, int limit)
-            throws IOException, ParseException {
+    public List<ContentRecommendationResponse> recommendContents(Member member, int limit) {
         return performRecommendation(member, limit, false);
     }
 
     @Transactional(readOnly = true)
-    public List<ContentRecommendationResponse> recommendCuratedContents(Member member, int limit)
-            throws IOException, ParseException {
+    public List<ContentRecommendationResponse> recommendCuratedContents(Member member, int limit) {
         return performRecommendation(member, limit, true);
     }
 
     private List<ContentRecommendationResponse> performRecommendation(Member member, int limit,
-            boolean isCurated) throws IOException, ParseException {
-        if (!isCurated) {
-            MemberRecommendationCache cache = cacheManager.getCache(member.getId());
-            if (cache != null && !cache.shouldRefresh()) {
-                return getCachedRecommendations(cache);
+            boolean isCurated) {
+        try {
+            if (!isCurated) {
+                MemberRecommendationCache cache = cacheManager.getCache(member.getId());
+                if (cache != null && !cache.shouldRefresh()) {
+                    return getCachedRecommendations(cache);
+                }
             }
-        }
 
-        Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
-        return executeRecommendationSearch(userSurvey, member, limit, isCurated);
+            Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
+            return executeRecommendationSearch(userSurvey, member, limit, isCurated);
+        } catch (IOException e) {
+            throw new RestApiException(RecommendContentErrorCode.LUCENE_SEARCH_IO_ERROR);
+        } catch (ParseException e) {
+            throw new RestApiException(RecommendContentErrorCode.LUCENE_SEARCH_PARSE_ERROR);
+        }
     }
 
     private List<ContentRecommendationResponse> executeRecommendationSearch(
@@ -102,7 +108,6 @@ public class ContentRecommendationService {
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
                 topDocs, feedbackBasedGenres, surveyGenres, member, metadataCache, true);
 
-        // Curated 추천은 캐싱하지 않으므로 직접 정렬 후 반환
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
                 .limit(limit)

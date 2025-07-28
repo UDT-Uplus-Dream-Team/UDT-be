@@ -8,9 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.io.IOException;
 import java.util.List;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,7 +41,7 @@ public interface RecommendContentControllerApiSpec {
                     example = "10"
             )
             @RequestParam(defaultValue = "10") int limit
-    ) throws IOException, ParseException;
+    );
 
     @Operation(
             summary = "엄선된 콘텐츠 추천 API",
@@ -64,7 +62,7 @@ public interface RecommendContentControllerApiSpec {
                     example = "6"
             )
             @RequestParam(defaultValue = "6") int limit
-    ) throws IOException, ParseException;
+    );
 
     @Operation(summary = "엄선된 콘텐츠 저장 API", description = "엄선된 콘텐츠들을 저장한다.")
     @ApiResponse(useReturnTypeSchema = true)
