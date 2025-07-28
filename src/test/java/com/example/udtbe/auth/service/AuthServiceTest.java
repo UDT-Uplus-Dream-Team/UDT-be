@@ -80,8 +80,7 @@ class AuthServiceTest {
         given(tokenProvider.validateToken(anyString(), any(Date.class))).willReturn(true);
         given(tokenProvider.getAuthentication(anyString())).willReturn(authentication);
         given(tokenProvider.getExpiration(anyString(), any(Date.class))).willReturn(fiveMinutes);
-        given(redisUtil.getValues(anyString())).willReturn("refresh");
-        given(redisUtil.getValues(anyString())).willReturn("delete");
+        given(redisUtil.getValues(anyString())).willReturn("black_list_token");
 
         willDoNothing().given(redisUtil).setValues(anyString(), anyString(), any(Duration.class));
 
