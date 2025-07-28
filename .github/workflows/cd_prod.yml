@@ -104,6 +104,11 @@ jobs:
           username: ${{ secrets.EC2_USERNAME_PROD }}
           key: ${{ secrets.EC2_KEY_PROD }}
           port: 22
+
+          proxy_host: ${{ secrets.BASTION_HOST }}
+          proxy_username: ${{ secrets.BASTION_USER }}
+          proxy_key: ${{ secrets.BASTION_KEY }}
+
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
             docker stop udt_prod_server || true
