@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class RecommendationCacheManager {
 
     private final ConcurrentHashMap<Long, MemberRecommendationCache> memberCaches = new ConcurrentHashMap<>();
-    private static final int EXPIRATION_HOURS = 24;
+    private static final int EXPIRATION_HOURS = 12;
 
     public MemberRecommendationCache getCache(Long memberId) {
         MemberRecommendationCache cache = memberCaches.get(memberId);
