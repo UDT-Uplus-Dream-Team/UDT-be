@@ -43,6 +43,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(errorCode);
     }
 
+    @ExceptionHandler({java.io.IOException.class})
+    public ResponseEntity<Object> handleIOException(java.io.IOException e) {
+        ErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
+        putLogContext(errorCode);
+        return handleExceptionInternal(errorCode, " - 검색 엔진 접근 중 오류가 발생했습니다.");
+    }
+
+    @ExceptionHandler({org.apache.lucene.queryparser.classic.ParseException.class})
+    public ResponseEntity<Object> handleParseException(
+            org.apache.lucene.queryparser.classic.ParseException e) {
+        ErrorCode errorCode = INVALID_PARAMETER;
+        putLogContext(errorCode);
+        return handleExceptionInternal(errorCode, " - 검색 조건 처리 중 오류가 발생했습니다.");
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAllException(Exception ex) {
         ErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;

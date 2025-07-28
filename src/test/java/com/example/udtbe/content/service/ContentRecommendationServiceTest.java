@@ -26,6 +26,7 @@ import com.example.udtbe.domain.content.util.RecommendationCacheManager;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.domain.survey.entity.Survey;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits;
@@ -92,7 +94,7 @@ class ContentRecommendationServiceTest {
 
     @Test
     @DisplayName("캐시 히트 - 기존 캐시에서 다음 배치 반환")
-    void shouldReturnCachedRecommendations_WhenCacheHit() {
+    void shouldReturnCachedRecommendations_WhenCacheHit() throws IOException, ParseException {
         // given - 유효한 캐시 존재
         List<ContentRecommendationDTO> cachedRecommendations = List.of(
                 new ContentRecommendationDTO(1L, 5.0f),
