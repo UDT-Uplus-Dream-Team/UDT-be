@@ -30,7 +30,7 @@ public class MemberRecommendationCache {
     }
 
     public boolean shouldRefresh() {
-        return getConsumptionRate() >= 0.7;
+        return getConsumptionRate() >= 0.7 || isExpiredByMinutes(5);
     }
 
     public List<ContentRecommendationDTO> getNext() {
@@ -57,5 +57,9 @@ public class MemberRecommendationCache {
 
     public boolean isExpired(int hoursToExpire) {
         return createdAt.plusHours(hoursToExpire).isBefore(LocalDateTime.now());
+    }
+
+    public boolean isExpiredByMinutes(int minutesToExpire) {
+        return createdAt.plusMinutes(minutesToExpire).isBefore(LocalDateTime.now());
     }
 }

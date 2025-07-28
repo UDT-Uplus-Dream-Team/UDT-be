@@ -48,8 +48,11 @@ public class ContentRecommendationQuery {
                             metadata -> metadata.getContent().getId(),
                             metadata -> metadata
                     ));
+        } catch (OutOfMemoryError e) {
+            log.error("!!!메모리 부족으로 ContentMetadata 캐시 생성 실패 - OOM!!! \n {}", e.getMessage());
+            throw new RestApiException(RecommendContentErrorCode.CONTENT_METADATA_CACHE_ERROR);
         } catch (Exception e) {
-            log.error("ContentMetadata 캐시 생성 실패: {}", e.getMessage(), e);
+            log.warn("ContentMetadata 캐시 생성 실패: {}", e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.CONTENT_METADATA_CACHE_ERROR);
         }
     }
@@ -61,7 +64,7 @@ public class ContentRecommendationQuery {
         try {
             return feedbackRepository.findByMemberIdAndIsDeletedFalse(memberId);
         } catch (Exception e) {
-            log.error("피드백 조회 실패: memberId={}, error={}", memberId, e.getMessage(), e);
+            log.warn("피드백 조회 실패: memberId={}, error={}", memberId, e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.FEEDBACK_RETRIEVAL_ERROR);
         }
     }
@@ -76,39 +79,8 @@ public class ContentRecommendationQuery {
         try {
             return contentRepository.findAllById(contentIds);
         } catch (Exception e) {
-            log.error("컨텐츠 조회 실패: error={}", e.getMessage(), e);
+            log.warn("컨텐츠 조회 실패: error={}", e.getMessage());
             throw new RestApiException(RecommendContentErrorCode.CONTENT_BATCH_RETRIEVAL_ERROR);
-        }
-    }
-
-    /**
-     * 인기 컨텐츠 메타데이터 조회 (최신순)
-     */
-    public List<ContentMetadata> findPopularContentMetadata(int limit) {
-        if (limit <= 0) {
-            throw new RestApiException(RecommendContentErrorCode.INVALID_LIMIT_PARAMETER);
-        }
-        try {
-            return contentMetadataRepository.findByIsDeletedFalse()
-                    .stream()
-                    .sorted((m1, m2) -> m2.getCreatedAt().compareTo(m1.getCreatedAt()))
-                    .limit(limit)
-                    .toList();
-        } catch (Exception e) {
-            log.error("인기 컨텐츠 메타데이터 조회 실패: error={}", e.getMessage(), e);
-            throw new RestApiException(RecommendContentErrorCode.POPULAR_CONTENT_RETRIEVAL_ERROR);
-        }
-    }
-
-    /**
-     * 삭제되지 않은 모든 ContentMetadata 조회
-     */
-    public List<ContentMetadata> findAllContentMetadata() {
-        try {
-            return contentMetadataRepository.findByIsDeletedFalse();
-        } catch (Exception e) {
-            log.error("모든 ContentMetadata 조회 실패: error={}", e.getMessage(), e);
-            throw new RestApiException(RecommendContentErrorCode.CONTENT_METADATA_CACHE_ERROR);
         }
     }
 }

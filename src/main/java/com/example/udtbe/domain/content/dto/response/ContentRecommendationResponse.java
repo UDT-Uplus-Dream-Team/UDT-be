@@ -16,7 +16,8 @@ public record ContentRecommendationResponse(
         List<String> genres,
         List<String> directors,
         List<String> casts,
-        List<String> platforms
+        List<String> platforms,
+        List<String> watchUrls
 ) {
 
 }

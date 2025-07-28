@@ -2,7 +2,9 @@ package com.example.udtbe.domain.content.service;
 
 import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.event.IndexRebuildCompleteEvent;
+import com.example.udtbe.domain.content.exception.RecommendContentErrorCode;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
+import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +52,7 @@ public class LuceneIndexService {
             eventPublisher.publishEvent(
                     IndexRebuildCompleteEvent.of(this, successCount, buildTime));
         } catch (Exception e) {
-            log.error("Lucene 인덱스 빌드 실패", e);
+            throw new RestApiException(RecommendContentErrorCode.LUCENE_INDEX_NOT_BUILT);
         }
     }
 
