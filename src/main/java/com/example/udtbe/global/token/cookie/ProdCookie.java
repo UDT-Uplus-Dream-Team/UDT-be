@@ -17,7 +17,7 @@ public class ProdCookie implements CookieConfig {
         cookie.setMaxAge(60 * 180);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
         return cookie;
     }
 
@@ -29,7 +29,7 @@ public class ProdCookie implements CookieConfig {
         cookie.setMaxAge(0);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", "Lax");
 
         response.addCookie(cookie);
     }
