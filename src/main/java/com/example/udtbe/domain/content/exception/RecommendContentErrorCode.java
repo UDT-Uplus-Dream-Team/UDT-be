@@ -17,6 +17,10 @@ public enum RecommendContentErrorCode implements ErrorCode {
     POPULAR_CONTENT_RETRIEVAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "인기 콘텐츠 조회에 실패했습니다."),
     INVALID_LIMIT_PARAMETER(HttpStatus.BAD_REQUEST, "잘못된 limit 파라미터입니다."),
     RECOMMENDATION_GENERATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "추천 생성에 실패했습니다."),
+    CACHE_ACCESS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "캐시 접근에 실패했습니다."),
+    LUCENE_INDEX_NOT_BUILT(HttpStatus.INTERNAL_SERVER_ERROR, "검색 인덱스가 구축되지 않았습니다."),
+    LUCENE_SEARCH_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "검색 실행에 실패했습니다."),
+    DATABASE_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "데이터베이스 연결에 실패했습니다."),
     ;
 
     private final HttpStatus httpStatus;
