@@ -54,10 +54,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = cookieUtil.getCookieValue(request);
 
         if (tokenProvider.validateToken(accessToken, new Date())) {
-            // accessToken logout 여부 확인
             if (tokenProvider.verifyBlackList(accessToken)) {
-                saveAuthentication(accessToken);
+                filterChain.doFilter(request, response);
             }
+
+            saveAuthentication(accessToken);
         }
 
         filterChain.doFilter(request, response);
