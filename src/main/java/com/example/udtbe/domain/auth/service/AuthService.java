@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String DELETE = "delete";
+    private static final String BLACKLIST = "black_list_token";
     private static final String REFRESH_TOKEN_PREFIX = "RT:";
     private final AuthQuery authQuery;
     @Qualifier("redisTokenStore")
@@ -87,9 +87,9 @@ public class AuthService {
 
     private void addToBlacklist(String accessToken) {
         Long expiration = tokenProvider.getExpiration(accessToken, new Date());
-        redisUtil.setValues(accessToken, DELETE, Duration.ofMillis(expiration));
+        redisUtil.setValues(accessToken, BLACKLIST, Duration.ofMillis(expiration));
 
-        if (!DELETE.equals(redisUtil.getValues(accessToken))) {
+        if (!BLACKLIST.equals(redisUtil.getValues(accessToken))) {
             throw new RestApiException(AuthErrorCode.LOGOUT_FAILED);
         }
     }
@@ -101,7 +101,7 @@ public class AuthService {
             throw new RestApiException(AuthErrorCode.MISSING_ACCESS_TOKEN);
         }
 
-        validateReissueAbleAccessToken(accessToken);
+        validateAccessDeniedToken(accessToken);
 
         Member findMember = tokenProvider.getMemberAllowExpired(accessToken);
         String refreshKey = getRefreshTokenPrefix(findMember.getEmail());
@@ -111,8 +111,8 @@ public class AuthService {
         reissueTokens(response, findMember);
     }
 
-    private void validateReissueAbleAccessToken(String accessToken) {
-        if ("logout".equals(redisUtil.getValues(accessToken))) {
+    private void validateAccessDeniedToken(String accessToken) {
+        if (BLACKLIST.equals(redisUtil.getValues(accessToken))) {
             throw new RestApiException(AuthErrorCode.UNAUTHORIZED_TOKEN);
         }
     }
