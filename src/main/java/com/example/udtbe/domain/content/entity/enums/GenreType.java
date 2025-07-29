@@ -35,8 +35,7 @@ public enum GenreType {
     TALK_SHOW("토크쇼"),
     SURVIVAL("서바이벌"),
     REALITY("리얼리티"),
-    STAND_UP_COMEDY("스탠드업코미디"),
-    CONCERT("음악회");
+    STAND_UP_COMEDY("스탠드업코미디");
 
     private final String type;
 
