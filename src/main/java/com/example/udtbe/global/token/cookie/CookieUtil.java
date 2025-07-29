@@ -33,4 +33,8 @@ public class CookieUtil {
         }
         return null;
     }
+
+    public Cookie createOnboardingCookie() {
+        return cookieConfig.createOnboardingCookie();
+    }
 }

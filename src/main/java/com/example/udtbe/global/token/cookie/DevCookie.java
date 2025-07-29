@@ -34,4 +34,16 @@ public class DevCookie implements CookieConfig {
         response.addCookie(cookie);
     }
 
+    @Override
+    public Cookie createOnboardingCookie() {
+        Cookie cookie = new Cookie("X-New-User", "true");
+        cookie.setPath("/");
+        cookie.setDomain("banditbool.com");
+        cookie.setMaxAge(60 * 5);
+        cookie.setHttpOnly(false);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "Strict");
+        return cookie;
+    }
+
 }

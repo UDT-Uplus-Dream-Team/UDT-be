@@ -30,4 +30,15 @@ public class LocalCookie implements CookieConfig {
         cookie.setAttribute("SameSite", "None");
         response.addCookie(cookie);
     }
+
+    @Override
+    public Cookie createOnboardingCookie() {
+        Cookie cookie = new Cookie("X-New-User", "true");
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 5);
+        cookie.setHttpOnly(false);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "None");
+        return cookie;
+    }
 }
