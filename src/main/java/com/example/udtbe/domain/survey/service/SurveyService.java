@@ -46,8 +46,6 @@ public class SurveyService {
         authQuery.save(member);
 
         cookieUtil.deleteCookie(response);
-
-        response.setHeader("Access-Control-Expose-Headers", "X-New-User");
-        response.setHeader("X-New-User", "true");
+        response.addCookie(cookieUtil.createOnboardingCookie());
     }
 }

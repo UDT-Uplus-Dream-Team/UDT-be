@@ -8,4 +8,6 @@ public interface CookieConfig {
     public Cookie createCookie(String token);
 
     public void deleteCookie(HttpServletResponse response);
+
+    public Cookie createOnboardingCookie();
 }
