@@ -37,6 +37,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -224,7 +225,7 @@ public class ContentRecommendationService {
 
         Set<Long> contentIds = new HashSet<>();
         for (String koreanPlatformTag : koreanPlatformTags) {
-            if (koreanPlatformTag != null && !koreanPlatformTag.trim().isEmpty()) {
+            if (StringUtils.hasText(koreanPlatformTag)) {
                 for (Map.Entry<Long, ContentMetadata> entry : metadataCache.entrySet()) {
                     ContentMetadata metadata = entry.getValue();
                     if (metadata.getPlatformTag() != null &&
@@ -245,7 +246,7 @@ public class ContentRecommendationService {
 
         float boost = 0.0f;
         for (String memberGenre : memberGenres) {
-            if (memberGenre != null && !memberGenre.trim().isEmpty()) {
+            if (StringUtils.hasText(memberGenre)) {
                 String targetGenre = memberGenre.trim();
                 if (docGenres.contains(targetGenre)) {
                     boost += 1.0f;
@@ -293,7 +294,7 @@ public class ContentRecommendationService {
             ContentMetadata metadata = metadataCache.get(contentId);
             if (metadata != null && metadata.getGenreTag() != null) {
                 for (String genre : metadata.getGenreTag()) {
-                    if (genre != null && !genre.trim().isEmpty()) {
+                    if (StringUtils.hasText(genre)) {
                         genre = genre.trim();
                         genreScores.put(genre, genreScores.getOrDefault(genre, 0.0f) + 1.0f);
                     }
@@ -344,7 +345,7 @@ public class ContentRecommendationService {
                     };
 
                     for (String genre : metadata.getGenreTag()) {
-                        if (genre != null && !genre.trim().isEmpty()) {
+                        if (StringUtils.hasText(genre)) {
                             genre = genre.trim();
                             float oldScore = genreScores.getOrDefault(genre, 0.0f);
                             float newScore = oldScore + score;
