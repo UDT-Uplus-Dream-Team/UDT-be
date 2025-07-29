@@ -336,7 +336,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
             WeeklyRecommendationRequest request, List<GenreType> genreTypes) {
 
         List<WeeklyRecommendedContentsResponse> items = queryFactory
-                .select(new QWeeklyRecommendedContentsResponse(content))
+                .selectDistinct(new QWeeklyRecommendedContentsResponse(content))
                 .from(content)
                 .leftJoin(content.contentGenres, contentGenre)
                 .leftJoin(contentGenre.genre, genre)
