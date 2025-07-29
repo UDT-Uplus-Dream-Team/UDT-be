@@ -27,22 +27,22 @@ public class LuceneSearchService {
     private final LuceneIndexService luceneIndexService;
 
     public TopDocs searchRecommendations(List<Long> platformFilteredContentIds,
-            List<String> userGenres, int limit) throws IOException, ParseException {
+            List<String> memberGenres, int limit) throws IOException, ParseException {
 
         try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             Analyzer analyzer = luceneIndexService.getAnalyzer();
 
-            BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, userGenres,
+            BooleanQuery query = buildRecommendationQuery(platformFilteredContentIds, memberGenres,
                     analyzer);
 
             return searcher.search(query, limit * 10);
         } catch (IOException e) {
-            log.error("Lucene 검색 실행 중 파일 시스템 오류: platformIds={}, genres={}, error={}", 
-                     platformFilteredContentIds.size(), userGenres, e.getMessage(), e);
+            log.error("Lucene 검색 실행 중 파일 시스템 오류: platformIds={}, genres={}, error={}",
+                    platformFilteredContentIds.size(), memberGenres, e.getMessage(), e);
             throw e;
         } catch (ParseException e) {
-            log.warn("검색 쿼리 파싱 실패: genres={}, error={}", userGenres, e.getMessage(), e);
+            log.warn("검색 쿼리 파싱 실패: genres={}, error={}", memberGenres, e.getMessage(), e);
             throw e;
         }
     }
@@ -60,11 +60,12 @@ public class LuceneSearchService {
 
             return searcher.search(query, limit * 2);
         } catch (IOException e) {
-            log.error("Lucene 엄선된 추천 검색 중 파일 시스템 오류: platformIds={}, feedbackGenres={}, error={}", 
-                     platformFilteredContentIds.size(), feedbackGenres, e.getMessage(), e);
+            log.error("Lucene 엄선된 추천 검색 중 파일 시스템 오류: platformIds={}, feedbackGenres={}, error={}",
+                    platformFilteredContentIds.size(), feedbackGenres, e.getMessage(), e);
             throw e;
         } catch (ParseException e) {
-            log.warn("엄선된 추천 쿼리 파싱 실패: feedbackGenres={}, error={}", feedbackGenres, e.getMessage(), e);
+            log.warn("엄선된 추천 쿼리 파싱 실패: feedbackGenres={}, error={}", feedbackGenres, e.getMessage(),
+                    e);
             throw e;
         }
     }
@@ -100,7 +101,7 @@ public class LuceneSearchService {
 
     //구독중인 플랫폼의 컨텐츠들, 좋아하는 장르(우선순위)를 기준으로 쿼리를 생성
     private BooleanQuery buildRecommendationQuery(List<Long> platformFilteredContentIds,
-            List<String> userGenres, Analyzer analyzer) throws ParseException {
+            List<String> memberGenres, Analyzer analyzer) throws ParseException {
 
         Builder mainQueryBuilder = new Builder();
 
@@ -111,11 +112,11 @@ public class LuceneSearchService {
         }
         mainQueryBuilder.add(idFilterBuilder.build(), BooleanClause.Occur.MUST);
 
-        if (userGenres != null && !userGenres.isEmpty()) {
+        if (memberGenres != null && !memberGenres.isEmpty()) {
 
-            for (String userGenre : userGenres) {
-                if (userGenre != null && !userGenre.trim().isEmpty()) {
-                    String escapedGenre = QueryParser.escape(userGenre);
+            for (String memberGenre : memberGenres) {
+                if (memberGenre != null && !memberGenre.trim().isEmpty()) {
+                    String escapedGenre = QueryParser.escape(memberGenre);
                     QueryParser genreParser = new QueryParser("genreTag", analyzer);
                     Query genreQuery = genreParser.parse(escapedGenre);
                     mainQueryBuilder.add(genreQuery, BooleanClause.Occur.SHOULD);
