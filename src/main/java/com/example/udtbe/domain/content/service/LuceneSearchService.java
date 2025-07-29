@@ -39,10 +39,10 @@ public class LuceneSearchService {
             return searcher.search(query, limit * 10);
         } catch (IOException e) {
             log.error("Lucene 검색 실행 중 파일 시스템 오류: platformIds={}, genres={}, error={}",
-                    platformFilteredContentIds.size(), memberGenres, e.getMessage(), e);
+                    platformFilteredContentIds.size(), memberGenres, e.getMessage());
             throw e;
         } catch (ParseException e) {
-            log.warn("검색 쿼리 파싱 실패: genres={}, error={}", memberGenres, e.getMessage(), e);
+            log.warn("검색 쿼리 파싱 실패: genres={}, error={}", memberGenres, e.getMessage());
             throw e;
         }
     }
@@ -61,11 +61,11 @@ public class LuceneSearchService {
             return searcher.search(query, limit * 2);
         } catch (IOException e) {
             log.error("Lucene 엄선된 추천 검색 중 파일 시스템 오류: platformIds={}, feedbackGenres={}, error={}",
-                    platformFilteredContentIds.size(), feedbackGenres, e.getMessage(), e);
+                    platformFilteredContentIds.size(), feedbackGenres, e.getMessage());
             throw e;
         } catch (ParseException e) {
-            log.warn("엄선된 추천 쿼리 파싱 실패: feedbackGenres={}, error={}", feedbackGenres, e.getMessage(),
-                    e);
+            log.warn("엄선된 추천 쿼리 파싱 실패: feedbackGenres={}, error={}", feedbackGenres,
+                    e.getMessage());
             throw e;
         }
     }
