@@ -17,6 +17,7 @@ import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -67,8 +69,8 @@ public class ContentRecommendationService {
                 }
             }
 
-            Survey userSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
-            return executeRecommendationSearch(userSurvey, member, limit, isCurated);
+            Survey memberSurvey = contentRecommendationQuery.findSurveyByMemberId(member.getId());
+            return executeRecommendationSearch(memberSurvey, member, limit, isCurated);
         } catch (IOException e) {
             throw new RestApiException(RecommendContentErrorCode.LUCENE_SEARCH_IO_ERROR);
         } catch (ParseException e) {
@@ -77,36 +79,36 @@ public class ContentRecommendationService {
     }
 
     private List<ContentRecommendationResponse> executeRecommendationSearch(
-            Survey userSurvey, Member member, int limit, boolean isCurated)
+            Survey memberSurvey, Member member, int limit, boolean isCurated)
             throws IOException, ParseException {
 
         // TODO: 모든 ContentMetadata 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
         List<Long> platformFilteredContentIds = getPlatformFilteredContentIds(
-                userSurvey.getPlatformTag(), metadataCache);
+                memberSurvey.getPlatformTag(), metadataCache);
 
         if (isCurated) {
-            return executeCuratedRecommendation(userSurvey, member, limit, metadataCache,
+            return executeCuratedRecommendation(memberSurvey, member, limit, metadataCache,
                     platformFilteredContentIds);
         }
 
-        return executeRegularRecommendation(userSurvey, member, limit, metadataCache,
+        return executeRegularRecommendation(memberSurvey, member, limit, metadataCache,
                 platformFilteredContentIds);
     }
 
     private List<ContentRecommendationResponse> executeCuratedRecommendation(
-            Survey userSurvey, Member member, int limit,
+            Survey memberSurvey, Member member, int limit,
             Map<Long, ContentMetadata> metadataCache, List<Long> platformFilteredContentIds)
             throws IOException, ParseException {
 
         List<String> feedbackBasedGenres = extractPreferredGenresFromFeedback(member,
                 metadataCache);
-        List<String> surveyGenres = GenreType.toKoreanTypes(userSurvey.getGenreTag());
+        List<String> surveyGenres = GenreType.toKoreanTypes(memberSurvey.getGenreTag());
         TopDocs topDocs = luceneSearchService.searchCuratedRecommendations(
                 platformFilteredContentIds, feedbackBasedGenres, limit);
 
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
-                topDocs, feedbackBasedGenres, surveyGenres, member, metadataCache, true);
+                topDocs, feedbackBasedGenres, surveyGenres, member, metadataCache, true, null);
 
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
@@ -117,25 +119,29 @@ public class ContentRecommendationService {
     }
 
     private List<ContentRecommendationResponse> executeRegularRecommendation(
-            Survey userSurvey, Member member, int limit,
+            Survey memberSurvey, Member member, int limit,
             Map<Long, ContentMetadata> metadataCache, List<Long> platformFilteredContentIds)
             throws IOException, ParseException {
 
-        List<String> englishUserGenres = userSurvey.getGenreTag();
-        List<String> koreanUserGenres = GenreType.toKoreanTypes(englishUserGenres);
+        List<String> englishMemberGenres = memberSurvey.getGenreTag();
+        List<String> koreanMemberGenres = GenreType.toKoreanTypes(englishMemberGenres);
+        List<Long> contentTag = memberSurvey.getContentTag().stream()
+                .map(Long::valueOf)
+                .toList();
         TopDocs topDocs = luceneSearchService.searchRecommendations(platformFilteredContentIds,
-                koreanUserGenres, limit);
+                koreanMemberGenres, limit);
 
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
-                topDocs, koreanUserGenres, null, member, metadataCache, false);
+                topDocs, koreanMemberGenres, null, member, metadataCache, false, contentTag);
 
-        return buildFinalResponse(recommendations, limit, metadataCache, member.getId(),
-                false);
+        return buildRegularRecommendationResponse(recommendations, limit, metadataCache,
+                member.getId());
     }
 
     private List<ContentRecommendationDTO> processLuceneScoring(
             TopDocs topDocs, List<String> primaryGenres, List<String> secondaryGenres,
-            Member member, Map<Long, ContentMetadata> metadataCache, boolean isCurated)
+            Member member, Map<Long, ContentMetadata> metadataCache, boolean isCurated,
+            List<Long> contentTagIds)
             throws IOException {
 
         try (DirectoryReader indexReader = luceneIndexService.getIndexReader()) {
@@ -146,23 +152,30 @@ public class ContentRecommendationService {
             Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache,
                     Optional.empty());
 
+            Map<String, Float> contentTagGenreScores = calculateContentTagGenreScores(contentTagIds,
+                    metadataCache);
+
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.storedFields().document(scoreDoc.doc);
                 Long contentId = Long.valueOf(doc.get("contentId"));
 
+                Set<String> docGenres = parseGenreTags(doc.get("genreTag"));
+
                 float luceneScore = scoreDoc.score * 3.0f;
-                float feedbackScore = calculateGenreFeedbackBoost(doc, feedbackScores);
+                float feedbackScore = calculateGenreFeedbackBoost(docGenres, feedbackScores);
                 float finalScore;
 
                 if (isCurated) {
-                    float feedbackGenreBoost = calculateGenreBoost(doc, primaryGenres);
-                    float surveyGenreBoost = calculateGenreBoost(doc, secondaryGenres);
+                    float feedbackGenreBoost = calculateGenreBoost(docGenres, primaryGenres);
+                    float surveyGenreBoost = calculateGenreBoost(docGenres, secondaryGenres);
                     finalScore =
                             luceneScore + feedbackGenreBoost * 2.0f + surveyGenreBoost
                                     + feedbackScore;
                 } else {
-                    float genreBoost = calculateGenreBoost(doc, primaryGenres);
-                    finalScore = luceneScore + genreBoost * 2.0f + feedbackScore;
+                    float genreBoost = calculateGenreBoost(docGenres, primaryGenres);
+                    float contentTagBoost = calculateContentTagBoost(docGenres,
+                            contentTagGenreScores);
+                    finalScore = luceneScore + genreBoost * 2.0f + feedbackScore + contentTagBoost;
                 }
 
                 recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
@@ -186,9 +199,9 @@ public class ContentRecommendationService {
                 .collect(Collectors.toList());
 
         if (preferredGenres.isEmpty()) {
-            List<Feedback> allFeedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
+            List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
                     member.getId());
-            preferredGenres = extractFallbackGenresFromRecentLikes(allFeedbacks, metadataCache);
+            preferredGenres = extractFallbackGenresFromRecentLikes(feedbacks, metadataCache);
             log.info("선호 장르가 없어 최근 좋아요 기반 장르 사용: {}", preferredGenres);
         } else {
             log.info("추출된 선호 장르: {}", preferredGenres);
@@ -212,7 +225,7 @@ public class ContentRecommendationService {
 
         Set<Long> contentIds = new HashSet<>();
         for (String koreanPlatformTag : koreanPlatformTags) {
-            if (koreanPlatformTag != null && !koreanPlatformTag.trim().isEmpty()) {
+            if (StringUtils.hasText(koreanPlatformTag)) {
                 for (Map.Entry<Long, ContentMetadata> entry : metadataCache.entrySet()) {
                     ContentMetadata metadata = entry.getValue();
                     if (metadata.getPlatformTag() != null &&
@@ -226,44 +239,81 @@ public class ContentRecommendationService {
         return new ArrayList<>(contentIds);
     }
 
-    private float calculateGenreBoost(Document doc, List<String> userGenres) {
-        if (userGenres == null || userGenres.isEmpty()) {
-            return 0.0f;
-        }
-
-        String genreTag = doc.get("genreTag");
-        if (genreTag == null) {
+    private float calculateGenreBoost(Set<String> docGenres, List<String> memberGenres) {
+        if (memberGenres == null || memberGenres.isEmpty() || docGenres.isEmpty()) {
             return 0.0f;
         }
 
         float boost = 0.0f;
-        String[] docGenres = genreTag.split(",");
-        for (String userGenre : userGenres) {
-            if (userGenre != null && !userGenre.trim().isEmpty()) {
-                for (String docGenre : docGenres) {
-                    if (docGenre.trim().equals(userGenre.trim())) {
-                        boost += 1.0f;
-                        break;
-                    }
+        for (String memberGenre : memberGenres) {
+            if (StringUtils.hasText(memberGenre)) {
+                String targetGenre = memberGenre.trim();
+                if (docGenres.contains(targetGenre)) {
+                    boost += 1.0f;
                 }
             }
         }
         return boost;
     }
 
-    private float calculateGenreFeedbackBoost(Document doc, Map<String, Float> genreScores) {
-        String docGenreTag = doc.get("genreTag");
-        if (docGenreTag == null) {
+    private float calculateGenreFeedbackBoost(Set<String> docGenres,
+            Map<String, Float> genreScores) {
+        if (docGenres.isEmpty()) {
             return 0.0f;
         }
 
         float boost = 0.0f;
-        String[] docGenres = docGenreTag.split(",");
         for (String genre : docGenres) {
-            genre = genre.trim();
             boost += genreScores.getOrDefault(genre, 0.0f);
         }
         return boost;
+    }
+
+    private float calculateContentTagBoost(Set<String> docGenres,
+            Map<String, Float> contentTagGenreScores) {
+        if (docGenres.isEmpty() || contentTagGenreScores.isEmpty()) {
+            return 0.0f;
+        }
+
+        float boost = 0.0f;
+        for (String docGenre : docGenres) {
+            boost += contentTagGenreScores.getOrDefault(docGenre, 0.0f);
+        }
+        return boost;
+    }
+
+    private Map<String, Float> calculateContentTagGenreScores(List<Long> contentTagIds,
+            Map<Long, ContentMetadata> metadataCache) {
+        Map<String, Float> genreScores = new HashMap<>();
+
+        if (contentTagIds == null || contentTagIds.isEmpty()) {
+            return genreScores;
+        }
+
+        for (Long contentId : contentTagIds) {
+            ContentMetadata metadata = metadataCache.get(contentId);
+            if (metadata != null && metadata.getGenreTag() != null) {
+                for (String genre : metadata.getGenreTag()) {
+                    if (StringUtils.hasText(genre)) {
+                        genre = genre.trim();
+                        genreScores.put(genre, genreScores.getOrDefault(genre, 0.0f) + 1.0f);
+                    }
+                }
+            }
+        }
+
+        return genreScores;
+    }
+
+    private Set<String> parseGenreTags(String genreTag) {
+        if (genreTag == null || genreTag.trim().isEmpty()) {
+            return Set.of();
+        }
+
+        return Arrays.stream(genreTag.split(","))
+                .map(String::trim)
+                .filter(genre -> !genre.isEmpty())
+                .collect(Collectors.toSet());
     }
 
     private Map<String, Float> calculateGenreFeedbackScores(Member member,
@@ -277,9 +327,9 @@ public class ContentRecommendationService {
         }
 
         List<Feedback> targetFeedbacks;
-        targetFeedbacks = recentFeedbackLimit.map(integer -> feedbacks.stream()
+        targetFeedbacks = recentFeedbackLimit.map(limit -> feedbacks.stream()
                 .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt()))
-                .limit(integer)
+                .limit(limit)
                 .toList()).orElse(feedbacks);
 
         for (Feedback feedback : targetFeedbacks) {
@@ -295,7 +345,7 @@ public class ContentRecommendationService {
                     };
 
                     for (String genre : metadata.getGenreTag()) {
-                        if (genre != null && !genre.trim().isEmpty()) {
+                        if (StringUtils.hasText(genre)) {
                             genre = genre.trim();
                             float oldScore = genreScores.getOrDefault(genre, 0.0f);
                             float newScore = oldScore + score;
@@ -310,9 +360,9 @@ public class ContentRecommendationService {
     }
 
 
-    private List<String> extractFallbackGenresFromRecentLikes(List<Feedback> allFeedbacks,
+    private List<String> extractFallbackGenresFromRecentLikes(List<Feedback> feedbacks,
             Map<Long, ContentMetadata> metadataCache) {
-        return allFeedbacks.stream()
+        return feedbacks.stream()
                 .filter(f -> !f.isDeleted() && f.getFeedbackType() == FeedbackType.LIKE)
                 .sorted((f1, f2) -> f2.getCreatedAt().compareTo(f1.getCreatedAt()))
                 .limit(20)
@@ -339,33 +389,25 @@ public class ContentRecommendationService {
         return buildResponseFromRecommendations(nextBatch, metadataCache);
     }
 
-    private List<ContentRecommendationResponse> buildFinalResponse(
+    private List<ContentRecommendationResponse> buildRegularRecommendationResponse(
             List<ContentRecommendationDTO> recommendations, int limit,
-            Map<Long, ContentMetadata> metadataCache, Long memberId, boolean isCurated) {
+            Map<Long, ContentMetadata> metadataCache, Long memberId) {
 
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
                 .toList();
 
-        if (!isCurated) {
-            List<ContentRecommendationDTO> firstBatch = sortedRecommendations.stream()
-                    .limit(limit)
-                    .toList();
-
-            List<ContentRecommendationDTO> remainingRecommendations = sortedRecommendations.stream()
-                    .skip(limit)
-                    .toList();
-
-            cacheManager.putCache(memberId, remainingRecommendations);
-
-            return buildResponseFromRecommendations(firstBatch, metadataCache);
-        }
-
-        List<ContentRecommendationDTO> limitedRecommendations = sortedRecommendations.stream()
+        List<ContentRecommendationDTO> firstBatch = sortedRecommendations.stream()
                 .limit(limit)
                 .toList();
 
-        return buildResponseFromRecommendations(limitedRecommendations, metadataCache);
+        List<ContentRecommendationDTO> remainingRecommendations = sortedRecommendations.stream()
+                .skip(limit)
+                .toList();
+
+        cacheManager.putCache(memberId, remainingRecommendations);
+
+        return buildResponseFromRecommendations(firstBatch, metadataCache);
     }
 
     private List<ContentRecommendationResponse> buildResponseFromRecommendations(

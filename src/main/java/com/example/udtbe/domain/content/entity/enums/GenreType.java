@@ -24,7 +24,7 @@ public enum GenreType {
     ROMANCE("멜로/로맨스"),
     DRAMA("서사/드라마"),
     ANIMATION("애니메이션"),
-    HORROR("공포(호러),"),
+    HORROR("공포(호러)"),
     DOCUMENTARY("다큐멘터리"),
     CRIME("범죄"),
     MARTIAL_ARTS("무협"),
@@ -35,8 +35,7 @@ public enum GenreType {
     TALK_SHOW("토크쇼"),
     SURVIVAL("서바이벌"),
     REALITY("리얼리티"),
-    STAND_UP_COMEDY("스탠드업코미디"),
-    ;
+    STAND_UP_COMEDY("스탠드업코미디");
 
     private final String type;
 
