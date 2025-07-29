@@ -19,6 +19,7 @@ import com.example.udtbe.domain.survey.service.SurveyQuery;
 import com.example.udtbe.domain.survey.service.SurveyService;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.token.cookie.CookieUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +63,7 @@ class SurveyServiceTest {
         given(surveyQuery.save(any(Survey.class))).willReturn(null);
         given(authQuery.save(any(Member.class))).willReturn(null);
         willDoNothing().given(cookieUtil).deleteCookie(any(HttpServletResponse.class));
+        given(cookieUtil.createOnboardingCookie()).willReturn(new Cookie("X-New-User", "true"));
 
         // when
         surveyService.createSurvey(request, member, response);
