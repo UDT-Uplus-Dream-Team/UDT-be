@@ -133,8 +133,7 @@ public class ContentRecommendationService {
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
                 topDocs, koreanMemberGenres, null, member, metadataCache, false, contentTag);
 
-        return buildFinalResponse(recommendations, limit, metadataCache, member.getId(),
-                false);
+        return buildRegularRecommendationResponse(recommendations, limit, metadataCache, member.getId());
     }
 
     private List<ContentRecommendationDTO> processLuceneScoring(
@@ -388,33 +387,25 @@ public class ContentRecommendationService {
         return buildResponseFromRecommendations(nextBatch, metadataCache);
     }
 
-    private List<ContentRecommendationResponse> buildFinalResponse(
+    private List<ContentRecommendationResponse> buildRegularRecommendationResponse(
             List<ContentRecommendationDTO> recommendations, int limit,
-            Map<Long, ContentMetadata> metadataCache, Long memberId, boolean isCurated) {
+            Map<Long, ContentMetadata> metadataCache, Long memberId) {
 
         List<ContentRecommendationDTO> sortedRecommendations = recommendations.stream()
                 .sorted((r1, r2) -> Float.compare(r2.score(), r1.score()))
                 .toList();
 
-        if (!isCurated) {
-            List<ContentRecommendationDTO> firstBatch = sortedRecommendations.stream()
-                    .limit(limit)
-                    .toList();
-
-            List<ContentRecommendationDTO> remainingRecommendations = sortedRecommendations.stream()
-                    .skip(limit)
-                    .toList();
-
-            cacheManager.putCache(memberId, remainingRecommendations);
-
-            return buildResponseFromRecommendations(firstBatch, metadataCache);
-        }
-
-        List<ContentRecommendationDTO> limitedRecommendations = sortedRecommendations.stream()
+        List<ContentRecommendationDTO> firstBatch = sortedRecommendations.stream()
                 .limit(limit)
                 .toList();
 
-        return buildResponseFromRecommendations(limitedRecommendations, metadataCache);
+        List<ContentRecommendationDTO> remainingRecommendations = sortedRecommendations.stream()
+                .skip(limit)
+                .toList();
+
+        cacheManager.putCache(memberId, remainingRecommendations);
+
+        return buildResponseFromRecommendations(firstBatch, metadataCache);
     }
 
     private List<ContentRecommendationResponse> buildResponseFromRecommendations(
