@@ -133,7 +133,8 @@ public class ContentRecommendationService {
         List<ContentRecommendationDTO> recommendations = processLuceneScoring(
                 topDocs, koreanMemberGenres, null, member, metadataCache, false, contentTag);
 
-        return buildRegularRecommendationResponse(recommendations, limit, metadataCache, member.getId());
+        return buildRegularRecommendationResponse(recommendations, limit, metadataCache,
+                member.getId());
     }
 
     private List<ContentRecommendationDTO> processLuceneScoring(
@@ -197,9 +198,9 @@ public class ContentRecommendationService {
                 .collect(Collectors.toList());
 
         if (preferredGenres.isEmpty()) {
-            List<Feedback> allFeedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
+            List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
                     member.getId());
-            preferredGenres = extractFallbackGenresFromRecentLikes(allFeedbacks, metadataCache);
+            preferredGenres = extractFallbackGenresFromRecentLikes(feedbacks, metadataCache);
             log.info("선호 장르가 없어 최근 좋아요 기반 장르 사용: {}", preferredGenres);
         } else {
             log.info("추출된 선호 장르: {}", preferredGenres);
@@ -325,9 +326,9 @@ public class ContentRecommendationService {
         }
 
         List<Feedback> targetFeedbacks;
-        targetFeedbacks = recentFeedbackLimit.map(integer -> feedbacks.stream()
+        targetFeedbacks = recentFeedbackLimit.map(limit -> feedbacks.stream()
                 .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt()))
-                .limit(integer)
+                .limit(limit)
                 .toList()).orElse(feedbacks);
 
         for (Feedback feedback : targetFeedbacks) {
@@ -358,9 +359,9 @@ public class ContentRecommendationService {
     }
 
 
-    private List<String> extractFallbackGenresFromRecentLikes(List<Feedback> allFeedbacks,
+    private List<String> extractFallbackGenresFromRecentLikes(List<Feedback> feedbacks,
             Map<Long, ContentMetadata> metadataCache) {
-        return allFeedbacks.stream()
+        return feedbacks.stream()
                 .filter(f -> !f.isDeleted() && f.getFeedbackType() == FeedbackType.LIKE)
                 .sorted((f1, f2) -> f2.getCreatedAt().compareTo(f1.getCreatedAt()))
                 .limit(20)
