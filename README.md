@@ -105,7 +105,7 @@ graph TD
   |사용 기술 (버전) |  | 역할 | 사용 이유 |
   |:-----------|:-----------|:---------------|:---------------|
   | Mysql | <img src="https://img.shields.io/badge/mysql-%23316192.svg?style=flat&logo=mysql&logoColor=white"/> | 데이터 관리 |  회원, 설문, 피드백, 콘텐츠 데이터 관리 |
-  | Radis | <img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white"/> | 세션 캐싱 및 응답 속도 개선 | 리프레시 토큰, 블랙리스트 토큰 관리, 콘텐츠 메타데이터 캐시 |
+  | Radis | <img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white"/> | 세션 캐싱 및 응답 속도 개선 | 리프레시 토큰, 블랙리스트 토큰 관리 |
 
 
  ## 3-5. Infra
