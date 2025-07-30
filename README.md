@@ -46,7 +46,7 @@
   <tr>
     <td width="50%">
       <div>
-      <img width="723" height="410" alt="image" src="https://github.com/user-attachments/assets/a0dfcb5e-df3f-4055-a096-eb34da464aa3" />
+      <img width="1352" height="672" alt="image" src="https://github.com/user-attachments/assets/35e2a506-28dd-42d6-a1b6-5c8d04ac83e3" />
       </div>
     </td>
   </tr>
