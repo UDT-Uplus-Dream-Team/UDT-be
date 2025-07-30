@@ -120,6 +120,7 @@
 👉 요일별 추천 콘텐츠를 확인할 수 있다. <br>
 👉 인기 콘텐츠를 확인할 수 있다. <br>
 <br>
+<img width="200" height="260" alt="explore" src="https://github.com/user-attachments/assets/858e7a67-b0a3-4cb8-86fe-44bf8ee16d74" />
 
 ### 6️⃣ 마이페이지
 
