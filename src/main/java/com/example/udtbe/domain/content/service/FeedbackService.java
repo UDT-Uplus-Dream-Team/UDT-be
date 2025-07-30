@@ -74,14 +74,15 @@ public class FeedbackService {
     }
 
     @Transactional
-    public void deleteFeedback(Long feedbackId, Member member) {
-        Feedback feedback = feedbackQuery.findFeedbackById(feedbackId);
+    public void deleteFeedback(List<Long> feedbackIds, Member member) {
+        List<Feedback> feedbacks = feedbackQuery.findFeedbackByIdList(member.getId(), feedbackIds);
 
-        if (!feedback.getMember().getId().equals(member.getId())) {
-            throw new RestApiException(FeedbackErrorCode.FEEDBACK_OWNER_MISSMATCH);
-        }
-
-        feedback.switchDeleted();
+        feedbacks.forEach(feedback -> {
+            if (!feedback.getMember().getId().equals(member.getId())) {
+                throw new RestApiException(FeedbackErrorCode.FEEDBACK_OWNER_MISSMATCH);
+            }
+            feedback.switchDeleted();
+        });
     }
 
 }

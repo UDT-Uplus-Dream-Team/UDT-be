@@ -34,7 +34,6 @@ public class MemberController implements MemberControllerApiSpec {
     public ResponseEntity<CursorPageResponse<MemberCuratedContentGetResponse>> getCuratedContents(
             Member member,
             MemberCuratedContentGetsRequest memberCuratedContentGetsRequest) {
-        // TODO: 3차 MVP 때 엄선된 콘텐츠 필터링 반영
         CursorPageResponse<MemberCuratedContentGetResponse> response
                 = memberService.getCuratedContents(memberCuratedContentGetsRequest, member);
         return ResponseEntity.status(HttpStatus.OK).body(response);
