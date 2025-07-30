@@ -365,7 +365,8 @@ public class AdminServiceTest {
         CursorPageResponse<AdminContentGetResponse> page = new CursorPageResponse<>(
                 List.of(adminContentGetResponse1, adminContentGetResponse), "4", true);
 
-        AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(5L, 2, null);
+        AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(
+                "5|2025-07-30", 2, null);
 
         given(contentRepository.getsAdminContents(
                 adminContentGetsRequest.cursor(),
@@ -405,7 +406,8 @@ public class AdminServiceTest {
         CursorPageResponse<AdminContentGetResponse> page = new CursorPageResponse<>(
                 List.of(adminContentGetResponse2, adminContentGetResponse1), "4", true);
 
-        AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(5L, 2, "드라마");
+        AdminContentGetsRequest adminContentGetsRequest = new AdminContentGetsRequest(
+                "5|2025-07-05", 2, "드라마");
 
         given(contentRepository.getsAdminContents(
                 adminContentGetsRequest.cursor(),
