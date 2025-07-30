@@ -300,17 +300,3 @@ public ResponseEntity<?> getUser(@AuthenticationPrincipal Long userId) {
 - 통합 테스트를 통한 전체 플로우 검증
 
 ---
-
-# 4. 기술적 고민
-  ## 4-1. GraphQL vs RestAPI
-  * GraphQL 장점: 클라이언트가 필요한 데이터만 정확히 요청 가능해 over-fetch/under-fetch 문제 해소
-  * GraphQL 단점: 초기 학습 비용 및 서버·스키마 복잡도 증가, 캐싱 전략이 REST만큼 성숙하지 않음
-
-  * REST API 장점: 표준 HTTP 메서드와 URI 사용, CDN·로드밸런서 등 인프라 캐싱 활용 우수, 구현·디버깅 용이
-  * REST API 단점: 고정된 엔드포인트 응답 스펙으로 클라이언트 요구사항 변화 시 over-fetch 발생 가능
-
-  **RESTAPI 방식을 선택했다.**
-  * 팀원 모두 GraphQL보다 REST API에 능숙하여 구축·테스트·디버깅에 효율적이라 생각
-  * 특히, 로드밸런서등 인프라 캐싱 활용으로 초기 MVP 단계에서 빠른 개발 및 안정적인 성능 확보가 가능하다고 판단해 REST API를 사용
-
----
