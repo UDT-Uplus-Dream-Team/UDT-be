@@ -78,7 +78,7 @@ public class AdminService {
 
         List<String> directorTags = new ArrayList<>();
         request.directors().forEach(directorId -> {
-            Director director = adminQuery.findDirector(directorId);
+            Director director = adminQuery.findDirectorByDirectorId(directorId);
             ContentDirector.of(content, director);
             directorTags.add(director.getDirectorName());
         });
@@ -157,7 +157,7 @@ public class AdminService {
 
         List<String> directorTags = new ArrayList<>();
         request.directors().forEach(directorId -> {
-            Director director = adminQuery.findDirector(directorId);
+            Director director = adminQuery.findDirectorByDirectorId(directorId);
             ContentDirector.of(content, director);
             directorTags.add(director.getDirectorName());
         });

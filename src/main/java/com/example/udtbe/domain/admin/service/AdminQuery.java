@@ -68,7 +68,7 @@ public class AdminQuery {
         );
     }
 
-    public Director findDirector(Long directorId) {
+    public Director findDirectorByDirectorId(Long directorId) {
         return directorRepository.findById(directorId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
         );
