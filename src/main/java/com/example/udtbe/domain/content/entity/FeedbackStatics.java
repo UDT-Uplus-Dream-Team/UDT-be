@@ -38,14 +38,14 @@ public class FeedbackStatics extends TimeBaseEntity {
     @Column(name = "genre_type", nullable = false)
     private GenreType genreType;
 
-    @Column(name = "like", nullable = false)
-    private Long like;
+    @Column(name = "like_count", nullable = false)
+    private Long likeCount;
 
-    @Column(name = "dislike", nullable = false)
-    private Long dislike;
+    @Column(name = "dislike_count", nullable = false)
+    private Long dislikeCount;
 
-    @Column(name = "uninterested", nullable = false)
-    private Long uninterested;
+    @Column(name = "uninterested_count", nullable = false)
+    private Long uninterestedCount;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
@@ -57,23 +57,23 @@ public class FeedbackStatics extends TimeBaseEntity {
     private Member member;
 
     @Builder(access = PRIVATE)
-    private FeedbackStatics(GenreType genreType, Long like, Long dislike,
-            Long uninterested, boolean isDeleted, Member member) {
+    private FeedbackStatics(GenreType genreType, Long likeCount, Long dislikeCount,
+            Long uninterestedCount, boolean isDeleted, Member member) {
         this.genreType = genreType;
-        this.like = like;
-        this.dislike = dislike;
-        this.uninterested = uninterested;
+        this.likeCount = likeCount;
+        this.dislikeCount = dislikeCount;
+        this.uninterestedCount = uninterestedCount;
         this.isDeleted = isDeleted;
         this.member = member;
     }
 
-    public static FeedbackStatics of(GenreType genreType, Long like, Long dislike,
-            Long uninterested, boolean isDeleted, Member member) {
+    public static FeedbackStatics of(GenreType genreType, Long likeCount, Long dislikeCount,
+            Long uninterestedCount, boolean isDeleted, Member member) {
         return FeedbackStatics.builder()
                 .genreType(genreType)
-                .like(like)
-                .dislike(dislike)
-                .uninterested(uninterested)
+                .likeCount(likeCount)
+                .dislikeCount(dislikeCount)
+                .uninterestedCount(uninterestedCount)
                 .isDeleted(isDeleted)
                 .member(member)
                 .build();
