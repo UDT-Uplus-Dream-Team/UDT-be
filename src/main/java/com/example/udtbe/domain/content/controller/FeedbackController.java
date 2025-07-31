@@ -28,7 +28,6 @@ public class FeedbackController implements FeedbackControllerApiSpec {
     @Override
     public ResponseEntity<CursorPageResponse<FeedbackContentDTO>> getFeedbackByCursor(
             FeedbackContentGetRequest request, Member member) {
-        // TODO: 3차 MVP 때 플랫폼별, 장르별 FeedbackSortType 반영
         CursorPageResponse<FeedbackContentDTO> response = feedbackService.getFeedbackList(
                 request, member);
         return ResponseEntity.status(HttpStatus.OK).body(response);

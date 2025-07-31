@@ -6,11 +6,9 @@ import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import com.example.udtbe.global.exception.RestApiException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,13 +74,7 @@ public class FeedbackService {
     @Transactional
     public void deleteFeedback(List<Long> feedbackIds, Member member) {
         List<Feedback> feedbacks = feedbackQuery.findFeedbackByIdList(member.getId(), feedbackIds);
-
-        feedbacks.forEach(feedback -> {
-            if (!feedback.getMember().getId().equals(member.getId())) {
-                throw new RestApiException(FeedbackErrorCode.FEEDBACK_OWNER_MISSMATCH);
-            }
-            feedback.switchDeleted();
-        });
+        feedbacks.forEach(Feedback::switchDeleted);
     }
 
 }
