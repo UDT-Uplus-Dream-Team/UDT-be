@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.udtbe.common.support.ApiSupport;
-import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
@@ -100,8 +99,8 @@ public class AdminControllerTest extends ApiSupport {
                 LocalDateTime.of(2025, 7, 11, 0, 0),
                 100, 1, "전체관람가",
                 List.of(new AdminCategoryDTO("영화", List.of("액션"))),
-                List.of("한국"), List.of("테스트 감독"),
-                List.of(new AdminCastDTO("테스트 배우", "https://cast.jpg")),
+                List.of("한국"), List.of(1L, 2L),
+                List.of(1L, 2L),
                 List.of(new AdminPlatformDTO("넷플릭스", "https://watch"))
         );
     }
@@ -132,8 +131,8 @@ public class AdminControllerTest extends ApiSupport {
                         new AdminCategoryDTO("애니메이션", List.of("키즈")),
                         new AdminCategoryDTO("드라마", List.of("서사/드라마"))
                 ),
-                List.of("한국"), List.of("수정 테스트 감독"),
-                List.of(new AdminCastDTO("수정 테스트 배우", "c1")),
+                List.of("한국"), List.of(1L, 2L),
+                List.of(1L, 2L),
                 List.of(
                         new AdminPlatformDTO("넷플릭스", "w1"),
                         new AdminPlatformDTO("디즈니+", "w2")
@@ -169,8 +168,8 @@ public class AdminControllerTest extends ApiSupport {
                     "p", "b", "t",
                     LocalDateTime.now(), 10, 1, "전체",
                     List.of(new AdminCategoryDTO("영화", List.of("액션"))),
-                    List.of("KR"), List.of("D"),
-                    List.of(new AdminCastDTO("C", "u")),
+                    List.of("KR"), List.of((long) i),
+                    List.of((long) i),
                     List.of(new AdminPlatformDTO("넷플릭스", "u"))
             );
 
@@ -222,8 +221,8 @@ public class AdminControllerTest extends ApiSupport {
                             new AdminCategoryDTO(categoryType, List.of("서사/드라마")),
                             new AdminCategoryDTO("애니메이션", List.of("키즈"))
                     ),
-                    List.of("KR"), List.of("D"),
-                    List.of(new AdminCastDTO("C", "u")),
+                    List.of("KR"), List.of((long) i),
+                    List.of((long) i),
                     List.of(new AdminPlatformDTO("넷플릭스", "u"))
             );
 

@@ -68,21 +68,21 @@ public class AdminQuery {
         );
     }
 
-    public Cast findOrSaveCast(String castName, String castImageUrl) {
-        return castRepository.findByCastNameAndCastImageUrl(castName, castImageUrl).orElseGet(() ->
-                castRepository.save(Cast.of(castName, castImageUrl))
-        );
-    }
-
-    public Director findOrSaveDirector(String directorName) {
-        return directorRepository.findByDirectorName(directorName).orElseGet(() ->
-                directorRepository.save(Director.of(directorName))
+    public Director findDirectorByDirectorId(Long directorId) {
+        return directorRepository.findById(directorId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
         );
     }
 
     public Country findOrSaveCountry(String countryName) {
         return countryRepository.findByCountryName(countryName).orElseGet(() ->
                 countryRepository.save(Country.of(countryName))
+        );
+    }
+
+    public Cast findCastByCastId(Long castId) {
+        return castRepository.findById(castId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.CAST_NOT_FOUND)
         );
     }
 }
