@@ -164,7 +164,7 @@ public class FeedbackServiceTest {
         assertThat(result.nextCursor()).isEqualTo(feedbacks.get(1).getId());
     }
 
-    @DisplayName("회원은 피드백을 삭제할 수 있다.")
+    @DisplayName("회원은 피드백을 다건 삭제할 수 있다.")
     @Test
     void deleteFeedback() {
         // given
@@ -172,17 +172,21 @@ public class FeedbackServiceTest {
 
         Content content = content("test_content", "description");
 
-        Feedback feedback = Feedback.of(FeedbackType.LIKE, false, member, content);
-
-        ReflectionTestUtils.setField(feedback, "id", 1L);
+        Feedback feedback1 = Feedback.of(FeedbackType.LIKE, false, member, content);
+        Feedback feedback2 = Feedback.of(FeedbackType.LIKE, false, member, content);
+        
         ReflectionTestUtils.setField(member, "id", 10L);
+        List<Long> feedbackIds = List.of(1L, 2L);
+        List<Feedback> feedbacks = List.of(feedback1, feedback2);
 
-        given(feedbackQuery.findFeedbackById(1L)).willReturn(feedback);
+        given(feedbackQuery.findFeedbackByIdList(10L, feedbackIds))
+                .willReturn(feedbacks);
 
         // when
-        feedbackService.deleteFeedback(1L, member);
+        feedbackService.deleteFeedback(feedbackIds, member);
 
         // then
-        assertThat(feedback.isDeleted()).isTrue();
+        assertThat(feedback1.isDeleted()).isTrue();
+        assertThat(feedback2.isDeleted()).isTrue();
     }
 }
