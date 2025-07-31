@@ -50,11 +50,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         (auth) -> auth
+                                .requestMatchers("/", "/api/auth/reissue/token").permitAll()
                                 .requestMatchers("/api/survey").hasAnyAuthority(ROLE_GUEST.name())
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(ROLE_ADMIN.name())
                                 .requestMatchers("/api/**")
                                 .hasAnyAuthority(ROLE_USER.name(), ROLE_ADMIN.name())
-                                .requestMatchers("/", "/api/auth/reissue/token").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2Login(
