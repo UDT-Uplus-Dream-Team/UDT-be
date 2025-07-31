@@ -48,7 +48,8 @@ public class FeedbackService {
 
             if (findFeedback.isEmpty()) {
                 genres.forEach(genreType -> incStatics(member, genreType, newFeedbackType));
-                feedbackRepository.save(Feedback.of(newFeedbackType, false, member, content));
+                Feedback newFeedback = Feedback.of(newFeedbackType, false, member, content);
+                feedbacks.add(newFeedback);
                 continue;
             }
 
@@ -67,9 +68,12 @@ public class FeedbackService {
                 });
                 prevFeedback.updateFeedbackType(newFeedbackType);
             }
+            feedbacks.add(prevFeedback);
         }
 
-        feedbackRepository.saveAll(feedbacks);
+        if (!feedbacks.isEmpty()) {
+            feedbackRepository.saveAll(feedbacks);
+        }
     }
 
     @Transactional(readOnly = true)
