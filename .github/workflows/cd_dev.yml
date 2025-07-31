@@ -106,8 +106,8 @@ jobs:
           port: 22
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-            docker stop udt_dev_server firefly-redis node-exporter mysql-exporter 2>/dev/null || true
-            docker rm udt_dev_server firefly-redis node-exporter mysql-exporter 2>/dev/null || true
+            docker stop udt_dev_server firefly-redis node-exporter mysql-exporter || true
+            docker rm udt_dev_server firefly-redis node-exporter mysql-exporter || true
             cd ~/udt
             docker pull ${{ secrets.DOCKER_USERNAME }}/udt-dev:latest
             docker-compose pull
