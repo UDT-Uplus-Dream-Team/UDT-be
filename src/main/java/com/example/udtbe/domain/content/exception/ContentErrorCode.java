@@ -16,6 +16,8 @@ public enum ContentErrorCode implements ErrorCode {
     PLATFORM_NOT_FOUND(HttpStatus.NOT_FOUND, "플랫폼을 찾을 수 없습니다."),
     CURATED_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "엄선된 추천 콘텐츠를 찾을 수 없습니다."),
     ALREADY_CURATED_CONTENT(HttpStatus.CONFLICT, "이미 저장된 엄선된 콘텐츠입니다."),
+    DIRECTOR_NOT_FOUND(HttpStatus.NOT_FOUND, "감독을 찾을 수 없습니다."),
+    CAST_NOT_FOUND(HttpStatus.NOT_FOUND, "출연진을 찾을 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;
