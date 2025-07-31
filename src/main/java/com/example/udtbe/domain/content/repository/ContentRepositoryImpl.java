@@ -156,15 +156,25 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
     }
 
     @Override
-    public CursorPageResponse<AdminContentGetResponse> getsAdminContents(Long cursor,
+    public CursorPageResponse<AdminContentGetResponse> getsAdminContents(String cursor,
             int size, String categoryType) {
+
+        Long cursorId = null;
+        LocalDateTime cursorOpenDate = null;
+
+        if (Objects.nonNull(cursor) && cursor.contains(DELIMITER)) {
+            String[] parts = cursor.split("\\|");
+            cursorId = Long.parseLong(parts[0]);
+            cursorOpenDate = LocalDateTime.parse(parts[1]);
+        }
 
         List<Long> contentIds = queryFactory
                 .select(content.id)
                 .from(content)
                 .leftJoin(content.contentCategories, contentCategory)
                 .leftJoin(contentCategory.category, category)
-                .where(cursorFilter(cursor), deletedFilter(), categoryFilter(categoryType))
+                .where(complexCursorFilter(cursorOpenDate, cursorId), deletedFilter(),
+                        categoryFilter(categoryType))
                 .orderBy(content.openDate.desc(), content.id.desc())
                 .limit(size + 1)
                 .fetch();
@@ -197,8 +207,12 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
             contentAdminGetResponses.remove(contentAdminGetResponses.size() - 1);
         }
 
-        String nextCursor = hasNext ? String.valueOf(
-                contentAdminGetResponses.get(contentAdminGetResponses.size() - 1).contentId())
+        String nextCursor = hasNext ?
+                contentAdminGetResponses.get(contentAdminGetResponses.size() - 1).contentId()
+                        + DELIMITER
+                        + fetchOpenDate(
+                        contentAdminGetResponses.get(contentAdminGetResponses.size() - 1)
+                                .contentId())
                 : null;
 
         return new CursorPageResponse<>(contentAdminGetResponses, nextCursor, hasNext);
@@ -522,12 +536,6 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         return genre.genreType.in(genreTypes);
     }
 
-    private BooleanExpression cursorFilter(Long cursor) {
-        if (Objects.isNull(cursor)) {
-            return null;
-        }
-        return content.id.lt(cursor);
-    }
 
     private BooleanExpression deletedFilter() {
         return content.isDeleted.isFalse();

@@ -16,7 +16,7 @@ public interface ContentRepositoryCustom {
 
     AdminContentGetDetailResponse getAdminContentDetails(Long contentId);
 
-    CursorPageResponse<AdminContentGetResponse> getsAdminContents(Long cursor, int size,
+    CursorPageResponse<AdminContentGetResponse> getsAdminContents(String cursor, int size,
             String categoryType);
 
     CursorPageResponse<ContentsGetResponse> getContents(ContentsGetRequest request);
