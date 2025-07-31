@@ -56,3 +56,22 @@ VALUES (1, 'NETFLIX', NOW(), NOW(), false),
        (5, 'DISNEY_PLUS', NOW(), NOW(), false),
        (6, 'WATCHA', NOW(), NOW(), false),
        (7, 'APPLE_TV', NOW(), NOW(), false);
+
+
+-- 4) 출연진 데이터 삽입
+INSERT INTO cast (cast_id, cast_name, cast_image_url, is_deleted, created_at, updated_at)
+VALUES (1, '하정우', 'https://example.com/images/ha-jung-woo.jpg', false, NOW(), NOW()),
+       (2, '전도연', 'https://example.com/images/jeon-do-yeon.jpg', false, NOW(), NOW()),
+       (3, '이병헌', 'https://example.com/images/lee-byung-hun.jpg', false, NOW(), NOW()),
+       (4, '김태리', 'https://example.com/images/kim-tae-ri.jpg', false, NOW(), NOW()),
+       (5, '송강호', 'https://example.com/images/song-kang-ho.jpg', false, NOW(), NOW());
+
+
+-- 5) 감독 데이터 삽입
+INSERT INTO director (director_id, director_name, director_image_url, is_deleted, created_at,
+                      updated_at)
+VALUES (1, '봉준호', 'https://example.com/images/bong-joon-ho.jpg', false, NOW(), NOW()),
+       (2, '박찬욱', 'https://example.com/images/park-chan-wook.jpg', false, NOW(), NOW()),
+       (3, '김지운', 'https://example.com/images/kim-jee-woon.jpg', false, NOW(), NOW()),
+       (4, '임상수', 'https://example.com/images/im-sang-soo.jpg', false, NOW(), NOW()),
+       (5, '류승완', 'https://example.com/images/ryoo-seung-wan.jpg', false, NOW(), NOW());
