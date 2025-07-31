@@ -17,9 +17,11 @@ import static org.mockito.Mockito.verify;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
@@ -472,6 +474,41 @@ public class AdminServiceTest {
 
                 () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
                 () -> verify(metadata).delete(eq(true))
+        );
+    }
+
+    @DisplayName("여러 명의 출연진을 한번에 저장한다.")
+    @Test
+    void registerCasts() {
+        // given
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "강호동.image.com");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", "유재석.image.com");
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO("이효리", "이효리.image.com");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        Cast cast1 = mock(Cast.class);
+        Cast cast2 = mock(Cast.class);
+        Cast cast3 = mock(Cast.class);
+
+        given(cast1.getId()).willReturn(1L);
+        given(cast2.getId()).willReturn(2L);
+        given(cast3.getId()).willReturn(3L);
+
+        given(adminQuery.saveAllCasts(any(List.class))).willReturn(List.of(cast1, cast2, cast3));
+
+        // when
+        AdminCastsRegisterResponse response = adminService.registerCasts(request);
+
+        // then
+        assertAll(
+                () -> verify(adminQuery).saveAllCasts(any(List.class)),
+                () -> assertThat(response.castIds()).containsExactly(
+                        cast1.getId(),
+                        cast2.getId(),
+                        cast3.getId()
+                )
         );
     }
 }
