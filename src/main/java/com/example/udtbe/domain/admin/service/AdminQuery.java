@@ -21,6 +21,7 @@ import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
 import com.example.udtbe.global.exception.RestApiException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -84,5 +85,9 @@ public class AdminQuery {
         return castRepository.findById(castId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CAST_NOT_FOUND)
         );
+    }
+
+    public List<Cast> saveAllCasts(List<Cast> casts) {
+        return castRepository.saveAll(casts);
     }
 }
