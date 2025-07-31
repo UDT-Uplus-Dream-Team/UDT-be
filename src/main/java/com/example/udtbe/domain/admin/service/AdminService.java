@@ -38,6 +38,7 @@ import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.log.annotation.LogReturn;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -69,14 +70,18 @@ public class AdminService {
             ContentCategory.of(content, category);
         });
 
-        request.casts().forEach(dto -> {
-            Cast cast = adminQuery.findOrSaveCast(dto.castName(), dto.castImageUrl());
+        List<String> castTags = new ArrayList<>();
+        request.casts().forEach(castId -> {
+            Cast cast = adminQuery.findCastByCastId(castId);
             ContentCast.of(content, cast);
+            castTags.add(cast.getCastName());
         });
 
-        request.directors().forEach(name -> {
-            Director director = adminQuery.findOrSaveDirector(name);
+        List<String> directorTags = new ArrayList<>();
+        request.directors().forEach(directorId -> {
+            Director director = adminQuery.findDirector(directorId);
             ContentDirector.of(content, director);
+            directorTags.add(director.getDirectorName());
         });
 
         request.countries().forEach(name -> {
@@ -107,10 +112,9 @@ public class AdminService {
                 .toList();
         List<String> genreTags = request.categories().stream().flatMap(c -> c.genres().stream())
                 .distinct().toList();
-        List<String> castTags = request.casts().stream().map(AdminCastDTO::castName).toList();
         contentMetadataRepository.save(ContentMetadata.of(
                 content.getTitle(), content.getRating(), categoryTags,
-                genreTags, platformTags, request.directors(), castTags,
+                genreTags, platformTags, directorTags, castTags,
                 content
         ));
 

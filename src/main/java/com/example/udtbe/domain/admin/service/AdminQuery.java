@@ -80,9 +80,21 @@ public class AdminQuery {
         );
     }
 
+    public Director findDirector(Long directorId) {
+        return directorRepository.findById(directorId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
+        );
+    }
+
     public Country findOrSaveCountry(String countryName) {
         return countryRepository.findByCountryName(countryName).orElseGet(() ->
                 countryRepository.save(Country.of(countryName))
+        );
+    }
+
+    public Cast findCastByCastId(Long castId) {
+        return castRepository.findById(castId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.CAST_NOT_FOUND)
         );
     }
 }
