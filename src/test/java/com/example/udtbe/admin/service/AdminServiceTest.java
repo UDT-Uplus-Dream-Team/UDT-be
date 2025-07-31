@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -99,11 +100,8 @@ public class AdminServiceTest {
                         new AdminCategoryDTO("애니메이션", List.of("키즈"))
                 ),
                 List.of("대한민국"),
-                List.of("테스트 감독"),
-                List.of(
-                        new AdminCastDTO("테스트 배우", "https://cast.image1"),
-                        new AdminCastDTO("테스트 배우2", "https://cast.image2")
-                ),
+                List.of(1L, 2L),
+                List.of(1L, 2L),
                 List.of(
                         new AdminPlatformDTO("넷플릭스", "https://watch1"),
                         new AdminPlatformDTO("왓챠", "https://watch2")
@@ -134,18 +132,8 @@ public class AdminServiceTest {
             }
         }
 
-        List<AdminCastDTO> adminCastDtos = registerRequest.casts();
-        for (AdminCastDTO adminCastDto : adminCastDtos) {
-            given(adminQuery.findOrSaveCast(eq(adminCastDto.castName()),
-                    eq(adminCastDto.castImageUrl())))
-                    .willReturn(mock(Cast.class));
-        }
-
-        for (String directorName : registerRequest.directors()) {
-            given(adminQuery.findOrSaveDirector(
-                    eq(directorName)))
-                    .willReturn(mock(Director.class));
-        }
+        given(adminQuery.findCastByCastId(anyLong())).willReturn(mock(Cast.class));
+        given(adminQuery.findDirectorByDirectorId(anyLong())).willReturn(mock(Director.class));
 
         for (String countryName : registerRequest.countries()) {
             given(adminQuery.findOrSaveCountry(
@@ -181,11 +169,11 @@ public class AdminServiceTest {
                 () -> verify(adminQuery, times(genresSize))
                         .findByGenreTypeAndCategory(any(GenreType.class), any(Category.class)),
 
-                () -> verify(adminQuery, times(adminCastDtos.size()))
-                        .findOrSaveCast(anyString(), anyString()),
+                () -> verify(adminQuery, times(registerRequest.casts().size()))
+                        .findCastByCastId(anyLong()),
 
                 () -> verify(adminQuery, times(registerRequest.directors().size()))
-                        .findOrSaveDirector(anyString()),
+                        .findDirectorByDirectorId(anyLong()),
 
                 () -> verify(adminQuery, times(registerRequest.countries().size()))
                         .findOrSaveCountry(anyString()),
@@ -245,8 +233,8 @@ public class AdminServiceTest {
                 130, 1, "19세 관람가",
                 List.of(new AdminCategoryDTO("애니메이션", List.of("키즈"))),
                 List.of("미국"),
-                List.of("수정 테스트 감독"),
-                List.of(new AdminCastDTO("수정 테스트 배우", "https://new-image")),
+                List.of(1L, 2L),
+                List.of(1L, 2L),
                 List.of(new AdminPlatformDTO("디즈니+", "https://watch"))
         );
 
@@ -263,18 +251,8 @@ public class AdminServiceTest {
             }
         }
 
-        List<AdminCastDTO> adminCastDtos = adminContentUpdateRequest.casts();
-        for (AdminCastDTO adminCastDto : adminCastDtos) {
-            given(adminQuery.findOrSaveCast(eq(adminCastDto.castName()),
-                    eq(adminCastDto.castImageUrl())))
-                    .willReturn(mock(Cast.class));
-        }
-
-        for (String directorName : adminContentUpdateRequest.directors()) {
-            given(adminQuery.findOrSaveDirector(
-                    eq(directorName)))
-                    .willReturn(mock(Director.class));
-        }
+        given(adminQuery.findCastByCastId(anyLong())).willReturn(mock(Cast.class));
+        given(adminQuery.findDirectorByDirectorId(anyLong())).willReturn(mock(Director.class));
 
         for (String countryName : adminContentUpdateRequest.countries()) {
             given(adminQuery.findOrSaveCountry(
@@ -297,8 +275,6 @@ public class AdminServiceTest {
                 .toList();
         List<String> genreTag = adminCategoryDTO.stream().flatMap(dto -> dto.genres().stream())
                 .toList();
-        List<String> castTag = adminCastDtos.stream().map(AdminCastDTO::castName).toList();
-        List<String> directorTag = adminContentUpdateRequest.directors();
         List<String> platformTag = adminPlatformDTOS.stream().map(AdminPlatformDTO::platformType)
                 .toList();
         // then
@@ -322,12 +298,12 @@ public class AdminServiceTest {
                 () -> verify(adminQuery, times(genreSize)).findByGenreTypeAndCategory(
                         any(GenreType.class), any(Category.class)
                 ),
-                () -> verify(adminQuery, times(adminCastDtos.size())).findOrSaveCast(
-                        anyString(), anyString()
+                () -> verify(adminQuery, times(registerRequest.casts().size())).findCastByCastId(
+                        anyLong()
                 ),
                 () -> verify(adminQuery,
-                        times(adminContentUpdateRequest.directors().size())).findOrSaveDirector(
-                        anyString()
+                        times(adminContentUpdateRequest.directors()
+                                .size())).findDirectorByDirectorId(anyLong()
                 ),
                 () -> verify(adminQuery,
                         times(adminContentUpdateRequest.countries().size())).findOrSaveCountry(
@@ -343,8 +319,8 @@ public class AdminServiceTest {
                         eq(categoryTag),
                         eq(genreTag),
                         eq(platformTag),
-                        eq(directorTag),
-                        eq(castTag)
+                        any(List.class),
+                        any(List.class)
                 )
         );
     }
