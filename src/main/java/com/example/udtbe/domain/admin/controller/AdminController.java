@@ -7,6 +7,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberFeedbackGetResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +60,11 @@ public class AdminController implements AdminControllerApiSpec {
         CursorPageResponse<AdminContentGetResponse> contentDTOCursorPageResponse = adminService
                 .getContents(adminContentGetsRequest);
         return ResponseEntity.status(HttpStatus.OK).body(contentDTOCursorPageResponse);
+    }
+
+    @Override
+    public ResponseEntity<AdminMemberFeedbackGetResponse> getMemberFeedbackInfo(Long memberId) {
+        AdminMemberFeedbackGetResponse response = adminService.getMemberFeedbackInfo(memberId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

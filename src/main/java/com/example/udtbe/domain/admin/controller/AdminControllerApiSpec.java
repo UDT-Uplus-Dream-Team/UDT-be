@@ -7,6 +7,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberFeedbackGetResponse;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -72,6 +73,13 @@ public interface AdminControllerApiSpec {
     @DeleteMapping("/api/admin/contents/{contentId}")
     ResponseEntity<Void> deleteContent(
             @PathVariable(name = "contentId") Long contentId
+    );
+
+    @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
+    @GetMapping("/api/admin/users/{userId}")
+    ResponseEntity<AdminMemberFeedbackGetResponse> getMemberFeedbackInfo(
+            @PathVariable(name = "userId") Long userId
     );
 }
 

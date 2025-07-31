@@ -14,6 +14,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
@@ -22,6 +23,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberFeedbackGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -30,6 +32,7 @@ import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.Country;
 import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.FeedbackStatistics;
 import com.example.udtbe.domain.content.entity.Genre;
 import com.example.udtbe.domain.content.entity.Platform;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
@@ -43,6 +46,10 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
+import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
+import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.member.entity.enums.Role;
+import com.example.udtbe.domain.member.service.MemberQuery;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
@@ -55,6 +62,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminServiceTest {
@@ -77,6 +85,10 @@ public class AdminServiceTest {
     private ContentMetadataRepository contentMetadataRepository;
     @Mock
     private AdminQuery adminQuery;
+    @Mock
+    private MemberQuery memberQuery;
+    @Mock
+    private FeedbackStatisticsQuery feedbackStatisticsQuery;
 
     @InjectMocks
     private AdminService adminService;
@@ -473,5 +485,45 @@ public class AdminServiceTest {
                 () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
                 () -> verify(metadata).delete(eq(true))
         );
+    }
+
+    @DisplayName("관리자는 유저의 피드백 상세 지표를 조회할 수 있다.")
+    @Test
+    void getMemberFeedbackStatistics() {
+        // given
+        Long memberId = 1L;
+        Member member = MemberFixture.member("hong@test.com", Role.ROLE_USER);
+        ReflectionTestUtils.setField(member, "id", memberId);
+
+        given(memberQuery.findMemberById(memberId)).willReturn(member);
+
+        FeedbackStatistics dramaStat = FeedbackStatistics.of(
+                GenreType.DRAMA, 4L, 1L, 0L, false, member
+        );
+
+        FeedbackStatistics actionStat = FeedbackStatistics.of(
+                GenreType.ACTION, 3L, 2L, 1L, false, member
+        );
+
+        given(feedbackStatisticsQuery.findByMemberOrThrow(memberId))
+                .willReturn(List.of(dramaStat, actionStat));
+
+        // when
+        AdminMemberFeedbackGetResponse response = adminService.getMemberFeedbackInfo(memberId);
+
+        // then
+        assertAll(
+                () -> assertThat(response.id()).isEqualTo(memberId),
+                () -> assertThat(response.name()).isEqualTo(member.getName()),
+                () -> assertThat(response.likeCount()).isEqualTo(7),
+                () -> assertThat(response.dislikeCount()).isEqualTo(3),
+                () -> assertThat(response.uninterestedCount()).isEqualTo(1),
+                () -> assertThat(response.genres()).hasSize(2)
+                        .extracting("genreType")
+                        .containsExactlyInAnyOrder(GenreType.DRAMA, GenreType.ACTION)
+        );
+
+        then(memberQuery).should().findMemberById(memberId);
+        then(feedbackStatisticsQuery).should().findByMemberOrThrow(memberId);
     }
 }

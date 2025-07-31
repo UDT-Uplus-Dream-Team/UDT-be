@@ -1,16 +1,16 @@
 package com.example.udtbe.domain.content.repository;
 
-import com.example.udtbe.domain.content.entity.FeedbackStatics;
+import com.example.udtbe.domain.content.entity.FeedbackStatistics;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
-import com.example.udtbe.domain.member.entity.Member;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface FeedbackStaticsRepository extends JpaRepository<FeedbackStatics, Long>,
+public interface FeedbackStaticsRepository extends JpaRepository<FeedbackStatistics, Long>,
         FeedbackStaticsChanger {
 
-    Optional<FeedbackStatics> findByGenreType(GenreType genreType);
+    List<FeedbackStatistics> findByMemberIdAndIsDeletedFalse(Long memberId);
 
-    Optional<FeedbackStatics> findByMemberAndGenreType(Member member, GenreType genre);
+    Optional<FeedbackStatistics> findByGenreType(GenreType genreType);
 
 }
