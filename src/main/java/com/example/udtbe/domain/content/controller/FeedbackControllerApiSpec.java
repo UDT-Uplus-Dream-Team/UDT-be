@@ -39,7 +39,7 @@ public interface FeedbackControllerApiSpec {
 
     @Operation(summary = "Feedback한 Content 삭제 API", description = "좋아요/싫어요 한 컨텐츠들을 삭제한다.")
     @ApiResponse(useReturnTypeSchema = true)
-    @DeleteMapping("/users/me/feedbacks/{feedbackId}")
+    @DeleteMapping("/users/me/feedbacks")
     ResponseEntity<Void> deleteFeedback(@RequestBody @Valid FeedbackListDeleteRequest request,
             @AuthenticationPrincipal Member member);
 }
