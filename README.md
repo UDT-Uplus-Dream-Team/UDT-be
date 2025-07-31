@@ -78,7 +78,8 @@
 
 
 ## 시스템 아키텍처
-<img width="3536" height="1825" alt="UDT_아키텍처" src="https://github.com/user-attachments/assets/9592939a-7234-48e5-ae22-88b4c4099f45" />
+<img width="3536" height="1825" alt="UDT_아키텍처" src="https://github.com/user-attachments/assets/0cfeeb15-b95d-400a-a705-54ae3a2fd915" />
+
 
 
 ## 기능 소개
