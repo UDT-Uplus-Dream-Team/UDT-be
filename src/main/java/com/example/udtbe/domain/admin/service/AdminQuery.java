@@ -68,18 +68,6 @@ public class AdminQuery {
         );
     }
 
-    public Cast findOrSaveCast(String castName, String castImageUrl) {
-        return castRepository.findByCastNameAndCastImageUrl(castName, castImageUrl).orElseGet(() ->
-                castRepository.save(Cast.of(castName, castImageUrl))
-        );
-    }
-
-    public Director findOrSaveDirector(String directorName) {
-        return directorRepository.findByDirectorName(directorName).orElseGet(() ->
-                directorRepository.save(Director.of(directorName))
-        );
-    }
-
     public Director findDirector(Long directorId) {
         return directorRepository.findById(directorId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
