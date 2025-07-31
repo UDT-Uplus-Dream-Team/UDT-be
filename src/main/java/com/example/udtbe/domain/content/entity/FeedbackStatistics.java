@@ -24,14 +24,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "feedback_statics")
+@Table(name = "feedback_statistics")
 @Getter
 @NoArgsConstructor(access = PROTECTED)
-public class FeedbackStatics extends TimeBaseEntity {
+public class FeedbackStatistics extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "feedback_statics_id")
+    @Column(name = "feedback_statistics_id")
     private Long id;
 
     @Convert(converter = GenreTypeConverter.class)
@@ -57,7 +57,7 @@ public class FeedbackStatics extends TimeBaseEntity {
     private Member member;
 
     @Builder(access = PRIVATE)
-    private FeedbackStatics(GenreType genreType, Long likeCount, Long dislikeCount,
+    private FeedbackStatistics(GenreType genreType, Long likeCount, Long dislikeCount,
             Long uninterestedCount, boolean isDeleted, Member member) {
         this.genreType = genreType;
         this.likeCount = likeCount;
@@ -67,9 +67,9 @@ public class FeedbackStatics extends TimeBaseEntity {
         this.member = member;
     }
 
-    public static FeedbackStatics of(GenreType genreType, Long likeCount, Long dislikeCount,
+    public static FeedbackStatistics of(GenreType genreType, Long likeCount, Long dislikeCount,
             Long uninterestedCount, boolean isDeleted, Member member) {
-        return FeedbackStatics.builder()
+        return FeedbackStatistics.builder()
                 .genreType(genreType)
                 .likeCount(likeCount)
                 .dislikeCount(dislikeCount)
