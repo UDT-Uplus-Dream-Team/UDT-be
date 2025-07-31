@@ -80,7 +80,7 @@ public interface AdminControllerApiSpec {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "등록된 출연진 contentId 목록 반환"),
     })
-    @PostMapping("/api/admin/directors")
+    @PostMapping("/api/admin/casts")
     ResponseEntity<AdminCastsRegisterResponse> registerCasts(
             @Valid @RequestBody AdminCastsRegisterRequest adminCastsRegisterRequest
     );

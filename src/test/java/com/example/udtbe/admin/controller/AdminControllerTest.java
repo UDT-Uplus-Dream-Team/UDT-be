@@ -392,7 +392,7 @@ public class AdminControllerTest extends ApiSupport {
         );
 
         // when  // then
-        mockMvc.perform(post("/api/admin/directors")
+        mockMvc.perform(post("/api/admin/casts")
                         .content(toJson(request))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
@@ -415,7 +415,7 @@ public class AdminControllerTest extends ApiSupport {
         );
 
         // when  // then
-        mockMvc.perform(post("/api/admin/directors")
+        mockMvc.perform(post("/api/admin/casts")
                         .content(toJson(request))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
