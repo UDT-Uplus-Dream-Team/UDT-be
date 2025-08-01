@@ -23,13 +23,9 @@ import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -38,8 +34,6 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.context.jdbc.Sql;
 
 @SpringBatchTest
@@ -63,20 +57,6 @@ class BatchConfigTest extends ApiSupport {
     private AdminContentDeleteJobRepository adminContentDeleteJobRepository;
     @Autowired
     private AdminContentRegisterJobRepository adminContentRegisterJobRepository;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @BeforeEach
-    void setUp() throws SQLException {
-
-        try (Connection conn = dataSource.getConnection()) {
-            ScriptUtils.executeSqlScript(conn,
-                    new ClassPathResource("org/springframework/batch/core/schema-drop-mysql.sql"));
-            ScriptUtils.executeSqlScript(conn,
-                    new ClassPathResource("org/springframework/batch/core/schema-mysql.sql"));
-        }
-    }
 
 
     @AfterEach
