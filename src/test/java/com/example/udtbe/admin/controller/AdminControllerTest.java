@@ -12,10 +12,12 @@ import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Content;
@@ -342,9 +344,9 @@ public class AdminControllerTest extends ApiSupport {
         ;
     }
 
-    @DisplayName("요청 값이 존재하지 않으면 다건 출연자를 저장할 수 없다.")
+    @DisplayName("저장할 출연자 요청 값이 존재하지 않으면 다건 출연자를 저장할 수 없다.")
     @Test
-    void throwValidExceptionWhenRequestIsNull() throws Exception {
+    void throwValidExceptionWhenCastRequestsIsNull() throws Exception {
         // given
         AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(null);
 
@@ -500,6 +502,115 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("404"))
                 .andExpect(jsonPath("$.message").value("출연진은 최대 20명 조회할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("여러 명의 감독을 한번에 저장한다.")
+    @Test
+    void registerDirectors() throws Exception {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("봉준호", "봉준호.image.com");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO("박찬욱", "박찬욱.image.com");
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO("류승완", "류승완.image.com");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.directorIds").isArray())
+                .andExpect(jsonPath("$.directorIds.length()").value(3))
+        ;
+    }
+
+    @DisplayName("저장할 감독 요청 값이 존재하지 않으면 다건 감독을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorRequestsIsNull() throws Exception {
+        // given
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(null);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독 정보는 필수입니다."))
+        ;
+    }
+
+    @DisplayName("한 번에 31명 이상의 감독를 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorCountExceedsLimit() throws Exception {
+        // given
+        List<AdminDirectorDTO> directors = new ArrayList<>();
+        for (int i = 0; i < 31; i++) {
+            directors.add(new AdminDirectorDTO("name" + i, "url" + i));
+        }
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(directors);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독은 최대 30명까지 등록할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("감독의 이름이 없다면 감독을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorNameIsEmtpy() throws Exception {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("", "봉준호.image.com");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO(null, "박찬욱.image.com");
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO(" ", "류승완.image.com");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("감독의 사진 URI가 없다면 감독을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorImageUriIsEmtpy() throws Exception {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("봉준호", "");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO("박찬욱", null);
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO("류승완", " ");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독 사진 주소은 필수입니다."))
         ;
     }
 
