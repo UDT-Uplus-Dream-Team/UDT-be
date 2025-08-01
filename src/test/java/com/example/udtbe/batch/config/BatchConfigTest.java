@@ -23,9 +23,11 @@ import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
-import jakarta.persistence.EntityManager;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,11 +38,12 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.test.context.jdbc.Sql;
 
 @SpringBatchTest
 @Sql(scripts = "classpath:data-test.sql")
-@Sql(scripts = "classpath:batch-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class BatchConfigTest extends ApiSupport {
 
     @Autowired
@@ -60,18 +63,18 @@ class BatchConfigTest extends ApiSupport {
     private AdminContentDeleteJobRepository adminContentDeleteJobRepository;
     @Autowired
     private AdminContentRegisterJobRepository adminContentRegisterJobRepository;
+
     @Autowired
-    private EntityManager em;
+    private DataSource dataSource;
 
-    private Member member;
-    private List<Content> updateContents = new ArrayList<>();
-    private List<ContentMetadata> updateContentMetadatas = new ArrayList<>();
-    private List<Content> deleteContents = new ArrayList<>();
-    private List<ContentMetadata> deleteContentMetadatas = new ArrayList<>();
-
-    private List<AdminContentUpdateJob> updateJobs = new ArrayList<>();
-    private List<AdminContentDeleteJob> deleteJobs = new ArrayList<>();
-    private List<AdminContentRegisterJob> registerJobs = new ArrayList<>();
+    @BeforeEach
+    void setUp() throws SQLException {
+        // 배치 메타데이터 테이블 생성
+        try (Connection conn = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(conn,
+                    new ClassPathResource("org/springframework/batch/core/schema-mysql.sql"));
+        }
+    }
 
 
     @AfterEach
@@ -83,8 +86,19 @@ class BatchConfigTest extends ApiSupport {
         memberRepository.deleteAllInBatch();
     }
 
-    @BeforeEach
-    void setUp() {
+    @Test
+    @DisplayName("content Job들을 수행할 수 있다.")
+    void contentJobSuccess() throws Exception {
+        // given
+        List<Content> updateContents = new ArrayList<>();
+        List<ContentMetadata> updateContentMetadatas = new ArrayList<>();
+        List<Content> deleteContents = new ArrayList<>();
+        List<ContentMetadata> deleteContentMetadatas = new ArrayList<>();
+
+        List<AdminContentUpdateJob> updateJobs = new ArrayList<>();
+        List<AdminContentDeleteJob> deleteJobs = new ArrayList<>();
+        List<AdminContentRegisterJob> registerJobs = new ArrayList<>();
+
         Member member = MemberFixture.member("String@naber.com", ROLE_ADMIN);
         memberRepository.save(member);
 
@@ -122,12 +136,7 @@ class BatchConfigTest extends ApiSupport {
         registerJobs.add(AdminContentRegisterJobFixture.createPendingJob(
                 member.getId(), "추가 콘텐츠2", "타이틀"));
         adminContentRegisterJobRepository.saveAll(registerJobs);
-    }
 
-    @Test
-    @DisplayName("content Job들을 수행할 수 있다.")
-    void contentJobSuccess() throws Exception {
-        // given
         JobParameters jobParameters = jobLauncherTestUtils.getUniqueJobParameters();
 
         // when
@@ -157,13 +166,13 @@ class BatchConfigTest extends ApiSupport {
         Content deleteContent2 = contentRepository.findById(deleteContents.get(1).getId()).get();
         assertThat(deleteContent2.isDeleted()).isEqualTo(true);
 
-        ContentMetadata delContentMetadata1 = contentMetadataRepository.findById(
+        ContentMetadata deleteContentMetadata1 = contentMetadataRepository.findById(
                 deleteContentMetadatas.get(0).getId()).get();
-        assertThat(delContentMetadata1.isDeleted()).isEqualTo(true);
+        assertThat(deleteContentMetadata1.isDeleted()).isEqualTo(true);
 
-        ContentMetadata delContentMetadata2 = contentMetadataRepository.findById(
+        ContentMetadata deleteContentMetadata2 = contentMetadataRepository.findById(
                 deleteContentMetadatas.get(1).getId()).get();
-        assertThat(delContentMetadata2.isDeleted()).isEqualTo(true);
+        assertThat(deleteContentMetadata2.isDeleted()).isEqualTo(true);
 
         List<AdminContentRegisterJob> findRegisterJobs = adminContentRegisterJobRepository.findAll();
         assertThat(findRegisterJobs.get(0).getStatus().name()).isEqualTo(
