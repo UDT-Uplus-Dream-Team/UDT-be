@@ -3,10 +3,12 @@ package com.example.udtbe.domain.admin.service;
 import com.example.udtbe.domain.admin.dto.AdminContentMapper;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -243,5 +245,10 @@ public class AdminService {
                 .map(Cast::getId)
                 .toList();
         return new AdminCastsRegisterResponse(savedCastIds);
+    }
+
+    public CursorPageResponse<AdminCastsGetResponse> getCasts(
+            AdminCastsGetRequest adminCastsGetRequest) {
+        return adminQuery.getCasts(adminCastsGetRequest);
     }
 }

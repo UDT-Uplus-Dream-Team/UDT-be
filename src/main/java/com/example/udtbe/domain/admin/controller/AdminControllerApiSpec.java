@@ -1,9 +1,11 @@
 package com.example.udtbe.domain.admin.controller;
 
+import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -83,6 +85,15 @@ public interface AdminControllerApiSpec {
     @PostMapping("/api/admin/casts")
     ResponseEntity<AdminCastsRegisterResponse> registerCasts(
             @Valid @RequestBody AdminCastsRegisterRequest adminCastsRegisterRequest
+    );
+
+    @Operation(summary = "출연진 조회", description = "이름으로 출연진을 검색한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "이름이 부분|완전 일치한 출연진 목록을 반환"),
+    })
+    @GetMapping("/api/admin/casts")
+    ResponseEntity<CursorPageResponse<AdminCastsGetResponse>> getCasts(
+            @Valid @ModelAttribute AdminCastsGetRequest adminCastsGetRequest
     );
 }
 
