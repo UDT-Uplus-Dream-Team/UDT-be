@@ -5,12 +5,14 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,7 +87,7 @@ public interface AdminControllerApiSpec {
     ResponseEntity<AdminMemberInfoGetResponse> getMemberFeedbackInfo(
             @PathVariable(name = "userId") Long userId
     );
-  
+
     @Operation(summary = "출연진 다건 등록", description = "새로운 출연진들을 다건 등록한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "등록된 출연진 contentId 목록 반환"),
@@ -102,6 +104,15 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/casts")
     ResponseEntity<CursorPageResponse<AdminCastsGetResponse>> getCasts(
             @Valid @ModelAttribute AdminCastsGetRequest adminCastsGetRequest
+    );
+
+    @Operation(summary = "감독 다건 등록", description = "새로운 감독들을 다건 등록한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "등록된 감독 DirectorId 목록 반환"),
+    })
+    @PostMapping("/api/admin/directors")
+    ResponseEntity<AdminDirectorsRegisterResponse> registerDirectors(
+            @Valid @RequestBody AdminDirectorsRegisterRequest adminDirectorsRegisterRequest
     );
 }
 
