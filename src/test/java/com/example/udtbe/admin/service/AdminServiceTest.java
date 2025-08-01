@@ -18,8 +18,8 @@ import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
-import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminDirectorDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
@@ -134,7 +134,6 @@ public class AdminServiceTest {
         // given
         Long id = 42L;
         Content saved = mock(Content.class);
-        given(saved.getId()).willReturn(id);
         given(contentRepository.save(any(Content.class))).willReturn(saved);
 
         List<AdminCategoryDTO> adminCategoryDTOS = registerRequest.categories();
@@ -233,7 +232,7 @@ public class AdminServiceTest {
 
     }
 
-    @DisplayName("관리자는 콘텐츠를 업데이트할 때 필드와 메타데이터를 수정할 수 있다.")
+    @DisplayName("콘텐츠를 업데이트할 때 필드와 메타데이터를 수정할 수 있다.")
     @Test
     void updateContent() {
         // given
