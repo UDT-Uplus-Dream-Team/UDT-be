@@ -81,11 +81,11 @@ public interface AdminControllerApiSpec {
 
     @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
-    @GetMapping("/api/admin/users/{userId}")
+    @GetMapping("/api/admin/users/{userId}/metrics")
     ResponseEntity<AdminMemberInfoGetResponse> getMemberFeedbackInfo(
             @PathVariable(name = "userId") Long userId
     );
-  
+
     @Operation(summary = "출연진 다건 등록", description = "새로운 출연진들을 다건 등록한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "등록된 출연진 contentId 목록 반환"),
