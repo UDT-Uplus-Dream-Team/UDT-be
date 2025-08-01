@@ -98,4 +98,8 @@ public class AdminQuery {
             AdminCastsGetRequest adminCastsGetRequest) {
         return castRepository.getCasts(adminCastsGetRequest);
     }
+
+    public List<Director> saveAllDirectors(List<Director> directors) {
+        return directorRepository.saveAll(directors);
+    }
 }

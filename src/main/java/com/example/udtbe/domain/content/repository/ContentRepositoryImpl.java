@@ -11,6 +11,7 @@ import static com.example.udtbe.domain.content.entity.QContentGenre.contentGenre
 import static com.example.udtbe.domain.content.entity.QContentPlatform.contentPlatform;
 import static com.example.udtbe.domain.content.entity.QCountry.country;
 import static com.example.udtbe.domain.content.entity.QDirector.director;
+import static com.example.udtbe.domain.content.entity.QFeedback.feedback;
 import static com.example.udtbe.domain.content.entity.QGenre.genre;
 import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 import static com.querydsl.core.group.GroupBy.groupBy;
@@ -27,7 +28,9 @@ import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.PopularContentByPlatformResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.QPopularContentByPlatformResponse;
 import com.example.udtbe.domain.content.dto.response.QRecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.QWeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
@@ -40,6 +43,7 @@ import com.example.udtbe.domain.content.entity.Country;
 import com.example.udtbe.domain.content.entity.Director;
 import com.example.udtbe.domain.content.entity.Genre;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
@@ -49,6 +53,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -403,6 +408,41 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                                 )
                         )
                 );
+    }
+
+    @Override
+    public List<PopularContentByPlatformResponse> findPopularContentsByPlatform() {
+        List<PlatformType> platformTypes = List.of(PlatformType.values());
+        List<PopularContentByPlatformResponse> result = new ArrayList<>();
+        Set<Long> usedContentIds = new HashSet<>();
+
+        for (PlatformType platformType : platformTypes) {
+            PopularContentByPlatformResponse topContent = queryFactory
+                    .select(new QPopularContentByPlatformResponse(
+                            content.id,
+                            content.posterUrl
+                    ))
+                    .from(content)
+                    .join(content.contentPlatforms, contentPlatform)
+                    .join(contentPlatform.platform, platform)
+                    .leftJoin(feedback).on(feedback.content.eq(content)
+                            .and(feedback.feedbackType.eq(FeedbackType.LIKE))
+                            .and(feedback.isDeleted.isFalse()))
+                    .where(content.isDeleted.isFalse()
+                            .and(platform.platformType.eq(platformType))
+                            .and(content.id.notIn(usedContentIds.isEmpty()
+                                    ? List.of(-1L) : usedContentIds)))
+                    .groupBy(content.id, content.posterUrl)
+                    .orderBy(feedback.id.count().desc(), content.id.desc())
+                    .limit(1)
+                    .fetchOne();
+
+            if (Objects.nonNull(topContent)) {
+                result.add(topContent);
+                usedContentIds.add(topContent.contentId());
+            }
+        }
+        return result;
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,

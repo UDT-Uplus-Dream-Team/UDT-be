@@ -9,14 +9,17 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.content.dto.CastMapper;
+import com.example.udtbe.domain.content.dto.DirectorMapper;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -268,7 +271,7 @@ public class AdminService {
                 detail
         );
     }
-  
+
     @Transactional
     public AdminCastsRegisterResponse registerCasts(
             AdminCastsRegisterRequest adminCastsRegisterRequest) {
@@ -290,5 +293,23 @@ public class AdminService {
     public CursorPageResponse<AdminCastsGetResponse> getCasts(
             AdminCastsGetRequest adminCastsGetRequest) {
         return adminQuery.getCasts(adminCastsGetRequest);
+    }
+
+    public AdminDirectorsRegisterResponse registerDirectors(
+            AdminDirectorsRegisterRequest adminDirectorsRegisterRequest) {
+
+        List<Director> directors = new ArrayList<>();
+        adminDirectorsRegisterRequest.adminDirectorDTOS().stream()
+                .forEach(adminDirectorDTO -> directors.add(DirectorMapper.toDirector(
+                                adminDirectorDTO.directorName(),
+                                adminDirectorDTO.directorImageUrl()
+                        ))
+                );
+
+        List<Long> savedDirectors = adminQuery.saveAllDirectors(directors).stream()
+                .map(Director::getId)
+                .toList();
+
+        return new AdminDirectorsRegisterResponse(savedDirectors);
     }
 }
