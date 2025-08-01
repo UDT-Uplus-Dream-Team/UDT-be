@@ -24,7 +24,6 @@ import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +40,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 @SpringBatchTest
 @Sql(scripts = "classpath:data-test.sql")
-@Sql(scripts = "classpath:batch-test.sql")
+@Sql(scripts = "classpath:batch-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class BatchConfigTest extends ApiSupport {
 
     @Autowired
@@ -85,7 +84,6 @@ class BatchConfigTest extends ApiSupport {
     }
 
     @BeforeEach
-    @Transactional
     void setUp() {
         Member member = MemberFixture.member("String@naber.com", ROLE_ADMIN);
         memberRepository.save(member);
