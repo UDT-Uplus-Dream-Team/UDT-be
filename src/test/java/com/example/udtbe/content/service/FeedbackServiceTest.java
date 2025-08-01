@@ -3,6 +3,7 @@ package com.example.udtbe.content.service;
 import static com.example.udtbe.common.fixture.ContentFixture.content;
 import static com.example.udtbe.common.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.example.udtbe.common.fixture.ContentFixture;
+import com.example.udtbe.common.fixture.FeedbackFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
@@ -18,9 +20,12 @@ import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
+import com.example.udtbe.domain.content.service.ContentQuery;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
+import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -42,7 +47,13 @@ public class FeedbackServiceTest {
     private FeedbackRepository feedbackRepository;
 
     @Mock
+    private ContentQuery contentQuery;
+
+    @Mock
     private FeedbackQuery feedbackQuery;
+
+    @Mock
+    private FeedbackStatisticsQuery feedbackStatisticsQuery;
 
     @InjectMocks
     private FeedbackService feedbackService;
@@ -121,6 +132,39 @@ public class FeedbackServiceTest {
         // then
         assertThat(savedFeedback.getFeedbackType()).isEqualTo(FeedbackType.DISLIKE);
         verify(feedbackRepository, times(1)).saveAll(anyList());
+    }
+
+    @DisplayName("회원이 피드백을 남기면 피드백 집계 테이블에 피드백 내용이 저장된다.")
+    @Test
+    void saveFeedbackStatics() {
+        // given
+        Member member = MemberFixture.member("user@email.com", Role.ROLE_USER);
+        Content content = ContentFixture.content("title", "description");
+        ReflectionTestUtils.setField(content, "id", 1L);
+
+        Feedback feedback = FeedbackFixture.like(member, content);
+        feedbackRepository.save(feedback);
+
+        List<GenreType> genres = List.of(GenreType.DRAMA, GenreType.ACTION);
+
+        FeedbackCreateDTO dto = new FeedbackCreateDTO(content.getId(), FeedbackType.LIKE);
+        List<FeedbackCreateDTO> req = List.of(dto);
+
+        given(feedbackQuery.findContentById(1L)).willReturn(content);
+        given(contentQuery.getGenreTypeById(1L)).willReturn(genres);
+        given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(), content.getId()))
+                .willReturn(Optional.empty());
+
+        // when
+        feedbackService.saveFeedbacks(req, member);
+
+        // then
+        for (GenreType g : genres) {
+            verify(feedbackStatisticsQuery)
+                    .increaseStatics(member, g, FeedbackType.LIKE);
+        }
+        verify(feedbackStatisticsQuery, times(genres.size()))
+                .increaseStatics(any(), any(), any());
     }
 
 

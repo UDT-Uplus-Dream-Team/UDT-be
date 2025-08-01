@@ -2,12 +2,14 @@ package com.example.udtbe.domain.admin.dto;
 
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.FeedbackStatistics;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -58,4 +60,15 @@ public class AdminContentMapper {
         );
     }
 
+    public static List<AdminMemberGenreFeedbackDTO> toGenreFeedbackDtoList(
+            List<FeedbackStatistics> stats) {
+
+        return stats.stream()
+                .map(fs -> new AdminMemberGenreFeedbackDTO(
+                        fs.getGenreType(),
+                        fs.getLikeCount(),
+                        fs.getDislikeCount(),
+                        fs.getUninterestedCount()))
+                .toList();
+    }
 }
