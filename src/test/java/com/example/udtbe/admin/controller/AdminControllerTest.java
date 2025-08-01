@@ -1,14 +1,13 @@
 package com.example.udtbe.admin.controller;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.udtbe.common.fixture.CastFixture;
+import com.example.udtbe.common.fixture.ContentCategoryFixture;
+import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
@@ -18,9 +17,10 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
-import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -34,18 +34,16 @@ import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 @Sql(scripts = "classpath:data-test.sql")
 public class AdminControllerTest extends ApiSupport {
@@ -76,10 +74,6 @@ public class AdminControllerTest extends ApiSupport {
     private CastRepository castRepository;
     @Autowired
     private DirectorRepository directorRepository;
-    @Autowired
-    private AdminQuery adminQuery;
-
-    private AdminContentRegisterRequest adminContentRegisterRequest;
 
     @AfterEach
     void tearDown() {
@@ -98,9 +92,11 @@ public class AdminControllerTest extends ApiSupport {
         contentRepository.deleteAllInBatch();
     }
 
-    @BeforeEach
-    void setup() throws Exception {
-        adminContentRegisterRequest = new AdminContentRegisterRequest(
+    @Test
+    @DisplayName("콘텐츠 등록 시 배치 목록 DB에 저장할 수 있다.")
+    void contentRegister() throws Exception {
+        // when & then
+        AdminContentRegisterRequest adminContentRegisterRequest = new AdminContentRegisterRequest(
                 "테스트 제목", "테스트 설명",
                 "https://poster", "https://backdrop", "https://trailer",
                 LocalDateTime.of(2025, 7, 11, 0, 0),
@@ -110,24 +106,24 @@ public class AdminControllerTest extends ApiSupport {
                 List.of(1L, 2L),
                 List.of(new AdminPlatformDTO("넷플릭스", "https://watch"))
         );
-    }
 
-    @Test
-    @DisplayName("콘텐츠 등록 시 DB에 저장할 수 있다.")
-    void contentRegister() throws Exception {
-        // when & then
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
+        mockMvc.perform(post("/api/admin/contents/registerjob")
                         .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.registerJobId").value(1L))
                 .andReturn();
     }
 
     @Test
-    @DisplayName("콘텐츠 수정 시 필드와 메타데이터가 변경될 수 있다.")
+    @DisplayName("콘텐츠 수정 시 배치 목록 DB에 저장할 수 있다.")
     void updateContent() throws Exception {
+
+        Content content = ContentFixture.content("테스트 제목", "테스트 설명");
+        contentRepository.save(content);
+
         // given
         AdminContentUpdateRequest adminContentUpdateRequest = new AdminContentUpdateRequest(
                 "수정 테스트 제목", "수정 테스트 설명",
@@ -145,48 +141,42 @@ public class AdminControllerTest extends ApiSupport {
                         new AdminPlatformDTO("디즈니+", "w2")
                 )
         );
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
-                        .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        JsonNode node = objectMapper.readTree(mr.getResponse().getContentAsString());
-        Long id = node.get("contentId").asLong();
-
-        // when & then
-        mockMvc.perform(patch("/api/admin/contents/{id}", id)
+        mockMvc.perform(post("/api/admin/contents/updatejob/{contentId}", content.getId())
                         .content(objectMapper.writeValueAsString(adminContentUpdateRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.updateJobId").value(1L))
+                .andReturn();
     }
 
     @Test
+    @DisplayName("콘텐츠 삭제 시 배치 목록 DB에 저장할 수 있다.")
+    void deleteContent() throws Exception {
+
+        // given
+        Content content = ContentFixture.content("존재하지 않는 콘텐츠", "x");
+        contentRepository.save(content);
+
+        // when
+        mockMvc.perform(post("/api/admin/contents/deletejob/{contentId}", content.getId())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.deleteJobId").value(1L))
+                .andReturn();
+    }
+
+
+    @Test
     @DisplayName("페이징 조회 시 데이터와 nextCursor가 반환될 수 있다.")
+    @Transactional
     void getContents() throws Exception {
         // given
         for (int i = 1; i <= 4; i++) {
-            new AdminContentRegisterRequest(
-                    "T" + i, "D",
-                    "p", "b", "t",
-                    LocalDateTime.now(), 10, 1, "전체",
-                    List.of(new AdminCategoryDTO("영화", List.of("액션"))),
-                    List.of("KR"), List.of((long) i),
-                    List.of((long) i),
-                    List.of(new AdminPlatformDTO("넷플릭스", "u"))
-            );
-
-            mockMvc.perform(post("/api/admin/contents")
-                            .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(accessTokenOfAdmin)
-                    )
-                    .andExpect(status().isCreated())
-                    .andReturn();
+            Content content = ContentFixture.content("T" + i, "D");
+            contentRepository.save(content);
         }
 
         // when & then
@@ -211,35 +201,19 @@ public class AdminControllerTest extends ApiSupport {
 
     @Test
     @DisplayName("페이징 카테고리 필터링 조회 시 데이터와 nextCursor가 반환될 수 있다.")
+    @Transactional
     void getContentsByCategory() throws Exception {
         // given
         for (int i = 1; i <= 4; i++) {
-            String categoryType;
+            Category category;
             if (i % 2 == 0) {
-                categoryType = "영화";
+                category = categoryRepository.findByCategoryType(CategoryType.MOVIE).get();
             } else {
-                categoryType = "드라마";
+                category = categoryRepository.findByCategoryType(CategoryType.DRAMA).get();
             }
-            AdminContentRegisterRequest adminContentRegisterRequest1 = new AdminContentRegisterRequest(
-                    "T" + i, "D",
-                    "p", "b", "t",
-                    LocalDateTime.now(), 10, 1, "전체",
-                    List.of(
-                            new AdminCategoryDTO(categoryType, List.of("서사/드라마")),
-                            new AdminCategoryDTO("애니메이션", List.of("키즈"))
-                    ),
-                    List.of("KR"), List.of((long) i),
-                    List.of((long) i),
-                    List.of(new AdminPlatformDTO("넷플릭스", "u"))
-            );
-
-            mockMvc.perform(post("/api/admin/contents")
-                            .content(objectMapper.writeValueAsString(adminContentRegisterRequest1))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(accessTokenOfAdmin)
-                    )
-                    .andExpect(status().isCreated())
-                    .andReturn();
+            Content content = ContentFixture.content("T" + i, "D");
+            contentRepository.save(content);
+            ContentCategoryFixture.contentCategory(content, category);
         }
 
         // when & then
@@ -266,60 +240,20 @@ public class AdminControllerTest extends ApiSupport {
 
     @Test
     @DisplayName("상세 조회 시 매핑된 필드가 반환될 수 있다.")
+    @Transactional
     void getContentSuccess() throws Exception {
         //given
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
-                        .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        JsonNode node = objectMapper.readTree(mr.getResponse().getContentAsString());
-        Long id = node.get("contentId").asLong();
+        Content content = ContentFixture.content("T", "D");
+        contentRepository.save(content);
 
         // when & then
-        mockMvc.perform(get("/api/admin/contents/{id}", id)
+        mockMvc.perform(get("/api/admin/contents/{id}", content.getId())
                         .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(adminContentRegisterRequest.title()))
-                .andExpect(jsonPath("$.categories[0].categoryType")
-                        .value(adminContentRegisterRequest.categories().get(0).categoryType()));
+                .andExpect(jsonPath("$.title").value(content.getTitle()));
     }
 
-
-    @Test
-    @DisplayName("삭제 시 isDeleted 플래그가 설정될 수 있다. 그 다음 조회 시 404에러가 나올 수 있다.")
-    void deleteContent() throws Exception {
-        // given
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
-                        .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        JsonNode node = objectMapper.readTree(mr.getResponse().getContentAsString());
-        Long id = node.get("contentId").asLong();
-
-        // when
-        mockMvc.perform(delete("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isNoContent());
-
-        Content c = contentRepository.findById(id).orElseThrow();
-        assertThat(c.isDeleted()).isTrue();
-
-        // 조회 시 404
-        mockMvc.perform(get("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isNotFound());
-    }
 
     @DisplayName("여러 명의 출연진을 한번에 저장한다.")
     @Test
