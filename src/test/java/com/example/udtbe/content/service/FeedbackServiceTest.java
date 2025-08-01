@@ -174,7 +174,7 @@ public class FeedbackServiceTest {
 
         Feedback feedback1 = Feedback.of(FeedbackType.LIKE, false, member, content);
         Feedback feedback2 = Feedback.of(FeedbackType.LIKE, false, member, content);
-        
+
         ReflectionTestUtils.setField(member, "id", 10L);
         List<Long> feedbackIds = List.of(1L, 2L);
         List<Feedback> feedbacks = List.of(feedback1, feedback2);

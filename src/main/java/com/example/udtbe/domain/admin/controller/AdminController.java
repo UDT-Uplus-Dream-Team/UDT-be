@@ -1,8 +1,10 @@
 package com.example.udtbe.domain.admin.controller;
 
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
@@ -59,5 +61,13 @@ public class AdminController implements AdminControllerApiSpec {
         CursorPageResponse<AdminContentGetResponse> contentDTOCursorPageResponse = adminService
                 .getContents(adminContentGetsRequest);
         return ResponseEntity.status(HttpStatus.OK).body(contentDTOCursorPageResponse);
+    }
+
+    @Override
+    public ResponseEntity<AdminCastsRegisterResponse> registerCasts(
+            AdminCastsRegisterRequest adminCastsRegisterRequest) {
+        AdminCastsRegisterResponse adminCastsRegisterResponse = adminService.registerCasts(
+                adminCastsRegisterRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminCastsRegisterResponse);
     }
 }
