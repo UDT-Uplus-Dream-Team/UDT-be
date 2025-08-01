@@ -8,9 +8,7 @@ import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
-import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
-import com.example.udtbe.domain.content.repository.FeedbackStaticsRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.ArrayList;
@@ -27,8 +25,8 @@ public class FeedbackService {
 
     private final FeedbackQuery feedbackQuery;
     private final FeedbackRepository feedbackRepository;
-    private final ContentRepository contentRepository;
-    private final FeedbackStaticsRepository feedbackStaticsRepository;
+    private final ContentQuery contentQuery;
+    private final FeedbackStatisticsQuery feedbackStatisticsQuery;
 
     @Transactional
     public void saveFeedbacks(List<FeedbackCreateDTO> requests, Member member) {
@@ -37,8 +35,7 @@ public class FeedbackService {
         for (FeedbackCreateDTO feedbackCreateDTO : requests) {
             Content content = feedbackQuery.findContentById(feedbackCreateDTO.contentId());
 
-            List<GenreType> genres = contentRepository.findGenreTypesByContentId(
-                    feedbackCreateDTO.contentId());
+            List<GenreType> genres = contentQuery.getGenreTypeById(feedbackCreateDTO.contentId());
 
             FeedbackType newFeedbackType = feedbackCreateDTO.feedback();
 
@@ -47,8 +44,10 @@ public class FeedbackService {
                     content.getId());
 
             if (findFeedback.isEmpty()) {
-                genres.forEach(genreType -> incStatics(member, genreType, newFeedbackType));
                 Feedback newFeedback = Feedback.of(newFeedbackType, false, member, content);
+                genres.forEach(
+                        genreType -> feedbackStatisticsQuery.increaseStatics(member, genreType,
+                                newFeedbackType));
                 feedbacks.add(newFeedback);
                 continue;
             }
@@ -58,13 +57,15 @@ public class FeedbackService {
 
             if (prevFeedback.isDeleted()) {
                 prevFeedback.switchDeleted();
-                genres.forEach(genreType -> incStatics(member, genreType, newFeedbackType));
+                genres.forEach(
+                        genreType -> feedbackStatisticsQuery.increaseStatics(member, genreType,
+                                newFeedbackType));
             }
 
             if (prevFeedbackType != newFeedbackType) {
                 genres.forEach(genreType -> {
-                    decStatics(member, genreType, prevFeedbackType);
-                    incStatics(member, genreType, newFeedbackType);
+                    feedbackStatisticsQuery.decreaseStatics(member, genreType, prevFeedbackType);
+                    feedbackStatisticsQuery.increaseStatics(member, genreType, newFeedbackType);
                 });
                 prevFeedback.updateFeedbackType(newFeedbackType);
             }
@@ -100,17 +101,10 @@ public class FeedbackService {
         List<Feedback> feedbacks = feedbackQuery.findFeedbackByIdList(member.getId(), feedbackIds);
         for (Feedback feedback : feedbacks) {
             feedback.switchDeleted();
-            List<GenreType> genres =
-                    contentRepository.findGenreTypesByContentId(feedback.getContent().getId());
-            genres.forEach(genreType -> decStatics(member, genreType, feedback.getFeedbackType()));
+            List<GenreType> genres = contentQuery.getGenreTypeById(feedback.getContent().getId());
+            genres.forEach(
+                    genreType -> feedbackStatisticsQuery.decreaseStatics(member, genreType,
+                            feedback.getFeedbackType()));
         }
-    }
-
-    private void incStatics(Member member, GenreType genre, FeedbackType feedbacktype) {
-        feedbackStaticsRepository.changeFeedbackStatics(member, genre, feedbacktype, +1);
-    }
-
-    private void decStatics(Member member, GenreType genre, FeedbackType feedbacktype) {
-        feedbackStaticsRepository.changeFeedbackStatics(member, genre, feedbacktype, -1);
     }
 }

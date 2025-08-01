@@ -23,7 +23,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminMemberFeedbackGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -498,26 +498,26 @@ public class AdminServiceTest {
         given(memberQuery.findMemberById(memberId)).willReturn(member);
 
         FeedbackStatistics dramaStat = FeedbackStatistics.of(
-                GenreType.DRAMA, 4L, 1L, 0L, false, member
+                GenreType.DRAMA, 4, 1, 0, false, member
         );
 
         FeedbackStatistics actionStat = FeedbackStatistics.of(
-                GenreType.ACTION, 3L, 2L, 1L, false, member
+                GenreType.ACTION, 3, 2, 1, false, member
         );
 
         given(feedbackStatisticsQuery.findByMemberOrThrow(memberId))
                 .willReturn(List.of(dramaStat, actionStat));
 
         // when
-        AdminMemberFeedbackGetResponse response = adminService.getMemberFeedbackInfo(memberId);
+        AdminMemberInfoGetResponse response = adminService.getMemberFeedbackInfo(memberId);
 
         // then
         assertAll(
                 () -> assertThat(response.id()).isEqualTo(memberId),
                 () -> assertThat(response.name()).isEqualTo(member.getName()),
-                () -> assertThat(response.likeCount()).isEqualTo(7),
-                () -> assertThat(response.dislikeCount()).isEqualTo(3),
-                () -> assertThat(response.uninterestedCount()).isEqualTo(1),
+                () -> assertThat(response.totalLikeCount()).isEqualTo(7),
+                () -> assertThat(response.totalDislikeCount()).isEqualTo(3),
+                () -> assertThat(response.totalUninterestedCount()).isEqualTo(1),
                 () -> assertThat(response.genres()).hasSize(2)
                         .extracting("genreType")
                         .containsExactlyInAnyOrder(GenreType.DRAMA, GenreType.ACTION)

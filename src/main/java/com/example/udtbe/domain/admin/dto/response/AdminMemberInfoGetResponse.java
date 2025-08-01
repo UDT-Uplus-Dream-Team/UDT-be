@@ -4,14 +4,14 @@ import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record AdminMemberFeedbackGetResponse(
+public record AdminMemberInfoGetResponse(
         Long id,
         String name,
         String email,
         LocalDateTime lastLoginAt,
-        long likeCount,
-        long dislikeCount,
-        long uninterestedCount,
+        long totalLikeCount,
+        long totalDislikeCount,
+        long totalUninterestedCount,
         List<AdminMemberGenreFeedbackDTO> genres
 ) {
 

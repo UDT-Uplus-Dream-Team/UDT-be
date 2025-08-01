@@ -3,6 +3,7 @@ package com.example.udtbe.content.service;
 import static com.example.udtbe.common.fixture.ContentFixture.content;
 import static com.example.udtbe.common.fixture.MemberFixture.member;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -20,11 +21,11 @@ import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
 import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
-import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
-import com.example.udtbe.domain.content.repository.FeedbackStaticsRepository;
+import com.example.udtbe.domain.content.service.ContentQuery;
 import com.example.udtbe.domain.content.service.FeedbackQuery;
 import com.example.udtbe.domain.content.service.FeedbackService;
+import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -46,13 +47,13 @@ public class FeedbackServiceTest {
     private FeedbackRepository feedbackRepository;
 
     @Mock
-    private FeedbackStaticsRepository feedbackStaticsRepository;
-
-    @Mock
-    private ContentRepository contentRepository;
+    private ContentQuery contentQuery;
 
     @Mock
     private FeedbackQuery feedbackQuery;
+
+    @Mock
+    private FeedbackStatisticsQuery feedbackStatisticsQuery;
 
     @InjectMocks
     private FeedbackService feedbackService;
@@ -144,14 +145,13 @@ public class FeedbackServiceTest {
         Feedback feedback = FeedbackFixture.like(member, content);
         feedbackRepository.save(feedback);
 
-        GenreType genreType = GenreType.DRAMA;
+        List<GenreType> genres = List.of(GenreType.DRAMA, GenreType.ACTION);
 
         FeedbackCreateDTO dto = new FeedbackCreateDTO(content.getId(), FeedbackType.LIKE);
         List<FeedbackCreateDTO> req = List.of(dto);
 
         given(feedbackQuery.findContentById(1L)).willReturn(content);
-        given(contentRepository.findGenreTypesByContentId(1L))
-                .willReturn(List.of(genreType));
+        given(contentQuery.getGenreTypeById(1L)).willReturn(genres);
         given(feedbackQuery.findFeedbackByMemberIdAndContentId(member.getId(), content.getId()))
                 .willReturn(Optional.empty());
 
@@ -159,8 +159,12 @@ public class FeedbackServiceTest {
         feedbackService.saveFeedbacks(req, member);
 
         // then
-        verify(feedbackStaticsRepository, times(1))
-                .changeFeedbackStatics(member, genreType, FeedbackType.LIKE, +1);
+        for (GenreType g : genres) {
+            verify(feedbackStatisticsQuery)
+                    .increaseStatics(member, g, FeedbackType.LIKE);
+        }
+        verify(feedbackStatisticsQuery, times(genres.size()))
+                .increaseStatics(any(), any(), any());
     }
 
 

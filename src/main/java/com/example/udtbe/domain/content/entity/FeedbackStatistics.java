@@ -22,6 +22,7 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "feedback_statistics")
@@ -39,13 +40,16 @@ public class FeedbackStatistics extends TimeBaseEntity {
     private GenreType genreType;
 
     @Column(name = "like_count", nullable = false)
-    private Long likeCount;
+    @ColumnDefault("0")
+    private int likeCount = 0;
 
     @Column(name = "dislike_count", nullable = false)
-    private Long dislikeCount;
+    @ColumnDefault("0")
+    private int dislikeCount = 0;
 
     @Column(name = "uninterested_count", nullable = false)
-    private Long uninterestedCount;
+    @ColumnDefault("0")
+    private int uninterestedCount = 0;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
@@ -57,8 +61,8 @@ public class FeedbackStatistics extends TimeBaseEntity {
     private Member member;
 
     @Builder(access = PRIVATE)
-    private FeedbackStatistics(GenreType genreType, Long likeCount, Long dislikeCount,
-            Long uninterestedCount, boolean isDeleted, Member member) {
+    private FeedbackStatistics(GenreType genreType, Integer likeCount, Integer dislikeCount,
+            Integer uninterestedCount, boolean isDeleted, Member member) {
         this.genreType = genreType;
         this.likeCount = likeCount;
         this.dislikeCount = dislikeCount;
@@ -67,8 +71,8 @@ public class FeedbackStatistics extends TimeBaseEntity {
         this.member = member;
     }
 
-    public static FeedbackStatistics of(GenreType genreType, Long likeCount, Long dislikeCount,
-            Long uninterestedCount, boolean isDeleted, Member member) {
+    public static FeedbackStatistics of(GenreType genreType, Integer likeCount,
+            Integer dislikeCount, Integer uninterestedCount, boolean isDeleted, Member member) {
         return FeedbackStatistics.builder()
                 .genreType(genreType)
                 .likeCount(likeCount)

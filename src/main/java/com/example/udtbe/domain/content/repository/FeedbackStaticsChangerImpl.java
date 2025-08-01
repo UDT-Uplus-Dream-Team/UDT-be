@@ -23,7 +23,7 @@ public class FeedbackStaticsChangerImpl implements FeedbackStaticsChanger {
             int countChange) {
         QFeedbackStatistics feedbackStatistics = QFeedbackStatistics.feedbackStatistics;
 
-        NumberPath<Long> target = switch (feedbackType) {
+        NumberPath<Integer> target = switch (feedbackType) {
             case LIKE -> feedbackStatistics.likeCount;
             case DISLIKE -> feedbackStatistics.dislikeCount;
             case UNINTERESTED -> feedbackStatistics.uninterestedCount;
@@ -39,9 +39,9 @@ public class FeedbackStaticsChangerImpl implements FeedbackStaticsChanger {
         if (updated == 0 && countChange > 0) {
             em.persist(
                     FeedbackStatistics.of(genreType,
-                            feedbackType == FeedbackType.LIKE ? 1L : 0L,
-                            feedbackType == FeedbackType.DISLIKE ? 1L : 0L,
-                            feedbackType == FeedbackType.UNINTERESTED ? 1L : 0L,
+                            feedbackType == FeedbackType.LIKE ? 1 : 0,
+                            feedbackType == FeedbackType.DISLIKE ? 1 : 0,
+                            feedbackType == FeedbackType.UNINTERESTED ? 1 : 0,
                             false,
                             member));
         }

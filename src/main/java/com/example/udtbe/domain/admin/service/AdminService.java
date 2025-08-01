@@ -11,7 +11,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminMemberFeedbackGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -67,6 +67,7 @@ public class AdminService {
     private final MemberQuery memberQuery;
     private final FeedbackStaticsRepository feedbackStaticsRepository;
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
+    private final AdminContentMapper adminContentMapper;
 
     @Transactional
     @LogReturn
@@ -234,20 +235,16 @@ public class AdminService {
         contentDirectorRepository.deleteAllByContent(content);
     }
 
-    public AdminMemberFeedbackGetResponse getMemberFeedbackInfo(Long memberId) {
+    @Transactional(readOnly = true)
+    public AdminMemberInfoGetResponse getMemberFeedbackInfo(Long memberId) {
 
         Member member = memberQuery.findMemberById(memberId);
 
         List<FeedbackStatistics> feedbackInfos = feedbackStatisticsQuery.findByMemberOrThrow(
                 memberId);
 
-        List<AdminMemberGenreFeedbackDTO> detail = feedbackInfos.stream()
-                .map(fs -> new AdminMemberGenreFeedbackDTO(
-                        fs.getGenreType(),
-                        fs.getLikeCount(),
-                        fs.getDislikeCount(),
-                        fs.getUninterestedCount()))
-                .toList();
+        List<AdminMemberGenreFeedbackDTO> detail = adminContentMapper.toGenreFeedbackDtoList(
+                feedbackInfos);
 
         long likeSum = feedbackInfos.stream().mapToLong(FeedbackStatistics::getLikeCount).sum();
         long dislikeSum = feedbackInfos.stream().mapToLong(FeedbackStatistics::getDislikeCount)
@@ -255,7 +252,7 @@ public class AdminService {
         long uninterestedSum = feedbackInfos.stream()
                 .mapToLong(FeedbackStatistics::getUninterestedCount).sum();
 
-        return new AdminMemberFeedbackGetResponse(
+        return new AdminMemberInfoGetResponse(
                 member.getId(),
                 member.getName(),
                 member.getEmail(),
