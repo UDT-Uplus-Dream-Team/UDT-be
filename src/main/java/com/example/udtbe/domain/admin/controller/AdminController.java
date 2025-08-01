@@ -5,12 +5,14 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -86,5 +88,13 @@ public class AdminController implements AdminControllerApiSpec {
         CursorPageResponse<AdminCastsGetResponse> response =
                 adminService.getCasts(adminCastsGetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminDirectorsRegisterResponse> registerDirectors(
+            AdminDirectorsRegisterRequest adminDirectorsRegisterRequest) {
+        AdminDirectorsRegisterResponse adminCastsRegisterRequest = adminService.registerDirectors(
+                adminDirectorsRegisterRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminCastsRegisterRequest);
     }
 }
