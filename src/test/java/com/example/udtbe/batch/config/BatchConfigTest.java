@@ -23,8 +23,10 @@ import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -58,6 +60,17 @@ class BatchConfigTest extends ApiSupport {
     @Autowired
     private AdminContentRegisterJobRepository adminContentRegisterJobRepository;
 
+    private Member member;
+    private List<Content> updateContents = new ArrayList<>();
+    private List<ContentMetadata> updateContentMetadatas = new ArrayList<>();
+    private List<Content> deleteContents = new ArrayList<>();
+    private List<ContentMetadata> deleteContentMetadatas = new ArrayList<>();
+
+    private List<AdminContentUpdateJob> updateJobs = new ArrayList<>();
+    private List<AdminContentDeleteJob> deleteJobs = new ArrayList<>();
+    private List<AdminContentRegisterJob> registerJobs = new ArrayList<>();
+
+
     @AfterEach
     void tearDown() {
         adminContentUpdateJobRepository.deleteAllInBatch();
@@ -67,50 +80,51 @@ class BatchConfigTest extends ApiSupport {
         memberRepository.deleteAllInBatch();
     }
 
-    @Test
-    @DisplayName("content Job들을 수행할 수 있다.")
-    void contentUpdateRequestJobSuccess() throws Exception {
-        // given
+    @BeforeEach
+    void setUp() {
         Member member = MemberFixture.member("String@naber.com", ROLE_ADMIN);
         memberRepository.save(member);
 
         Content updateContent1 = ContentFixture.content("tit;e", "dis");
-        contentRepository.save(updateContent1);
+        updateContentMetadatas.add(ContentMetadataFixture.dramaMetadata(updateContent1));
+        updateContents.add(updateContent1);
 
-        ContentMetadata updateContentMetadata1 = ContentMetadataFixture.dramaMetadata(
-                updateContent1);
-        contentMetadataRepository.save(updateContentMetadata1);
+        contentRepository.saveAll(updateContents);
+        contentMetadataRepository.saveAll(updateContentMetadatas);
 
         Content delContent1 = ContentFixture.content("del", "delete");
-        contentRepository.save(delContent1);
-
         Content delContent2 = ContentFixture.content("del", "delete");
-        contentRepository.save(delContent2);
 
         ContentMetadata delContentMetadata1 = ContentMetadataFixture.dramaMetadata(delContent1);
-        contentMetadataRepository.save(delContentMetadata1);
-
         ContentMetadata delContentMetadata2 = ContentMetadataFixture.dramaMetadata(delContent2);
-        contentMetadataRepository.save(delContentMetadata2);
 
-        AdminContentUpdateJob updateJob1 = AdminContentUpdateJobFixture.createPendingJob(
-                member.getId(), updateContent1.getId(),
-                "title_job1", "설명1");
-        AdminContentUpdateJob updateJob2 = AdminContentUpdateJobFixture.createPendingJob(
-                member.getId(), updateContent1.getId(),
-                "title_job2", "설명2");
+        deleteContents.addAll(List.of(delContent1, delContent2));
+        deleteContentMetadatas.addAll(List.of(delContentMetadata1, delContentMetadata2));
 
-        adminContentUpdateJobRepository.saveAll(List.of(updateJob1, updateJob2));
-        adminContentDeleteJobRepository.save(
+        contentRepository.saveAll(deleteContents);
+        contentMetadataRepository.saveAll(deleteContentMetadatas);
+
+        updateJobs.add(AdminContentUpdateJobFixture.createPendingJob(member.getId(),
+                updateContent1.getId(), "title_job1", "설명1"));
+        adminContentUpdateJobRepository.saveAll(updateJobs);
+
+        deleteJobs.add(
                 AdminContentDeleteJobFixture.createPendingJob(member.getId(), delContent1.getId()));
-        adminContentDeleteJobRepository.save(
+        deleteJobs.add(
                 AdminContentDeleteJobFixture.createPendingJob(member.getId(), delContent2.getId()));
+        adminContentDeleteJobRepository.saveAll(deleteJobs);
 
-        adminContentRegisterJobRepository.save(
-                AdminContentRegisterJobFixture.createPendingJob(member.getId(), "추가 콘텐츠1", "타이틀"));
-        adminContentRegisterJobRepository.save(
-                AdminContentRegisterJobFixture.createPendingJob(member.getId(), "추가 콘텐츠2", "타이틀"));
+        registerJobs.add(AdminContentRegisterJobFixture.createPendingJob(
+                member.getId(), "추가 콘텐츠1", "타이틀"));
+        registerJobs.add(AdminContentRegisterJobFixture.createPendingJob(
+                member.getId(), "추가 콘텐츠2", "타이틀"));
+        adminContentRegisterJobRepository.saveAll(registerJobs);
+    }
 
+    @Test
+    @DisplayName("content Job들을 수행할 수 있다.")
+    void contentUpdateRequestJobSuccess() throws Exception {
+        // given
         JobParameters jobParameters = jobLauncherTestUtils.getUniqueJobParameters();
 
         // when
@@ -120,17 +134,12 @@ class BatchConfigTest extends ApiSupport {
         assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
         // update 검증
-        List<AdminContentUpdateJob> jobs = adminContentUpdateJobRepository.findAll();
-        assertThat(jobs).hasSize(2);
-        assertThat(jobs.get(0).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
-        assertThat(jobs.get(1).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
+        List<AdminContentUpdateJob> updateJobs = adminContentUpdateJobRepository.findAll();
+        assertThat(updateJobs).hasSize(1);
+        assertThat(updateJobs.get(0).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
 
-        Content updatedContent = contentRepository.findById(updateContent1.getId()).get();
-        assertThat(updatedContent.getTitle()).isEqualTo(updateJob2.getTitle());
-
-        updateContentMetadata1 = contentMetadataRepository.findById(updateContentMetadata1.getId())
-                .get();
-        assertThat(updateContentMetadata1.getTitle()).isEqualTo(updateJob2.getTitle());
+        Content updatedContent = contentRepository.findById(updateContents.get(0).getId()).get();
+        assertThat(updatedContent.getTitle()).isEqualTo(updateJobs.get(0).getTitle());
 
         // delete 검증
         List<AdminContentDeleteJob> deleteJobs = adminContentDeleteJobRepository.findAll();
@@ -138,16 +147,18 @@ class BatchConfigTest extends ApiSupport {
         assertThat(deleteJobs.get(0).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
         assertThat(deleteJobs.get(1).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
 
-        delContent1 = contentRepository.findById(delContent1.getId()).get();
-        assertThat(delContent1.isDeleted()).isEqualTo(true);
+        Content deleteContent1 = contentRepository.findById(deleteContents.get(0).getId()).get();
+        assertThat(deleteContent1.isDeleted()).isEqualTo(true);
 
-        delContent2 = contentRepository.findById(delContent2.getId()).get();
-        assertThat(delContent2.isDeleted()).isEqualTo(true);
+        Content deleteContent2 = contentRepository.findById(deleteContents.get(1).getId()).get();
+        assertThat(deleteContent2.isDeleted()).isEqualTo(true);
 
-        delContentMetadata1 = contentMetadataRepository.findById(delContentMetadata1.getId()).get();
+        ContentMetadata delContentMetadata1 = contentMetadataRepository.findById(
+                deleteContentMetadatas.get(0).getId()).get();
         assertThat(delContentMetadata1.isDeleted()).isEqualTo(true);
 
-        delContentMetadata2 = contentMetadataRepository.findById(delContentMetadata2.getId()).get();
+        ContentMetadata delContentMetadata2 = contentMetadataRepository.findById(
+                deleteContentMetadatas.get(1).getId()).get();
         assertThat(delContentMetadata2.isDeleted()).isEqualTo(true);
 
         List<AdminContentRegisterJob> registerJobs = adminContentRegisterJobRepository.findAll();
