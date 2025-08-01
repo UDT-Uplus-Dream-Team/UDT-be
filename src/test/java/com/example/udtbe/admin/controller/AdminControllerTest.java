@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
@@ -16,6 +17,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.service.AdminQuery;
+import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
@@ -425,4 +427,80 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.message").value("출연진 사진 주소은 필수입니다."))
         ;
     }
+
+    @DisplayName("이름으로 출연진을 검색한다.")
+    @Test
+    void getCastsByCastName() throws Exception {
+        // given
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item").isArray())
+                .andExpect(jsonPath("$.item[0].castId").value(savedCast.getId()))
+                .andExpect(jsonPath("$.item[0].name").value(savedCast.getCastName()))
+                .andExpect(jsonPath("$.nextCursor").isEmpty())
+                .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
+        ;
+    }
+
+    @DisplayName("이름 없이 요청 시 출연진을 검색할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastNameIsBlank() throws Exception {
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", "")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("검색할 출연진 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 출연진 검색 인원은 최소 1명이야 한다.")
+    @Test
+    void throwValidExceptionWhenCastSizeIsLessThanOne() throws Exception {
+        // given
+        final String size = "0";
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최소 1명 이상 조회해야 합니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 출연진 검색 인원은 최대 20명을 넘을 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastSizeExceedsLimit() throws Exception {
+        // given
+        final String size = "21";
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최대 20명 조회할 수 있습니다."))
+        ;
+    }
+
 }

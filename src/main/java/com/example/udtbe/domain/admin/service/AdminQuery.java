@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.admin.service;
 
+import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -20,6 +22,7 @@ import com.example.udtbe.domain.content.repository.CountryRepository;
 import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
+import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -89,5 +92,10 @@ public class AdminQuery {
 
     public List<Cast> saveAllCasts(List<Cast> casts) {
         return castRepository.saveAll(casts);
+    }
+
+    public CursorPageResponse<AdminCastsGetResponse> getCasts(
+            AdminCastsGetRequest adminCastsGetRequest) {
+        return castRepository.getCasts(adminCastsGetRequest);
     }
 }
