@@ -16,7 +16,9 @@ import static org.mockito.Mockito.verify;
 
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminDirectorDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
@@ -433,8 +435,8 @@ public class AdminServiceTest {
                 LocalDateTime.of(2023, 1, 1, 0, 0), 120, 1, "전체 관람가",
                 List.of(new AdminCategoryDTO("영화", List.of("액션"))),
                 List.of("한국"),
-                List.of("테스트 감독"),
-                List.of(new AdminCastDTO("테스트 배우", "https://cast.url")),
+                List.of(new AdminDirectorDetailsDTO(1L, "봉준호", "봉준호@director")),
+                List.of(new AdminCastDetailsDTO(1L, "이병헌", "이병헌@cast")),
                 List.of(new AdminPlatformDTO("넷플릭스", "https://platform.url")));
 
         given(contentRepository.getAdminContentDetails(id)).willReturn(contentGetDetailResponse);
