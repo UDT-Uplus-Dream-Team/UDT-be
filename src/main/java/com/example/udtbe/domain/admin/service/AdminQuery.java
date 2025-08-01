@@ -102,4 +102,40 @@ public class AdminQuery {
     public List<Director> saveAllDirectors(List<Director> directors) {
         return directorRepository.saveAll(directors);
     }
+
+    public void validCategoryByCategoryType(CategoryType categoryType) {
+        if (!categoryRepository.existsCategoryByCategoryType(categoryType)) {
+            throw new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND);
+        }
+    }
+
+    public void validGenreByCategoryTypeAndGenreTypes(CategoryType categoryType,
+            List<GenreType> genreTypes) {
+        genreTypes.forEach(genreType -> {
+            Category category = categoryRepository.findByCategoryType(categoryType).orElseThrow(()
+                    -> new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND)
+            );
+            if (!genreRepository.existsGenreByGenreTypeAndCategory(genreType, category)) {
+                throw new RestApiException(ContentErrorCode.GENRE_NOT_FOUND);
+            }
+        });
+    }
+
+    public void validPlatformByPlatformType(PlatformType platformType) {
+        if (!platformRepository.existsPlatformByPlatformType(platformType)) {
+            throw new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND);
+        }
+    }
+
+    public void validCastByCastId(Long castId) {
+        if (!castRepository.existsById(castId)) {
+            throw new RestApiException(ContentErrorCode.CAST_NOT_FOUND);
+        }
+    }
+
+    public void validDirectorByDirectorId(Long directorId) {
+        if (!directorRepository.existsById(directorId)) {
+            throw new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND);
+        }
+    }
 }

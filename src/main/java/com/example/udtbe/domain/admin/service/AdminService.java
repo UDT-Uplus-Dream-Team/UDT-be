@@ -12,12 +12,19 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
+import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
+import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.content.dto.CastMapper;
 import com.example.udtbe.domain.content.dto.DirectorMapper;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -46,7 +53,6 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
-import com.example.udtbe.domain.content.repository.FeedbackStaticsRepository;
 import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberQuery;
@@ -63,6 +69,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminService {
 
+    private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
+    private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
+    private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
+
     private final ContentMetadataRepository contentMetadataRepository;
     private final ContentRepository contentRepository;
     private final AdminQuery adminQuery;
@@ -73,13 +83,66 @@ public class AdminService {
     private final ContentPlatformRepository contentPlatformRepository;
     private final ContentDirectorRepository contentDirectorRepository;
     private final MemberQuery memberQuery;
-    private final FeedbackStaticsRepository feedbackStaticsRepository;
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
     private final AdminContentMapper adminContentMapper;
 
+
     @Transactional
     @LogReturn
-    public AdminContentRegisterResponse registerContent(AdminContentRegisterRequest request) {
+    public AdminContentRegisterResponse registerBulkContent(Member member,
+            AdminContentRegisterRequest request) {
+        validRegisterAndUpdateContent(request.categories(), request.platforms(), request.casts(),
+                request.directors());
+        AdminContentRegisterJob job = AdminContentMapper.toContentRegisterJob(request,
+                member.getId());
+
+        adminContentRegisterJobRepository.save(job);
+        return AdminContentMapper.toContentRegisterResponse(job.getId());
+    }
+
+    @Transactional
+    @LogReturn
+    public AdminContentUpdateResponse updateBulkContent(Member member, Long contentId,
+            AdminContentUpdateRequest request) {
+        validRegisterAndUpdateContent(request.categories(), request.platforms(), request.casts(),
+                request.directors());
+        AdminContentUpdateJob job = AdminContentMapper.toContentUpdateJob(request, contentId,
+                member.getId());
+        adminContentUpdateJobRepository.save(job);
+        return AdminContentMapper.toContentUpdateResponse(job.getId());
+    }
+
+    @Transactional
+    @LogReturn
+    public AdminContentDeleteResponse deleteBulkContent(Member member, Long contentId) {
+        AdminContentDeleteJob job = AdminContentMapper.toContentDeleteJob(contentId,
+                member.getId());
+        adminContentDeleteJobRepository.save(job);
+        return AdminContentMapper.toContentDeleteResponse(job.getId());
+    }
+
+    private void validRegisterAndUpdateContent(List<AdminCategoryDTO> categoryDTOs,
+            List<AdminPlatformDTO> platformDTOs,
+            List<Long> castIds, List<Long> directorIds) {
+
+        categoryDTOs.forEach(dto -> {
+            CategoryType categoryType = CategoryType.fromByType(dto.categoryType());
+            List<GenreType> genreTypes = dto.genres().stream().map(GenreType::fromByType).toList();
+            adminQuery.validCategoryByCategoryType(categoryType);
+            adminQuery.validGenreByCategoryTypeAndGenreTypes(categoryType, genreTypes);
+        });
+
+        platformDTOs.forEach(dto -> {
+            PlatformType platformType = PlatformType.fromByType(dto.platformType());
+            adminQuery.validPlatformByPlatformType(platformType);
+        });
+
+        castIds.forEach(adminQuery::validCastByCastId);
+        directorIds.forEach(adminQuery::validDirectorByDirectorId);
+    }
+
+    @LogReturn
+    public void registerContent(AdminContentRegisterRequest request) {
         Content content = contentRepository.save(AdminContentMapper.toContentEntity(request));
 
         request.categories().forEach(dto -> {
@@ -136,22 +199,10 @@ public class AdminService {
                 content
         ));
 
-        return AdminContentMapper.toContentRegisterResponse(content);
     }
 
-    @Transactional
     @LogReturn
-    public void deleteContent(Long contentId) {
-        Content content = adminQuery.findContentByContentId(contentId);
-        content.delete(true);
-        deleteContentRelation(content);
-        ContentMetadata contentMetadata = adminQuery.findContentMetadateByContentId(contentId);
-        contentMetadata.delete(true);
-    }
-
-    @Transactional
-    @LogReturn
-    public AdminContentUpdateResponse updateContent(Long contentId,
+    public void updateContent(Long contentId,
             AdminContentUpdateRequest request) {
         Content content = adminQuery.findContentByContentId(contentId);
 
@@ -213,7 +264,15 @@ public class AdminService {
         metadata.update(request.title(), request.rating(), categoryTags, genreTags, platformTags,
                 directorTags, castTags);
 
-        return AdminContentMapper.toContentUpdateResponse(content);
+    }
+
+    @LogReturn
+    public void deleteContent(Long contentId) {
+        Content content = adminQuery.findContentByContentId(contentId);
+        content.delete(true);
+        deleteContentRelation(content);
+        ContentMetadata contentMetadata = adminQuery.findContentMetadateByContentId(contentId);
+        contentMetadata.delete(true);
     }
 
     @Transactional(readOnly = true)
