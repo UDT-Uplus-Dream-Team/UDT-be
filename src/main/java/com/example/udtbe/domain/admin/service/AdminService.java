@@ -4,14 +4,17 @@ import com.example.udtbe.domain.admin.dto.AdminContentMapper;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.content.dto.CastMapper;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -262,5 +265,23 @@ public class AdminService {
                 uninterestedSum,
                 detail
         );
+    }
+  
+    @Transactional
+    public AdminCastsRegisterResponse registerCasts(
+            AdminCastsRegisterRequest adminCastsRegisterRequest) {
+
+        List<Cast> casts = new ArrayList<>();
+        adminCastsRegisterRequest.adminCastDTOs().stream()
+                .forEach(adminCastDTO -> casts.add(CastMapper.toCast(
+                                adminCastDTO.castName(),
+                                adminCastDTO.castImageUrl()
+                        ))
+                );
+
+        List<Long> savedCastIds = adminQuery.saveAllCasts(casts).stream()
+                .map(Cast::getId)
+                .toList();
+        return new AdminCastsRegisterResponse(savedCastIds);
     }
 }

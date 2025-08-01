@@ -1,8 +1,10 @@
 package com.example.udtbe.domain.admin.controller;
 
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
@@ -80,6 +82,15 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/users/{userId}")
     ResponseEntity<AdminMemberInfoGetResponse> getMemberFeedbackInfo(
             @PathVariable(name = "userId") Long userId
+    );
+  
+    @Operation(summary = "출연진 다건 등록", description = "새로운 출연진들을 다건 등록한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "등록된 출연진 contentId 목록 반환"),
+    })
+    @PostMapping("/api/admin/casts")
+    ResponseEntity<AdminCastsRegisterResponse> registerCasts(
+            @Valid @RequestBody AdminCastsRegisterRequest adminCastsRegisterRequest
     );
 }
 
