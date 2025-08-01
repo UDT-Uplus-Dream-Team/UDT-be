@@ -16,8 +16,9 @@ import static com.example.udtbe.domain.content.entity.QPlatform.platform;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
-import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -120,15 +121,21 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .where(contentCountry.content.id.eq(contentId))
                 .fetch();
 
-        List<String> directors = queryFactory
-                .select(director.directorName.stringValue())
+        List<AdminDirectorDetailsDTO> directorDetailsDTOS = queryFactory
+                .select(Projections.constructor(
+                        AdminDirectorDetailsDTO.class,
+                        director.id,
+                        director.directorName,
+                        director.directorImageUrl
+                ))
                 .from(contentDirector)
                 .where(contentDirector.content.id.eq(contentId))
                 .fetch();
 
-        List<AdminCastDTO> casts = queryFactory
+        List<AdminCastDetailsDTO> castDetailsDTOS = queryFactory
                 .select(Projections.constructor(
-                        AdminCastDTO.class,
+                        AdminCastDetailsDTO.class,
+                        cast.id,
                         cast.castName,
                         cast.castImageUrl
                 ))
@@ -149,8 +156,8 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 findContent.getRating(),
                 categories,
                 countries,
-                directors,
-                casts,
+                directorDetailsDTOS,
+                castDetailsDTOS,
                 platforms
         );
     }

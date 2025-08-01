@@ -1,7 +1,8 @@
 package com.example.udtbe.domain.admin.dto;
 
-import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
@@ -39,8 +40,9 @@ public class AdminContentMapper {
     }
 
     public static AdminContentGetDetailResponse toContentGetResponse(Content content,
-            List<AdminCategoryDTO> categories, List<AdminCastDTO> casts, List<String> directors,
-            List<String> countries, List<AdminPlatformDTO> platforms) {
+            List<AdminCategoryDTO> categories, List<AdminCastDetailsDTO> castDetailsDTOS,
+            List<AdminDirectorDetailsDTO> directorDetailsDTOS, List<String> countries,
+            List<AdminPlatformDTO> platforms) {
 
         return new AdminContentGetDetailResponse(
                 content.getTitle(),
@@ -54,8 +56,8 @@ public class AdminContentMapper {
                 content.getRating(),
                 categories,
                 countries,
-                directors,
-                casts,
+                directorDetailsDTOS,
+                castDetailsDTOS,
                 platforms
         );
     }
