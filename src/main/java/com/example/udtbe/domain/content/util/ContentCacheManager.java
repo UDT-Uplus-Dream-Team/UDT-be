@@ -28,7 +28,7 @@ public class ContentCacheManager {
             try {
                 refreshAllCaches();
             } catch (Exception e) {
-                log.warn("서버 시작시 큐레이션 콘텐츠 캐싱 실패", e);
+                log.error("서버 시작시 큐레이션 콘텐츠 캐싱 실패", e);
             }
         });
     }
