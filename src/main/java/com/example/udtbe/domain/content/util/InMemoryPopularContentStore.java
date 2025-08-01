@@ -4,13 +4,11 @@ import com.example.udtbe.domain.content.dto.FeedbackMapper;
 import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
-import jakarta.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,14 +30,8 @@ public class InMemoryPopularContentStore implements PopularContentStore {
     }
 
     @Override
-    @Scheduled(cron = "0 0 */12 * * *")
     public void update() {
         cache = initCache();
-    }
-
-    @PostConstruct
-    protected void init() {
-        update();
     }
 
     @Override
