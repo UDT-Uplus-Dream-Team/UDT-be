@@ -141,7 +141,7 @@ class BatchConfigTest extends ApiSupport {
         delContent1 = contentRepository.findById(delContent1.getId()).get();
         assertThat(delContent1.isDeleted()).isEqualTo(true);
 
-        delContent2 = contentRepository.findById(delContent1.getId()).get();
+        delContent2 = contentRepository.findById(delContent2.getId()).get();
         assertThat(delContent2.isDeleted()).isEqualTo(true);
 
         delContentMetadata1 = contentMetadataRepository.findById(delContentMetadata1.getId()).get();
