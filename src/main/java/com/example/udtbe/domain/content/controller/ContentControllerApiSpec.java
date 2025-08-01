@@ -54,7 +54,7 @@ public interface ContentControllerApiSpec {
 
     @Operation(summary = "플랫폼별 인기 콘텐츠 조회 API", description = "플랫폼별 인기 콘텐츠 목록을 조회한다.")
     @ApiResponse(useReturnTypeSchema = true)
-    @GetMapping("/api/contents/popular/by-platform")
+    @GetMapping("/api/platforms/popular-contents")
     public ResponseEntity<List<PopularContentByPlatformResponse>> getPopularContentsByPlatform(
     );
 
