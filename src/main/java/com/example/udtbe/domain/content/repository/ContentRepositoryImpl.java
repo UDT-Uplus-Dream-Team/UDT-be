@@ -29,6 +29,7 @@ import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
 import com.example.udtbe.domain.content.dto.response.PopularContentByPlatformResponse;
 import com.example.udtbe.domain.content.dto.response.QContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.QPopularContentByPlatformResponse;
 import com.example.udtbe.domain.content.dto.response.QRecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.QWeeklyRecommendedContentsResponse;
 import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
@@ -47,7 +48,6 @@ import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -410,8 +410,11 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
         Set<Long> usedContentIds = new HashSet<>();
 
         for (PlatformType platformType : platformTypes) {
-            List<Tuple> contentsByLikeCount = queryFactory
-                    .select(content.id, content.posterUrl, feedback.id.count())
+            PopularContentByPlatformResponse topContent = queryFactory
+                    .select(new QPopularContentByPlatformResponse(
+                            content.id,
+                            content.posterUrl
+                    ))
                     .from(content)
                     .join(content.contentPlatforms, contentPlatform)
                     .join(contentPlatform.platform, platform)
@@ -424,15 +427,12 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                                     ? List.of(-1L) : usedContentIds)))
                     .groupBy(content.id, content.posterUrl)
                     .orderBy(feedback.id.count().desc(), content.id.desc())
-                    .fetch();
+                    .limit(1)
+                    .fetchOne();
 
-            if (!contentsByLikeCount.isEmpty()) {
-                Tuple topContent = contentsByLikeCount.get(0);
-                Long contentId = topContent.get(content.id);
-                String posterUrl = topContent.get(content.posterUrl);
-
-                result.add(new PopularContentByPlatformResponse(contentId, posterUrl));
-                usedContentIds.add(contentId);
+            if (Objects.nonNull(topContent)) {
+                result.add(topContent);
+                usedContentIds.add(topContent.contentId());
             }
         }
         return result;
