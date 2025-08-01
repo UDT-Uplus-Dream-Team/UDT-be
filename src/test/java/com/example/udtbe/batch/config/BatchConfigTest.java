@@ -25,6 +25,7 @@ import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.repository.MemberRepository;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,7 @@ import org.springframework.test.context.jdbc.Sql;
 @SpringBatchTest
 @Sql(scripts = "classpath:data-test.sql")
 @Sql(scripts = "classpath:batch-test.sql")
+@Slf4j
 class BatchConfigTest extends ApiSupport {
 
     @Autowired
@@ -135,6 +137,8 @@ class BatchConfigTest extends ApiSupport {
 
         // update 검증
         List<AdminContentUpdateJob> findUpdateJobs = adminContentUpdateJobRepository.findAll();
+        log.debug(findUpdateJobs.get(0).getStatus().name());
+
         assertThat(findUpdateJobs.get(0).getStatus().name()).isEqualTo(
                 BatchStatus.COMPLETED.name());
 
