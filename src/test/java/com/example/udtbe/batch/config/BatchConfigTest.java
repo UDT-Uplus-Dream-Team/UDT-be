@@ -134,18 +134,22 @@ class BatchConfigTest extends ApiSupport {
         assertThat(jobExecution.getExitStatus()).isEqualTo(ExitStatus.COMPLETED);
 
         // update 검증
-        List<AdminContentUpdateJob> updateJobs = adminContentUpdateJobRepository.findAll();
-        assertThat(updateJobs).hasSize(1);
-        assertThat(updateJobs.get(0).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
+        List<AdminContentUpdateJob> findUpdateJobs = adminContentUpdateJobRepository.findAll();
+        assertThat(findUpdateJobs).hasSize(updateJobs.size());
+
+        assertThat(findUpdateJobs.get(0).getStatus().name()).isEqualTo(
+                BatchStatus.COMPLETED.name());
 
         Content updatedContent = contentRepository.findById(updateContents.get(0).getId()).get();
-        assertThat(updatedContent.getTitle()).isEqualTo(updateJobs.get(0).getTitle());
+        assertThat(updatedContent.getTitle()).isEqualTo(findUpdateJobs.get(0).getTitle());
 
         // delete 검증
-        List<AdminContentDeleteJob> deleteJobs = adminContentDeleteJobRepository.findAll();
-        assertThat(deleteJobs).hasSize(2);
-        assertThat(deleteJobs.get(0).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
-        assertThat(deleteJobs.get(1).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
+        List<AdminContentDeleteJob> findDeleteJobs = adminContentDeleteJobRepository.findAll();
+        assertThat(findDeleteJobs).hasSize(deleteJobs.size());
+        assertThat(findDeleteJobs.get(0).getStatus().name()).isEqualTo(
+                BatchStatus.COMPLETED.name());
+        assertThat(findDeleteJobs.get(1).getStatus().name()).isEqualTo(
+                BatchStatus.COMPLETED.name());
 
         Content deleteContent1 = contentRepository.findById(deleteContents.get(0).getId()).get();
         assertThat(deleteContent1.isDeleted()).isEqualTo(true);
@@ -161,9 +165,11 @@ class BatchConfigTest extends ApiSupport {
                 deleteContentMetadatas.get(1).getId()).get();
         assertThat(delContentMetadata2.isDeleted()).isEqualTo(true);
 
-        List<AdminContentRegisterJob> registerJobs = adminContentRegisterJobRepository.findAll();
-        assertThat(registerJobs).hasSize(2);
-        assertThat(registerJobs.get(0).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
-        assertThat(registerJobs.get(1).getStatus().name()).isEqualTo(BatchStatus.COMPLETED.name());
+        List<AdminContentRegisterJob> findRegisterJobs = adminContentRegisterJobRepository.findAll();
+        assertThat(findRegisterJobs).hasSize(registerJobs.size());
+        assertThat(findRegisterJobs.get(0).getStatus().name()).isEqualTo(
+                BatchStatus.COMPLETED.name());
+        assertThat(findRegisterJobs.get(1).getStatus().name()).isEqualTo(
+                BatchStatus.COMPLETED.name());
     }
 }
