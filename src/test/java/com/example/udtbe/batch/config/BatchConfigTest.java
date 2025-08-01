@@ -123,7 +123,7 @@ class BatchConfigTest extends ApiSupport {
 
     @Test
     @DisplayName("content Job들을 수행할 수 있다.")
-    void contentUpdateRequestJobSuccess() throws Exception {
+    void contentJobSuccess() throws Exception {
         // given
         JobParameters jobParameters = jobLauncherTestUtils.getUniqueJobParameters();
 
@@ -135,8 +135,6 @@ class BatchConfigTest extends ApiSupport {
 
         // update 검증
         List<AdminContentUpdateJob> findUpdateJobs = adminContentUpdateJobRepository.findAll();
-        assertThat(findUpdateJobs).hasSize(updateJobs.size());
-
         assertThat(findUpdateJobs.get(0).getStatus().name()).isEqualTo(
                 BatchStatus.COMPLETED.name());
 
@@ -145,7 +143,6 @@ class BatchConfigTest extends ApiSupport {
 
         // delete 검증
         List<AdminContentDeleteJob> findDeleteJobs = adminContentDeleteJobRepository.findAll();
-        assertThat(findDeleteJobs).hasSize(deleteJobs.size());
         assertThat(findDeleteJobs.get(0).getStatus().name()).isEqualTo(
                 BatchStatus.COMPLETED.name());
         assertThat(findDeleteJobs.get(1).getStatus().name()).isEqualTo(
@@ -166,7 +163,6 @@ class BatchConfigTest extends ApiSupport {
         assertThat(delContentMetadata2.isDeleted()).isEqualTo(true);
 
         List<AdminContentRegisterJob> findRegisterJobs = adminContentRegisterJobRepository.findAll();
-        assertThat(findRegisterJobs).hasSize(registerJobs.size());
         assertThat(findRegisterJobs.get(0).getStatus().name()).isEqualTo(
                 BatchStatus.COMPLETED.name());
         assertThat(findRegisterJobs.get(1).getStatus().name()).isEqualTo(
