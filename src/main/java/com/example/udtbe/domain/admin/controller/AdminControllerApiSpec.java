@@ -1,12 +1,17 @@
 package com.example.udtbe.domain.admin.controller;
 
+import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -72,6 +77,31 @@ public interface AdminControllerApiSpec {
     @DeleteMapping("/api/admin/contents/{contentId}")
     ResponseEntity<Void> deleteContent(
             @PathVariable(name = "contentId") Long contentId
+    );
+
+    @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
+    @GetMapping("/api/admin/users/{userId}")
+    ResponseEntity<AdminMemberInfoGetResponse> getMemberFeedbackInfo(
+            @PathVariable(name = "userId") Long userId
+    );
+  
+    @Operation(summary = "출연진 다건 등록", description = "새로운 출연진들을 다건 등록한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "등록된 출연진 contentId 목록 반환"),
+    })
+    @PostMapping("/api/admin/casts")
+    ResponseEntity<AdminCastsRegisterResponse> registerCasts(
+            @Valid @RequestBody AdminCastsRegisterRequest adminCastsRegisterRequest
+    );
+
+    @Operation(summary = "출연진 조회", description = "이름으로 출연진을 검색한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "이름이 부분|완전 일치한 출연진 목록을 반환"),
+    })
+    @GetMapping("/api/admin/casts")
+    ResponseEntity<CursorPageResponse<AdminCastsGetResponse>> getCasts(
+            @Valid @ModelAttribute AdminCastsGetRequest adminCastsGetRequest
     );
 }
 

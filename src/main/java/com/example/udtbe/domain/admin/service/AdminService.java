@@ -2,14 +2,21 @@ package com.example.udtbe.domain.admin.service;
 
 import com.example.udtbe.domain.admin.dto.AdminContentMapper;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.content.dto.CastMapper;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -22,6 +29,7 @@ import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.ContentPlatform;
 import com.example.udtbe.domain.content.entity.Country;
 import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.FeedbackStatistics;
 import com.example.udtbe.domain.content.entity.Genre;
 import com.example.udtbe.domain.content.entity.Platform;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
@@ -35,6 +43,10 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
+import com.example.udtbe.domain.content.repository.FeedbackStaticsRepository;
+import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
+import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.member.service.MemberQuery;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.log.annotation.LogReturn;
 import java.util.ArrayList;
@@ -57,6 +69,10 @@ public class AdminService {
     private final ContentCountryRepository contentCountryRepository;
     private final ContentPlatformRepository contentPlatformRepository;
     private final ContentDirectorRepository contentDirectorRepository;
+    private final MemberQuery memberQuery;
+    private final FeedbackStaticsRepository feedbackStaticsRepository;
+    private final FeedbackStatisticsQuery feedbackStatisticsQuery;
+    private final AdminContentMapper adminContentMapper;
 
     @Transactional
     @LogReturn
@@ -224,4 +240,55 @@ public class AdminService {
         contentDirectorRepository.deleteAllByContent(content);
     }
 
+    @Transactional(readOnly = true)
+    public AdminMemberInfoGetResponse getMemberFeedbackInfo(Long memberId) {
+
+        Member member = memberQuery.findMemberById(memberId);
+
+        List<FeedbackStatistics> feedbackInfos = feedbackStatisticsQuery.findByMemberOrThrow(
+                memberId);
+
+        List<AdminMemberGenreFeedbackDTO> detail = adminContentMapper.toGenreFeedbackDtoList(
+                feedbackInfos);
+
+        long likeSum = feedbackInfos.stream().mapToLong(FeedbackStatistics::getLikeCount).sum();
+        long dislikeSum = feedbackInfos.stream().mapToLong(FeedbackStatistics::getDislikeCount)
+                .sum();
+        long uninterestedSum = feedbackInfos.stream()
+                .mapToLong(FeedbackStatistics::getUninterestedCount).sum();
+
+        return new AdminMemberInfoGetResponse(
+                member.getId(),
+                member.getName(),
+                member.getEmail(),
+                member.getLastLoginAt(),
+                likeSum,
+                dislikeSum,
+                uninterestedSum,
+                detail
+        );
+    }
+  
+    @Transactional
+    public AdminCastsRegisterResponse registerCasts(
+            AdminCastsRegisterRequest adminCastsRegisterRequest) {
+
+        List<Cast> casts = new ArrayList<>();
+        adminCastsRegisterRequest.adminCastDTOs().stream()
+                .forEach(adminCastDTO -> casts.add(CastMapper.toCast(
+                                adminCastDTO.castName(),
+                                adminCastDTO.castImageUrl()
+                        ))
+                );
+
+        List<Long> savedCastIds = adminQuery.saveAllCasts(casts).stream()
+                .map(Cast::getId)
+                .toList();
+        return new AdminCastsRegisterResponse(savedCastIds);
+    }
+
+    public CursorPageResponse<AdminCastsGetResponse> getCasts(
+            AdminCastsGetRequest adminCastsGetRequest) {
+        return adminQuery.getCasts(adminCastsGetRequest);
+    }
 }

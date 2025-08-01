@@ -84,6 +84,12 @@ public class ContentQuery {
         return curatedContentRepository.findByMemberIdAndContentIdIn(memberId, contentIds);
     }
 
+    public List<GenreType> getGenreTypeById(Long contentId) {
+        return contentRepository.findGenreTypesByContentId(contentId);
+    }
+
+    ;
+
     public List<PopularContentByPlatformResponse> findPopularContentsByPlatform() {
         return contentRepository.findPopularContentsByPlatform();
     }

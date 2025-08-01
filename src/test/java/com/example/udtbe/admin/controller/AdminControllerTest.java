@@ -8,12 +8,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.support.ApiSupport;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.service.AdminQuery;
+import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
@@ -30,6 +34,7 @@ import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -313,4 +318,189 @@ public class AdminControllerTest extends ApiSupport {
                 )
                 .andExpect(status().isNotFound());
     }
+
+    @DisplayName("여러 명의 출연진을 한번에 저장한다.")
+    @Test
+    void registerCasts() throws Exception {
+        // given
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "강호동.image.com");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", "유재석.image.com");
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO("이효리", "이효리.image.com");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.castIds").isArray())
+                .andExpect(jsonPath("$.castIds.length()").value(3))
+        ;
+    }
+
+    @DisplayName("요청 값이 존재하지 않으면 다건 출연자를 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenRequestIsNull() throws Exception {
+        // given
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(null);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진 정보는 필수입니다."))
+        ;
+    }
+
+    @DisplayName("한 번에 31명 이상의 출연자를 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastCountExceedsLimit() throws Exception {
+        // given
+        List<AdminCastDTO> casts = new ArrayList<>();
+        for (int i = 0; i < 31; i++) {
+            casts.add(new AdminCastDTO("name" + i, "url" + i));
+        }
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(casts);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최대 30명까지 등록할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("출연진의 이름이 없다면 출연진을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastNameIsEmtpy() throws Exception {
+        // given
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("", "강호동.image.com");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO(null, "유재석.image.com");
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO(" ", "이효리.image.com");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("출연진의 사진 URI가 없다면 출연진을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastImageUriIsEmtpy() throws Exception {
+        // given
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", null);
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO("이효리", " ");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진 사진 주소은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름으로 출연진을 검색한다.")
+    @Test
+    void getCastsByCastName() throws Exception {
+        // given
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item").isArray())
+                .andExpect(jsonPath("$.item[0].castId").value(savedCast.getId()))
+                .andExpect(jsonPath("$.item[0].name").value(savedCast.getCastName()))
+                .andExpect(jsonPath("$.nextCursor").isEmpty())
+                .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
+        ;
+    }
+
+    @DisplayName("이름 없이 요청 시 출연진을 검색할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastNameIsBlank() throws Exception {
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", "")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("검색할 출연진 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 출연진 검색 인원은 최소 1명이야 한다.")
+    @Test
+    void throwValidExceptionWhenCastSizeIsLessThanOne() throws Exception {
+        // given
+        final String size = "0";
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최소 1명 이상 조회해야 합니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 출연진 검색 인원은 최대 20명을 넘을 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastSizeExceedsLimit() throws Exception {
+        // given
+        final String size = "21";
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최대 20명 조회할 수 있습니다."))
+        ;
+    }
+
 }
