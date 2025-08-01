@@ -69,8 +69,10 @@ class BatchConfigTest extends ApiSupport {
 
     @BeforeEach
     void setUp() throws SQLException {
-        // 배치 메타데이터 테이블 생성
+
         try (Connection conn = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(conn,
+                    new ClassPathResource("org/springframework/batch/core/schema-drop-mysql.sql"));
             ScriptUtils.executeSqlScript(conn,
                     new ClassPathResource("org/springframework/batch/core/schema-mysql.sql"));
         }
