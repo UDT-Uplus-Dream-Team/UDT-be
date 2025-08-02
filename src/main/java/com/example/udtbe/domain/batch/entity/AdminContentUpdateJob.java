@@ -41,7 +41,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     @Enumerated(EnumType.STRING)
     private BatchStepStatus status;
 
-    private LocalDateTime updateAt;
+    private LocalDateTime scheduledAt;
 
     private LocalDateTime finishedAt;
 
@@ -89,7 +89,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     private List<String> countries;
 
     @Builder(access = PRIVATE)
-    private AdminContentUpdateJob(BatchStepStatus status, LocalDateTime updateAt,
+    private AdminContentUpdateJob(BatchStepStatus status, LocalDateTime scheduledAt,
             Long memberId,
             Long contentId, String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
@@ -97,7 +97,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
             List<Long> directors, List<Long> casts, List<String> countries) {
 
         this.status = status;
-        this.updateAt = updateAt;
+        this.scheduledAt = scheduledAt;
         this.memberId = memberId;
         this.contentId = contentId;
         this.title = title;
@@ -125,7 +125,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
         return AdminContentUpdateJob.builder()
                 .status(status)
-                .updateAt(getUpdateAt())
+                .scheduledAt(getScheduledAt())
                 .memberId(memberId)
                 .contentId(contentId)
                 .title(title)
@@ -149,8 +149,8 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.status = status;
     }
 
-    private static LocalDateTime getUpdateAt() {
-        return TimeUtil.getUpdateTime();
+    private static LocalDateTime getScheduledAt() {
+        return TimeUtil.getScheduledAt();
     }
 
     public void finish() {

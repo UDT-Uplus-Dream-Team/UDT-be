@@ -32,7 +32,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     @Enumerated(EnumType.STRING)
     private BatchStepStatus status;
 
-    private LocalDateTime updateAt;
+    private LocalDateTime scheduledAt;
 
     private LocalDateTime finishedAt;
 
@@ -42,10 +42,10 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
 
     @Builder(access = PRIVATE)
-    private AdminContentDeleteJob(BatchStepStatus status, LocalDateTime updateAt, Long memberId,
+    private AdminContentDeleteJob(BatchStepStatus status, LocalDateTime scheduledAt, Long memberId,
             Long contentId) {
         this.status = status;
-        this.updateAt = updateAt;
+        this.scheduledAt = scheduledAt;
         this.memberId = memberId;
         this.contentId = contentId;
     }
@@ -53,7 +53,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     public static AdminContentDeleteJob of(BatchStepStatus status, Long memberId, Long contentId) {
         return AdminContentDeleteJob.builder()
                 .status(status)
-                .updateAt(getUpdateAt())
+                .scheduledAt(getScheduledAt())
                 .memberId(memberId)
                 .contentId(contentId)
                 .build();
@@ -64,8 +64,8 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     }
 
 
-    private static LocalDateTime getUpdateAt() {
-        return TimeUtil.getUpdateTime();
+    private static LocalDateTime getScheduledAt() {
+        return TimeUtil.getScheduledAt();
     }
 
     public void finish() {
