@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.batch.scheduler;
 
+import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class AdminScheduler {
     private final Job contentBatchJob;
     private final LuceneIndexService luceneIndexService;
 
-    @Scheduled(cron = "0 0 4 * * ?")
+    @Scheduled(cron = TimeUtil.SCHEDULED_AT)
     public void runContentBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
