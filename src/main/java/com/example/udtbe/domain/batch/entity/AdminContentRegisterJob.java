@@ -5,6 +5,7 @@ import static lombok.AccessLevel.PRIVATE;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import com.example.udtbe.global.util.OptionalLongConverter;
 import com.example.udtbe.global.util.OptionalTagConverter;
@@ -144,14 +145,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     }
 
     private static LocalDateTime getUpdateAt() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime todayAtFour = now.withHour(4).withMinute(0).withSecond(0).withNano(0);
-
-        if (now.isBefore(todayAtFour)) {
-            return todayAtFour;
-        } else {
-            return todayAtFour.plusDays(1);
-        }
+        return TimeUtil.getUpdateTime();
     }
 
     public void finish() {

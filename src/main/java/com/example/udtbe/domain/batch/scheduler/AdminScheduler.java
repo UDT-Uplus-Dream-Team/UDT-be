@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.batch.scheduler;
 
+import com.example.udtbe.domain.batch.util.TimeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -19,7 +20,7 @@ public class AdminScheduler {
     private final JobLauncher jobLauncher;
     private final Job contentBatchJob;
 
-    @Scheduled(cron = "0 0 4 * * ?")
+    @Scheduled(cron = TimeUtil.SCHEDULED_AT)
     public void runContentBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()

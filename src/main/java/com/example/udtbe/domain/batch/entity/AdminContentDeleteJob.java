@@ -4,6 +4,7 @@ package com.example.udtbe.domain.batch.entity;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -64,14 +65,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
 
     private static LocalDateTime getUpdateAt() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime todayAtFour = now.withHour(4).withMinute(0).withSecond(0).withNano(0);
-
-        if (now.isBefore(todayAtFour)) {
-            return todayAtFour;
-        } else {
-            return todayAtFour.plusDays(1);
-        }
+        return TimeUtil.getUpdateTime();
     }
 
     public void finish() {
