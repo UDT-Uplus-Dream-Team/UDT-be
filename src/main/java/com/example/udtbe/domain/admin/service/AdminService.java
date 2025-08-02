@@ -7,6 +7,7 @@ import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentJobGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
@@ -15,6 +16,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -22,7 +24,9 @@ import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.content.dto.CastMapper;
@@ -85,6 +89,7 @@ public class AdminService {
     private final MemberQuery memberQuery;
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
     private final AdminContentMapper adminContentMapper;
+    private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
 
 
     @Transactional
@@ -354,5 +359,12 @@ public class AdminService {
                 .toList();
 
         return new AdminDirectorsRegisterResponse(savedDirectors);
+    }
+
+    public CursorPageResponse<AdminContentJobGetResponse> getBatchJobs(
+            AdminContentJobGetsRequest request) {
+        BatchFilterType type = BatchFilterType.from(request.type());
+        return adminContentJobRepositoryImpl
+                .getJobsByCursor(request.cursor(), request.size(), type);
     }
 }

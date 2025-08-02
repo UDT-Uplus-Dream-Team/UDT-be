@@ -187,9 +187,11 @@ public class BatchConfig {
                             item);
                     adminService.registerContent(adminContentRegisterRequest);
                     item.changeStatus(BatchStatus.COMPLETED);
+                    item.finish();
                     adminContentRegisterJobRepository.save(item);
                 } catch (Exception e) {
                     item.changeStatus(BatchStatus.FAILED);
+                    item.finish();
                     adminContentRegisterJobRepository.save(item);
                 }
             });
@@ -206,9 +208,11 @@ public class BatchConfig {
                             item);
                     adminService.updateContent(item.getContentId(), adminContentUpdateRequest);
                     item.changeStatus(BatchStatus.COMPLETED);
+                    item.finish();
                     adminContentUpdateJobRepository.save(item);
                 } catch (Exception e) {
                     item.changeStatus(BatchStatus.FAILED);
+                    item.finish();
                     adminContentUpdateJobRepository.save(item);
                 }
             });
@@ -223,9 +227,11 @@ public class BatchConfig {
                 try {
                     adminService.deleteContent(item.getContentId());
                     item.changeStatus(BatchStatus.COMPLETED);
+                    item.finish();
                     adminContentDeleteJobRepository.save(item);
                 } catch (Exception e) {
                     item.changeStatus(BatchStatus.FAILED);
+                    item.finish();
                     adminContentDeleteJobRepository.save(item);
                 }
             });

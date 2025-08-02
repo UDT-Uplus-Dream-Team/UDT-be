@@ -3,6 +3,7 @@ package com.example.udtbe.domain.admin.controller;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentJobGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
@@ -11,6 +12,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -108,4 +110,15 @@ public class AdminController implements AdminControllerApiSpec {
         adminScheduler.runContentBatchJob();
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @Override
+    public ResponseEntity<CursorPageResponse<AdminContentJobGetResponse>> getBatchJobs(
+            AdminContentJobGetsRequest adminContentJobGetsRequest) {
+        CursorPageResponse<AdminContentJobGetResponse> adminContentJobGetResponseCursorPageResponse = adminService.getBatchJobs(
+                adminContentJobGetsRequest);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(adminContentJobGetResponseCursorPageResponse);
+    }
+
+
 }

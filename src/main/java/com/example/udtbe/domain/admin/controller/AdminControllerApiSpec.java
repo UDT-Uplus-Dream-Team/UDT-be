@@ -3,6 +3,7 @@ package com.example.udtbe.domain.admin.controller;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentJobGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
@@ -11,6 +12,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -125,5 +127,15 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/scheduler-test")
     ResponseEntity<Void> schedulerTestContent();
+
+
+    @Operation(summary = "배치 예정 목록", description = "배치 예정 목록을 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배치 예정 목록반환"),
+    })
+    @PostMapping("/api/admin/batch")
+    ResponseEntity<CursorPageResponse<AdminContentJobGetResponse>> getBatchJobs(
+            @Valid @RequestBody AdminContentJobGetsRequest adminContentJobGetsRequest
+    );
 }
 
