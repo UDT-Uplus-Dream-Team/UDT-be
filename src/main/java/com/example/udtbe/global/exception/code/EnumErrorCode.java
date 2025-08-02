@@ -15,7 +15,9 @@ public enum EnumErrorCode implements ErrorCode {
     CATEGORY_TYPE_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 분류 타입입니다."),
     GENRE_TYPE_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 장르 타입입니다."),
     PLATFORM_TYPE_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 플랫폼 타입입니다."),
-    ;
+    BATCH_FILTER_TYPE_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 배치 목록 필터 타입입니다."),
+    BATCH_JOB_TYPE_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 배치 작업 타입입니다."),
+    BATCH_STATUS_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 배치 상태 타입입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
