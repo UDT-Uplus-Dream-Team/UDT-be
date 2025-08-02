@@ -4,7 +4,7 @@ import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
 import java.time.LocalDateTime;
 
-public record AdminContentJobGetResponse(
+public record AdminScheduledContentResponse(
         Long id,
         BatchStepStatus status,
         Long memberId,

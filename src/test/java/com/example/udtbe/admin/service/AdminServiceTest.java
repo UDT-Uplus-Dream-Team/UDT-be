@@ -23,16 +23,16 @@ import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminContentJobGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
@@ -616,16 +616,19 @@ public class AdminServiceTest {
     @Test
     void getBatchJobs() {
         // given
-        AdminContentJobGetsRequest request = new AdminContentJobGetsRequest("5", 10, "FAILED");
+        AdminScheduledContentsRequest request = new AdminScheduledContentsRequest("5", 10,
+                "FAILED");
         BatchFilterType type = BatchFilterType.from(request.type());
 
-        List<AdminContentJobGetResponse> jobs = List.of(
-                new AdminContentJobGetResponse(5L, BatchStepStatus.PENDING, 1L, LocalDateTime.now(),
+        List<AdminScheduledContentResponse> jobs = List.of(
+                new AdminScheduledContentResponse(5L, BatchStepStatus.PENDING, 1L,
+                        LocalDateTime.now(),
                         LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE),
-                new AdminContentJobGetResponse(4L, BatchStepStatus.FAILED, 1L, LocalDateTime.now(),
+                new AdminScheduledContentResponse(4L, BatchStepStatus.FAILED, 1L,
+                        LocalDateTime.now(),
                         LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE)
         );
-        CursorPageResponse<AdminContentJobGetResponse> expectedResponse = new CursorPageResponse<>(
+        CursorPageResponse<AdminScheduledContentResponse> expectedResponse = new CursorPageResponse<>(
                 jobs, "4", true);
 
         given(adminContentJobRepositoryImpl.getJobsByCursor(request.cursor(), request.size(),
@@ -633,7 +636,7 @@ public class AdminServiceTest {
                 .willReturn(expectedResponse);
 
         // when
-        CursorPageResponse<AdminContentJobGetResponse> actualResponse = adminService.getBatchJobs(
+        CursorPageResponse<AdminScheduledContentResponse> actualResponse = adminService.getBatchJobs(
                 request);
 
         // then

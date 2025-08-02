@@ -1,6 +1,6 @@
 package com.example.udtbe.domain.batch.repository;
 
-import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
@@ -22,7 +22,8 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
     private final EntityManager em;
 
     @Override
-    public CursorPageResponse<AdminContentJobGetResponse> getJobsByCursor(String cursor, int size,
+    public CursorPageResponse<AdminScheduledContentResponse> getJobsByCursor(String cursor,
+            int size,
             BatchFilterType type) {
 
         Long jobId = Long.MAX_VALUE;
@@ -83,8 +84,8 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
                 .setParameter("limit", size + 1)
                 .getResultList();
 
-        List<AdminContentJobGetResponse> results = resultList.stream()
-                .map(row -> new AdminContentJobGetResponse(
+        List<AdminScheduledContentResponse> results = resultList.stream()
+                .map(row -> new AdminScheduledContentResponse(
                         ((Number) row[0]).longValue(),
                         BatchStepStatus.from((String) row[1]),
                         ((Number) row[2]).longValue(),
@@ -96,7 +97,7 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
 
         String nextCursor = null;
         if (results.size() > size) {
-            AdminContentJobGetResponse last = results.get(size - 1);
+            AdminScheduledContentResponse last = results.get(size - 1);
             nextCursor = String.format("%d|%s|%s",
                     last.id(),
                     last.createdAt(),
