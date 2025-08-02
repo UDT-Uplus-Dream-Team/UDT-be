@@ -35,6 +35,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
@@ -643,5 +644,20 @@ public class AdminServiceTest {
         assertThat(actualResponse).isSameAs(expectedResponse);
         then(adminContentJobRepositoryImpl).should()
                 .getJobsByCursor(request.cursor(), request.size(), type);
+    }
+
+    @DisplayName("배치 등록 작업의 상세 정보를 조회할 수 있다.")
+    @Test
+    void getBatchUpdateJobDetail() {
+        // given
+        Long jobId = 1L;
+        AdminContentDeleteJob job = mock(AdminContentDeleteJob.class);
+        given(adminQuery.findAdminContentDelJobById(jobId)).willReturn(job);
+
+        // when
+        adminService.getBatchDelJobDetails(jobId);
+
+        // then
+        verify(adminQuery).findAdminContentDelJobById(jobId);
     }
 }

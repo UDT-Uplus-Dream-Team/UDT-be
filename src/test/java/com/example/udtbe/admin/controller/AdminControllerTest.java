@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.AdminContentDeleteJobFixture;
 import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.fixture.ContentCategoryFixture;
 import com.example.udtbe.common.fixture.ContentFixture;
@@ -18,6 +19,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -76,6 +78,8 @@ public class AdminControllerTest extends ApiSupport {
     private CastRepository castRepository;
     @Autowired
     private DirectorRepository directorRepository;
+    @Autowired
+    private AdminContentDeleteJobRepository adminContentDeleteJobRepository;
 
     @AfterEach
     void tearDown() {
@@ -622,5 +626,21 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.code").value("404"))
                 .andExpect(jsonPath("$.message").value("감독은 최대 20명 조회할 수 있습니다."))
         ;
+    }
+
+    @DisplayName("배치 수정 작업의 상세 정보를 조회할 수 있다.")
+    @Test
+    void getBatchUpdateJobDetail() throws Exception {
+        // given
+        adminContentDeleteJobRepository.save(
+                AdminContentDeleteJobFixture.createPendingJob(1L, 1L));
+
+        Long jobId = 1L;
+
+        // when & then
+        mockMvc.perform(get("/api/admin/batch/contents/deletejob/{jobId}", jobId)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk());
     }
 }
