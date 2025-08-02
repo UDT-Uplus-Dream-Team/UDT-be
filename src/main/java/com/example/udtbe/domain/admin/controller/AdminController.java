@@ -14,6 +14,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -129,5 +130,14 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(adminContentJobGetResponseCursorPageResponse);
     }
+
+    @Override
+    public ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(Long jobId) {
+        AdminContentUpJobGetDetailResponse response = adminService.getBatchUpJobDetails(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    ;
 
 }

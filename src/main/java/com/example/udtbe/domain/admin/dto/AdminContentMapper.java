@@ -7,6 +7,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
@@ -185,6 +186,30 @@ public class AdminContentMapper {
                         fs.getDislikeCount(),
                         fs.getUninterestedCount()))
                 .toList();
+    }
+
+    public static AdminContentUpJobGetDetailResponse toAdminContentUpdateJobDetailResponse(
+            AdminContentUpdateJob job) {
+        List<AdminCategoryDTO> categoryDTOs = new ArrayList<>(job.getCategories().values());
+        List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
+
+        return new AdminContentUpJobGetDetailResponse(
+                job.getContentId(),
+                job.getTitle(),
+                job.getDescription(),
+                job.getPosterUrl(),
+                job.getBackdropUrl(),
+                job.getTrailerUrl(),
+                job.getOpenDate(),
+                job.getRunningTime(),
+                job.getEpisode(),
+                job.getRating(),
+                categoryDTOs,
+                job.getCountries(),
+                job.getCasts(),
+                job.getDirectors(),
+                platformDTOs
+        );
     }
 
 

@@ -4,6 +4,9 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
+import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.exception.BatchErrorCode;
+import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -42,6 +45,7 @@ public class AdminQuery {
     private final CastRepository castRepository;
     private final DirectorRepository directorRepository;
     private final CountryRepository countryRepository;
+    private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
 
 
     public Content findContentByContentId(Long contentId) {
@@ -119,4 +123,11 @@ public class AdminQuery {
             AdminDirectorsGetRequest adminDirectorsGetRequest) {
         return directorRepository.getDirectors(adminDirectorsGetRequest);
     }
+
+    public AdminContentUpdateJob findAdminContentUpdateJobById(Long jobId) {
+        return adminContentUpdateJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_UPDATE_JOB_NOT_FOUND)
+        );
+    }
+
 }
