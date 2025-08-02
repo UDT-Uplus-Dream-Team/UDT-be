@@ -368,7 +368,7 @@ public class AdminService {
                 .getJobsByCursor(request.cursor(), request.size(), type);
     }
 
-    public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetail(Long jobId) {
+    public AdminContentRegJobGetDetailResponse getBatchRegJobDetail(Long jobId) {
         AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
 
         return AdminContentMapper.toAdminContentRegJobDetailResponse(job);
