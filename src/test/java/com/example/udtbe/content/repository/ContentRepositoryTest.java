@@ -70,7 +70,13 @@ class ContentRepositoryTest extends DataJpaSupport {
 
         // when
         AdminContentCategoryMetricResponse response = contentRepository.getContentCategoryMetric();
+        System.out.println("== 저장된 카테고리 ==");
+        savedCategories.forEach(c -> System.out.println(c.getCategoryType()));
 
+        System.out.println("== 응답 결과 ==");
+        response.categoryMetrics().forEach(m ->
+                System.out.println(m.categoryType() + " / " + m.count())
+        );
         // then
         assertAll(
                 () -> assertThat(response.categoryMetrics().get(0).categoryType())
