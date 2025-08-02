@@ -11,9 +11,10 @@ import com.example.udtbe.common.support.DataJpaSupport;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentCategory;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
-import com.example.udtbe.domain.content.repository.ContentCastRepository;
+import com.example.udtbe.domain.content.repository.ContentCategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.List;
@@ -30,7 +31,7 @@ class ContentRepositoryTest extends DataJpaSupport {
     CategoryRepository categoryRepository;
 
     @Autowired
-    ContentCastRepository contentCastRepository;
+    ContentCategoryRepository contentCategoryRepository;
 
     @DisplayName("삭제된 콘텐츠를 조회할 수 없다.")
     @Test
@@ -51,9 +52,16 @@ class ContentRepositoryTest extends DataJpaSupport {
         Content content3 = ContentFixture.content("드라마", "드라마");
         contentRepository.saveAll(List.of(content1, content2, content3));
 
-        ContentCategoryFixture.contentCategory(content1, savedCategories.get(0));
-        ContentCategoryFixture.contentCategory(content2, savedCategories.get(0));
-        ContentCategoryFixture.contentCategory(content3, savedCategories.get(1));
+        ContentCategory contentCategory1 = ContentCategoryFixture.contentCategory(content1,
+                savedCategories.get(0));
+        ContentCategory contentCategory2 = ContentCategoryFixture.contentCategory(content2,
+                savedCategories.get(0));
+        ContentCategory contentCategory3 = ContentCategoryFixture.contentCategory(content3,
+                savedCategories.get(1));
+
+        contentCategoryRepository.saveAll(
+                List.of(contentCategory1, contentCategory2, contentCategory3)
+        );
 
         // when
         AdminContentCategoryMetricResponse response = contentRepository.getContentCategoryMetric();
