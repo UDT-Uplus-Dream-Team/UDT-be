@@ -16,16 +16,21 @@ import static org.mockito.Mockito.verify;
 
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
@@ -131,7 +136,6 @@ public class AdminServiceTest {
         // given
         Long id = 42L;
         Content saved = mock(Content.class);
-        given(saved.getId()).willReturn(id);
         given(contentRepository.save(any(Content.class))).willReturn(saved);
 
         List<AdminCategoryDTO> adminCategoryDTOS = registerRequest.categories();
@@ -230,7 +234,7 @@ public class AdminServiceTest {
 
     }
 
-    @DisplayName("관리자는 콘텐츠를 업데이트할 때 필드와 메타데이터를 수정할 수 있다.")
+    @DisplayName("콘텐츠를 업데이트할 때 필드와 메타데이터를 수정할 수 있다.")
     @Test
     void updateContent() {
         // given
@@ -432,8 +436,8 @@ public class AdminServiceTest {
                 LocalDateTime.of(2023, 1, 1, 0, 0), 120, 1, "전체 관람가",
                 List.of(new AdminCategoryDTO("영화", List.of("액션"))),
                 List.of("한국"),
-                List.of("테스트 감독"),
-                List.of(new AdminCastDTO("테스트 배우", "https://cast.url")),
+                List.of(new AdminDirectorDetailsDTO(1L, "봉준호", "봉준호@director")),
+                List.of(new AdminCastDetailsDTO(1L, "이병헌", "이병헌@cast")),
                 List.of(new AdminPlatformDTO("넷플릭스", "https://platform.url")));
 
         given(contentRepository.getAdminContentDetails(id)).willReturn(contentGetDetailResponse);
@@ -531,6 +535,7 @@ public class AdminServiceTest {
         then(feedbackStatisticsQuery).should().findByMemberOrThrow(memberId);
     }
 
+
     @DisplayName("유저 정보를 무한 스크롤로 조회할 수 있다.")
     @Test
     void getMemberList() {
@@ -614,6 +619,42 @@ public class AdminServiceTest {
                         cast1.getId(),
                         cast2.getId(),
                         cast3.getId()
+                )
+        );
+    }
+
+    @DisplayName("여러 명의 감독을 한번에 저장한다.")
+    @Test
+    void registerDirectors() {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("봉준호", "봉준호.image.com");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO("박찬욱", "박찬욱.image.com");
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO("류승완", "류승완.image.com");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        Director director1 = mock(Director.class);
+        Director director2 = mock(Director.class);
+        Director director3 = mock(Director.class);
+
+        given(director1.getId()).willReturn(1L);
+        given(director2.getId()).willReturn(2L);
+        given(director3.getId()).willReturn(3L);
+
+        given(adminQuery.saveAllDirectors(any(List.class)))
+                .willReturn(List.of(director1, director2, director3));
+
+        // when
+        AdminDirectorsRegisterResponse response = adminService.registerDirectors(request);
+
+        // then
+        assertAll(
+                () -> verify(adminQuery).saveAllDirectors(any(List.class)),
+                () -> assertThat(response.directorIds()).containsExactly(
+                        director1.getId(),
+                        director2.getId(),
+                        director3.getId()
                 )
         );
     }

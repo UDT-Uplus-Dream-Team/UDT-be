@@ -47,4 +47,12 @@ public class Director extends TimeBaseEntity {
                 .isDeleted(false)
                 .build();
     }
+
+    public static Director of(String directorName, String directorImageUrl) {
+        return Director.builder()
+                .directorName(directorName)
+                .directorImageUrl(directorImageUrl)
+                .isDeleted(false)
+                .build();
+    }
 }

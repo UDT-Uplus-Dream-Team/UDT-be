@@ -45,5 +45,7 @@ out/
 
 !/src/main/resources/data.sql
 !/src/test/resources/data-test.sql
+!/src/main/resources/batch.sql
+!/src/test/resources/batch-test.sql
 
 /logs/

@@ -6,6 +6,7 @@ import com.example.udtbe.domain.content.dto.request.RecentContentsRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.PopularContentByPlatformResponse;
 import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
@@ -49,6 +50,12 @@ public interface ContentControllerApiSpec {
     @GetMapping("/api/contents/popular")
     public ResponseEntity<List<PopularContentsResponse>> getPopularContents(
             @ModelAttribute @Valid PopularContentsRequest request
+    );
+
+    @Operation(summary = "플랫폼별 인기 콘텐츠 조회 API", description = "플랫폼별 인기 콘텐츠 목록을 조회한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @GetMapping("/api/platforms/popular-contents")
+    public ResponseEntity<List<PopularContentByPlatformResponse>> getPopularContentsByPlatform(
     );
 
     @Operation(summary = "최신 콘텐츠 목록 조회 API", description = "최신 콘텐츠 목록을 조회한다.")
