@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.BatchJobMetricFixture;
 import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.fixture.ContentCategoryFixture;
 import com.example.udtbe.common.fixture.ContentFixture;
@@ -18,6 +19,9 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -76,6 +80,8 @@ public class AdminControllerTest extends ApiSupport {
     private CastRepository castRepository;
     @Autowired
     private DirectorRepository directorRepository;
+    @Autowired
+    private JobMetricRepository jobMetricRepository;
 
     @AfterEach
     void tearDown() {
@@ -92,6 +98,7 @@ public class AdminControllerTest extends ApiSupport {
         directorRepository.deleteAllInBatch();
         contentMetadataRepository.deleteAllInBatch();
         contentRepository.deleteAllInBatch();
+        jobMetricRepository.deleteAllInBatch();
     }
 
     @Test
@@ -622,5 +629,46 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.code").value("404"))
                 .andExpect(jsonPath("$.message").value("감독은 최대 20명 조회할 수 있습니다."))
         ;
+    }
+
+    @DisplayName("배치 작업 결과 목록을 조회할 수 있다.")
+    @Test
+    void getBatchResults() throws Exception {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        jobMetricRepository.saveAll(List.of(metric1, metric2));
+
+        // when // then
+        mockMvc.perform(get("/api/admin/batch/results")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @DisplayName("배치 작업 메트릭을 조회할 수 있다.")
+    @Test
+    void getBatchMetric() throws Exception {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        jobMetricRepository.saveAll(List.of(metric1, metric2));
+
+        // when // then
+        mockMvc.perform(get("/api/admin/batch/metrics")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalRead").value(
+                        metric1.getTotalRead() + (metric2.getTotalRead())))
+                .andExpect(jsonPath("$.totalWrite").value(
+                        metric1.getTotalWrite() + (metric2.getTotalWrite())))
+                .andExpect(jsonPath("$.totalSkip").value(
+                        metric1.getTotalSkip() + (metric2.getTotalSkip())));
     }
 }
