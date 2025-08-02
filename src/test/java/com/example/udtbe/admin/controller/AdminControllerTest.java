@@ -555,18 +555,18 @@ public class AdminControllerTest extends ApiSupport {
     @Test
     void getDirectorsByDirectorName() throws Exception {
         // given
-        final String directorName = "봉준호";
-        Director saveDirector = directorRepository.save(DirectorFixture.director(directorName));
+        final String directorName = "김두루미";
+        Director savedDirector = directorRepository.save(DirectorFixture.director(directorName));
 
         // when  // then
         mockMvc.perform(get("/api/admin/directors")
-                        .param("name", saveDirector.getDirectorName())
+                        .param("name", savedDirector.getDirectorName())
                         .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.item").isArray())
-                .andExpect(jsonPath("$.item[0].directorId").value(saveDirector.getId()))
-                .andExpect(jsonPath("$.item[0].name").value(saveDirector.getDirectorName()))
+                .andExpect(jsonPath("$.item[0].directorId").value(savedDirector.getId()))
+                .andExpect(jsonPath("$.item[0].name").value(savedDirector.getDirectorName()))
                 .andExpect(jsonPath("$.nextCursor").isEmpty())
                 .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
         ;
