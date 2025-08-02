@@ -23,16 +23,22 @@ import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminContentJobGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -96,6 +102,8 @@ public class AdminServiceTest {
     private MemberQuery memberQuery;
     @Mock
     private FeedbackStatisticsQuery feedbackStatisticsQuery;
+    @Mock
+    private AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
 
     @InjectMocks
     private AdminService adminService;
@@ -602,5 +610,35 @@ public class AdminServiceTest {
                         director3.getId()
                 )
         );
+    }
+
+    @DisplayName("배치 작업 목록을 커서 기반 페이지네이션으로 조회할 수 있다.")
+    @Test
+    void getBatchJobs() {
+        // given
+        AdminContentJobGetsRequest request = new AdminContentJobGetsRequest("5", 10, "FAILED");
+        BatchFilterType type = BatchFilterType.from(request.type());
+
+        List<AdminContentJobGetResponse> jobs = List.of(
+                new AdminContentJobGetResponse(5L, BatchStatus.PENDING, 1L, LocalDateTime.now(),
+                        LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE),
+                new AdminContentJobGetResponse(4L, BatchStatus.FAILED, 1L, LocalDateTime.now(),
+                        LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE)
+        );
+        CursorPageResponse<AdminContentJobGetResponse> expectedResponse = new CursorPageResponse<>(
+                jobs, "4", true);
+
+        given(adminContentJobRepositoryImpl.getJobsByCursor(request.cursor(), request.size(),
+                type))
+                .willReturn(expectedResponse);
+
+        // when
+        CursorPageResponse<AdminContentJobGetResponse> actualResponse = adminService.getBatchJobs(
+                request);
+
+        // then
+        assertThat(actualResponse).isSameAs(expectedResponse);
+        then(adminContentJobRepositoryImpl).should()
+                .getJobsByCursor(request.cursor(), request.size(), type);
     }
 }
