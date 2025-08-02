@@ -359,6 +359,7 @@ public class AdminService {
     public CursorPageResponse<AdminDirectorsGetResponse> getDirectors(
             AdminDirectorsGetRequest adminDirectorsGetRequest) {
         return adminQuery.getDirectors(adminDirectorsGetRequest);
+    }
 
     public CursorPageResponse<AdminScheduledContentResponse> getBatchJobs(
             AdminScheduledContentsRequest request) {

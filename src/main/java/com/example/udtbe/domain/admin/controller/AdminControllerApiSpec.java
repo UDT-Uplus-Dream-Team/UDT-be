@@ -138,6 +138,7 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/directors")
     ResponseEntity<CursorPageResponse<AdminDirectorsGetResponse>> getDirectors(
             @Valid @ModelAttribute AdminDirectorsGetRequest adminDirectorsGetRequest
+    );
 
     @Operation(summary = "배치 예정 목록", description = "배치 예정 목록을 조회한다.")
     @ApiResponses({
