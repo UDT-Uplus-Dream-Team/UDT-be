@@ -135,7 +135,7 @@ public interface AdminControllerApiSpec {
     })
     @GetMapping("/api/admin/batch")
     ResponseEntity<CursorPageResponse<AdminContentJobGetResponse>> getBatchJobs(
-            @Valid @RequestBody AdminContentJobGetsRequest adminContentJobGetsRequest
+            @Valid @ModelAttribute AdminContentJobGetsRequest adminContentJobGetsRequest
     );
 }
 
