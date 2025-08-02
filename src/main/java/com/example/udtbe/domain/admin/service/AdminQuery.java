@@ -4,6 +4,10 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.exception.BatchErrorCode;
+import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -42,6 +46,7 @@ public class AdminQuery {
     private final CastRepository castRepository;
     private final DirectorRepository directorRepository;
     private final CountryRepository countryRepository;
+    private final JobMetricRepository jobMetricRepository;
 
 
     public Content findContentByContentId(Long contentId) {
@@ -118,5 +123,12 @@ public class AdminQuery {
     public CursorPageResponse<AdminDirectorsGetResponse> getDirectors(
             AdminDirectorsGetRequest adminDirectorsGetRequest) {
         return directorRepository.getDirectors(adminDirectorsGetRequest);
+    }
+
+    public BatchJobMetric findAdminContentJobMetric(BatchJobType batchJobType) {
+        return jobMetricRepository.findAdminContentJobMetricByType(batchJobType)
+                .orElseThrow(()
+                        -> new RestApiException(BatchErrorCode.ADMIN_CONTENT_JOB_METRIC)
+                );
     }
 }

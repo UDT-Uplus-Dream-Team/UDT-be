@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum BatchErrorCode implements ErrorCode {
 
-    CURSOR_BAD_REQUEST(HttpStatus.BAD_REQUEST, "옳바른 커서를 입력해주세요."),
-    ;
+    CURSOR_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바른 커서를 입력해주세요."),
+    ADMIN_CONTENT_JOB_METRIC(HttpStatus.NOT_FOUND, "배치 집계를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
