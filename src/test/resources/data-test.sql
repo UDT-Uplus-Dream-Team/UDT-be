@@ -76,11 +76,3 @@ VALUES (1, '봉준호', 'https://example.com/images/bong-joon-ho.jpg', false, NO
        (4, '임상수', 'https://example.com/images/im-sang-soo.jpg', false, NOW(), NOW()),
        (5, '류승완', 'https://example.com/images/ryoo-seung-wan.jpg', false, NOW(), NOW());
 
--- 6) 배치 집계 메트릭 데이터 삽입
-INSERT INTO batch_job_metric (admin_content_job_id, type, status, total_read, total_write,
-                              total_skip,
-                              start_time, end_time, created_at, updated_at)
-VALUES (1, 'REGISTER', 'PENDING', 0, 0, 0, null, null, NOW(), NOW()),
-       (2, 'UPDATE', 'PENDING', 0, 0, 0, null, null, NOW(), NOW()),
-       (3, 'DELETE', 'PENDING', 0, 0, 0, null, null, NOW(), NOW()),
-       (4, 'FEEDBACK', 'PENDING', 0, 0, 0, null, null, NOW(), NOW());
