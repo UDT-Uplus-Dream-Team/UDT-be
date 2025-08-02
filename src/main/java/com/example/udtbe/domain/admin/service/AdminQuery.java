@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.admin.service;
 
+import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -103,13 +105,42 @@ public class AdminQuery {
         return directorRepository.saveAll(directors);
     }
 
-    public void validCategoryByCategoryType(CategoryType categoryType) {
+    public void validContentByContentId(Long contentId) {
+        Content content = contentRepository.findById(contentId).orElseThrow(()
+                -> new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND)
+        );
+        if (content.isDeleted()) {
+            throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
+        }
+    }
+
+    public void validRegisterAndUpdateContent(List<AdminCategoryDTO> categoryDTOs,
+            List<AdminPlatformDTO> platformDTOs,
+            List<Long> castIds, List<Long> directorIds) {
+
+        categoryDTOs.forEach(dto -> {
+            CategoryType categoryType = CategoryType.fromByType(dto.categoryType());
+            List<GenreType> genreTypes = dto.genres().stream().map(GenreType::fromByType).toList();
+            validCategoryByCategoryType(categoryType);
+            validGenreByCategoryTypeAndGenreTypes(categoryType, genreTypes);
+        });
+
+        platformDTOs.forEach(dto -> {
+            PlatformType platformType = PlatformType.fromByType(dto.platformType());
+            validPlatformByPlatformType(platformType);
+        });
+
+        castIds.forEach(this::validCastByCastId);
+        directorIds.forEach(this::validDirectorByDirectorId);
+    }
+
+    private void validCategoryByCategoryType(CategoryType categoryType) {
         if (!categoryRepository.existsCategoryByCategoryType(categoryType)) {
             throw new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND);
         }
     }
 
-    public void validGenreByCategoryTypeAndGenreTypes(CategoryType categoryType,
+    private void validGenreByCategoryTypeAndGenreTypes(CategoryType categoryType,
             List<GenreType> genreTypes) {
         genreTypes.forEach(genreType -> {
             Category category = categoryRepository.findByCategoryType(categoryType).orElseThrow(()
@@ -121,19 +152,19 @@ public class AdminQuery {
         });
     }
 
-    public void validPlatformByPlatformType(PlatformType platformType) {
+    private void validPlatformByPlatformType(PlatformType platformType) {
         if (!platformRepository.existsPlatformByPlatformType(platformType)) {
             throw new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND);
         }
     }
 
-    public void validCastByCastId(Long castId) {
+    private void validCastByCastId(Long castId) {
         if (!castRepository.existsById(castId)) {
             throw new RestApiException(ContentErrorCode.CAST_NOT_FOUND);
         }
     }
 
-    public void validDirectorByDirectorId(Long directorId) {
+    private void validDirectorByDirectorId(Long directorId) {
         if (!directorRepository.existsById(directorId)) {
             throw new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND);
         }

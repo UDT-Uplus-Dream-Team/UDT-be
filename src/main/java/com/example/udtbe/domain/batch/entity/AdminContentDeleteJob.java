@@ -4,6 +4,7 @@ package com.example.udtbe.domain.batch.entity;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AdminContentDeleteJob {
+public class AdminContentDeleteJob extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

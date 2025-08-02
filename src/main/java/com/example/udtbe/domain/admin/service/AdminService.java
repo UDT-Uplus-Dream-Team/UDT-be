@@ -23,6 +23,7 @@ import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.content.dto.CastMapper;
@@ -85,13 +86,15 @@ public class AdminService {
     private final MemberQuery memberQuery;
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
     private final AdminContentMapper adminContentMapper;
+    private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
 
 
     @Transactional
     @LogReturn
     public AdminContentRegisterResponse registerBulkContent(Member member,
             AdminContentRegisterRequest request) {
-        validRegisterAndUpdateContent(request.categories(), request.platforms(), request.casts(),
+        adminQuery.validRegisterAndUpdateContent(request.categories(), request.platforms(),
+                request.casts(),
                 request.directors());
         AdminContentRegisterJob job = AdminContentMapper.toContentRegisterJob(request,
                 member.getId());
@@ -104,7 +107,8 @@ public class AdminService {
     @LogReturn
     public AdminContentUpdateResponse updateBulkContent(Member member, Long contentId,
             AdminContentUpdateRequest request) {
-        validRegisterAndUpdateContent(request.categories(), request.platforms(), request.casts(),
+        adminQuery.validRegisterAndUpdateContent(request.categories(), request.platforms(),
+                request.casts(),
                 request.directors());
         AdminContentUpdateJob job = AdminContentMapper.toContentUpdateJob(request, contentId,
                 member.getId());
@@ -115,31 +119,13 @@ public class AdminService {
     @Transactional
     @LogReturn
     public AdminContentDeleteResponse deleteBulkContent(Member member, Long contentId) {
+        adminQuery.validContentByContentId(contentId);
         AdminContentDeleteJob job = AdminContentMapper.toContentDeleteJob(contentId,
                 member.getId());
         adminContentDeleteJobRepository.save(job);
         return AdminContentMapper.toContentDeleteResponse(job.getId());
     }
 
-    private void validRegisterAndUpdateContent(List<AdminCategoryDTO> categoryDTOs,
-            List<AdminPlatformDTO> platformDTOs,
-            List<Long> castIds, List<Long> directorIds) {
-
-        categoryDTOs.forEach(dto -> {
-            CategoryType categoryType = CategoryType.fromByType(dto.categoryType());
-            List<GenreType> genreTypes = dto.genres().stream().map(GenreType::fromByType).toList();
-            adminQuery.validCategoryByCategoryType(categoryType);
-            adminQuery.validGenreByCategoryTypeAndGenreTypes(categoryType, genreTypes);
-        });
-
-        platformDTOs.forEach(dto -> {
-            PlatformType platformType = PlatformType.fromByType(dto.platformType());
-            adminQuery.validPlatformByPlatformType(platformType);
-        });
-
-        castIds.forEach(adminQuery::validCastByCastId);
-        directorIds.forEach(adminQuery::validDirectorByDirectorId);
-    }
 
     @LogReturn
     public void registerContent(AdminContentRegisterRequest request) {
