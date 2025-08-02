@@ -5,6 +5,7 @@ import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
@@ -173,6 +174,13 @@ public class AdminContentMapper {
                 adminContentRegisterRequest.rating()
         );
     }
+
+    public static AdminContentDelJobGetDetailResponse toAdminContentDelJobDetailResponse(
+            AdminContentDeleteJob job) {
+
+        return new AdminContentDelJobGetDetailResponse(job.getContentId());
+    }
+
     // 배치 관련 끝---
 
     public static List<AdminMemberGenreFeedbackDTO> toGenreFeedbackDtoList(

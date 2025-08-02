@@ -10,6 +10,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -148,5 +149,15 @@ public interface AdminControllerApiSpec {
     ResponseEntity<CursorPageResponse<AdminScheduledContentResponse>> getBatchJobs(
             @Valid @ModelAttribute AdminScheduledContentsRequest adminContentJobGetsRequest
     );
+
+    @Operation(summary = "삭제 배치 작업 상세보기", description = "삭제 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/deletejob/{jobId}")
+    ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
+
 }
 
