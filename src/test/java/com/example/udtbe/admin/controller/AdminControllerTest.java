@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.fixture.ContentCategoryFixture;
 import com.example.udtbe.common.fixture.ContentFixture;
+import com.example.udtbe.common.fixture.DirectorFixture;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
@@ -25,6 +26,8 @@ import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentCategory;
+import com.example.udtbe.domain.content.entity.Director;
+import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -552,6 +555,79 @@ public class AdminControllerTest extends ApiSupport {
         ;
     }
 
+    @DisplayName("이름으로 감독을 검색한다.")
+    @Test
+    void getDirectorsByDirectorName() throws Exception {
+        // given
+        final String directorName = "김두루미";
+        Director savedDirector = directorRepository.save(DirectorFixture.director(directorName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", savedDirector.getDirectorName())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item").isArray())
+                .andExpect(jsonPath("$.item[0].directorId").value(savedDirector.getId()))
+                .andExpect(jsonPath("$.item[0].name").value(savedDirector.getDirectorName()))
+                .andExpect(jsonPath("$.nextCursor").isEmpty())
+                .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
+        ;
+    }
+
+    @DisplayName("이름 없이 요청 시 감독을 검색할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorNameIsBlank() throws Exception {
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", "")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("검색할 감독 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 감독 검색 인원은 최소 1명이야 한다.")
+    @Test
+    void throwValidExceptionWhenDirectorSizeIsLessThanOne() throws Exception {
+        // given
+        final String size = "0";
+        final String directorName = "봉준호";
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", directorName)
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독은 최소 1명 이상 조회해야 합니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 감독 검색 인원은 최대 20명을 넘을 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorSizeExceedsLimit() throws Exception {
+        // given
+        final String size = "21";
+        final String directorName = "봉준호";
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", directorName)
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독은 최대 20명 조회할 수 있습니다."))
+        ;
+    }
+
     @Transactional
     @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
     @Test
@@ -591,5 +667,5 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.categoryMetrics[3].count").value(0))
         ;
     }
-
+  
 }

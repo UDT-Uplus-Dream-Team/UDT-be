@@ -4,7 +4,8 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
-import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import com.example.udtbe.global.util.OptionalLongConverter;
 import com.example.udtbe.global.util.OptionalTagConverter;
@@ -38,7 +39,11 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private BatchStatus status;
+    private BatchStepStatus status;
+
+    private LocalDateTime scheduledAt;
+
+    private LocalDateTime finishedAt;
 
     private Long memberId;
 
@@ -82,14 +87,16 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     private List<String> countries;
 
     @Builder(access = PRIVATE)
-    private AdminContentRegisterJob(BatchStatus batchStatus, Long memberId, Long contentId,
-            String title,
-            String description, String posterUrl, String backdropUrl, String trailerUrl,
+    private AdminContentRegisterJob(BatchStepStatus status, Long memberId,
+            LocalDateTime scheduledAt,
+            String title, String description, String posterUrl, String backdropUrl,
+            String trailerUrl,
             LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
             List<Long> directors, List<Long> casts, List<String> countries) {
 
-        this.status = batchStatus;
+        this.status = status;
+        this.scheduledAt = scheduledAt;
         this.memberId = memberId;
         this.title = title;
         this.description = description;
@@ -107,13 +114,14 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentRegisterJob of(BatchStatus batchStatus, Long memberId,
+    public static AdminContentRegisterJob of(BatchStepStatus batchStepStatus, Long memberId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
             List<Long> directors, List<Long> casts, List<String> countries) {
         return AdminContentRegisterJob.builder()
-                .batchStatus(batchStatus)
+                .status(batchStepStatus)
+                .scheduledAt(getScheduledAt())
                 .memberId(memberId)
                 .title(title)
                 .description(description)
@@ -132,7 +140,15 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
                 .build();
     }
 
-    public void changeStatus(BatchStatus status) {
+    public void changeStatus(BatchStepStatus status) {
         this.status = status;
+    }
+
+    private static LocalDateTime getScheduledAt() {
+        return TimeUtil.getScheduledAt();
+    }
+
+    public void finish() {
+        finishedAt = LocalDateTime.now();
     }
 }
