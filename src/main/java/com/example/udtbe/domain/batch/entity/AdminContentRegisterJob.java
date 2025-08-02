@@ -40,6 +40,10 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     @Enumerated(EnumType.STRING)
     private BatchStatus status;
 
+    private LocalDateTime updateAt;
+
+    private LocalDateTime finishedAt;
+
     private Long memberId;
 
     private String title;
@@ -82,14 +86,15 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     private List<String> countries;
 
     @Builder(access = PRIVATE)
-    private AdminContentRegisterJob(BatchStatus batchStatus, Long memberId, Long contentId,
-            String title,
-            String description, String posterUrl, String backdropUrl, String trailerUrl,
+    private AdminContentRegisterJob(BatchStatus batchStatus, Long memberId, LocalDateTime updateAt,
+            String title, String description, String posterUrl, String backdropUrl,
+            String trailerUrl,
             LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
             List<Long> directors, List<Long> casts, List<String> countries) {
 
         this.status = batchStatus;
+        this.updateAt = updateAt;
         this.memberId = memberId;
         this.title = title;
         this.description = description;
@@ -114,6 +119,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
             List<Long> directors, List<Long> casts, List<String> countries) {
         return AdminContentRegisterJob.builder()
                 .batchStatus(batchStatus)
+                .updateAt(getUpdateAt())
                 .memberId(memberId)
                 .title(title)
                 .description(description)
@@ -134,5 +140,20 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
     public void changeStatus(BatchStatus status) {
         this.status = status;
+    }
+
+    private static LocalDateTime getUpdateAt() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayAtFour = now.withHour(4).withMinute(0).withSecond(0).withNano(0);
+
+        if (now.isBefore(todayAtFour)) {
+            return todayAtFour;
+        } else {
+            return todayAtFour.plusDays(1);
+        }
+    }
+
+    public void finish() {
+        finishedAt = LocalDateTime.now();
     }
 }
