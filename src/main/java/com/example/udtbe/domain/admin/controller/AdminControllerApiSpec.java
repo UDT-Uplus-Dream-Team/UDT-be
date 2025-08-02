@@ -5,6 +5,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
@@ -14,6 +15,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
@@ -128,6 +130,15 @@ public interface AdminControllerApiSpec {
     @PostMapping("/api/admin/contents/scheduler-test")
     ResponseEntity<Void> schedulerTestContent();
 
+
+    @Operation(summary = "감독 조회", description = "이름으로 감독을 검색한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "이름이 부분|완전 일치한 감독 목록을 반환"),
+    })
+    @GetMapping("/api/admin/directors")
+    ResponseEntity<CursorPageResponse<AdminDirectorsGetResponse>> getDirectors(
+            @Valid @ModelAttribute AdminDirectorsGetRequest adminDirectorsGetRequest
+    );
 
     @Operation(summary = "배치 예정 목록", description = "배치 예정 목록을 조회한다.")
     @ApiResponses({

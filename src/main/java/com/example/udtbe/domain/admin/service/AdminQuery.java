@@ -1,7 +1,9 @@
 package com.example.udtbe.domain.admin.service;
 
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -111,5 +113,10 @@ public class AdminQuery {
             throw new RestApiException(ContentErrorCode.CONTENT_NOT_FOUND);
         }
         return content;
+    }
+
+    public CursorPageResponse<AdminDirectorsGetResponse> getDirectors(
+            AdminDirectorsGetRequest adminDirectorsGetRequest) {
+        return directorRepository.getDirectors(adminDirectorsGetRequest);
     }
 }
