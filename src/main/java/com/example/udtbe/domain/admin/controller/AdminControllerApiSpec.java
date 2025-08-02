@@ -6,6 +6,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
@@ -15,6 +16,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -125,5 +127,15 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/scheduler-test")
     ResponseEntity<Void> schedulerTestContent();
+
+
+    @Operation(summary = "배치 예정 목록", description = "배치 예정 목록을 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배치 예정 목록반환"),
+    })
+    @GetMapping("/api/admin/batch")
+    ResponseEntity<CursorPageResponse<AdminScheduledContentResponse>> getBatchJobs(
+            @Valid @ModelAttribute AdminScheduledContentsRequest adminContentJobGetsRequest
+    );
 }
 
