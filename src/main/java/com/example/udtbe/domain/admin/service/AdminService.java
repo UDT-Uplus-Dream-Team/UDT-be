@@ -17,6 +17,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
@@ -90,7 +91,6 @@ public class AdminService {
     private final ContentDirectorRepository contentDirectorRepository;
     private final MemberQuery memberQuery;
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
-    private final AdminContentMapper adminContentMapper;
     private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
 
 
@@ -294,7 +294,7 @@ public class AdminService {
         List<FeedbackStatistics> feedbackInfos = feedbackStatisticsQuery.findByMemberOrThrow(
                 memberId);
 
-        List<AdminMemberGenreFeedbackDTO> detail = adminContentMapper.toGenreFeedbackDtoList(
+        List<AdminMemberGenreFeedbackDTO> detail = AdminContentMapper.toGenreFeedbackDtoList(
                 feedbackInfos);
 
         long likeSum = feedbackInfos.stream().mapToLong(FeedbackStatistics::getLikeCount).sum();
@@ -366,5 +366,11 @@ public class AdminService {
         BatchFilterType type = BatchFilterType.from(request.type());
         return adminContentJobRepositoryImpl
                 .getJobsByCursor(request.cursor(), request.size(), type);
+    }
+
+    public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetail(Long jobId) {
+        AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
+
+        return AdminContentMapper.toAdminContentRegJobDetailResponse(job);
     }
 }

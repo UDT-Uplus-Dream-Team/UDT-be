@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum BatchErrorCode implements ErrorCode {
 
     CURSOR_BAD_REQUEST(HttpStatus.BAD_REQUEST, "옳바른 커서를 입력해주세요."),
-    ;
+    ADMIN_CONTENT_REGISTER_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "등록 배치를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

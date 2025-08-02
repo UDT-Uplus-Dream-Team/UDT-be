@@ -6,6 +6,7 @@ import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
@@ -18,9 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Component;
 
-@Component
 public class AdminContentMapper {
 
     // 배치 관련 mapper 시작
@@ -171,6 +170,29 @@ public class AdminContentMapper {
                 adminContentRegisterRequest.runningTime(),
                 adminContentRegisterRequest.episode(),
                 adminContentRegisterRequest.rating()
+        );
+    }
+
+    public static AdminContentRegJobGetDetailResponse toAdminContentRegJobDetailResponse(
+            AdminContentRegisterJob job) {
+        List<AdminCategoryDTO> categoryDTOs = new ArrayList<>(job.getCategories().values());
+        List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
+
+        return new AdminContentRegJobGetDetailResponse(
+                job.getTitle(),
+                job.getDescription(),
+                job.getPosterUrl(),
+                job.getBackdropUrl(),
+                job.getTrailerUrl(),
+                job.getOpenDate(),
+                job.getRunningTime(),
+                job.getEpisode(),
+                job.getRating(),
+                categoryDTOs,
+                job.getCountries(),
+                job.getCasts(),
+                job.getDirectors(),
+                platformDTOs
         );
     }
     // 배치 관련 끝---
