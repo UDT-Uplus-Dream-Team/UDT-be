@@ -23,7 +23,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 class ContentRepositoryTest extends DataJpaSupport {
 
@@ -45,12 +44,14 @@ class ContentRepositoryTest extends DataJpaSupport {
                 .hasMessage(ContentErrorCode.CONTENT_NOT_FOUND.getMessage());
     }
 
-    @Transactional
     @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
     @Test
     void getContentCategoryMetric() {
         // given
-        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
+        Category movie = CategoryFixture.category(MOVIE);
+        Category drama = CategoryFixture.category(DRAMA);
+        List<Category> savedCategories = categoryRepository.saveAll(List.of(movie, drama));
+
         Content content1 = ContentFixture.content("영화1", "영화1");
         Content content2 = ContentFixture.content("영화2", "영화2");
         Content content3 = ContentFixture.content("드라마", "드라마");
@@ -73,10 +74,10 @@ class ContentRepositoryTest extends DataJpaSupport {
         // then
         assertAll(
                 () -> assertThat(response.categoryMetrics().get(0).categoryType())
-                        .isEqualTo(MOVIE.getType()),
+                        .isEqualTo(movie.getCategoryType().getType()),
                 () -> assertThat(response.categoryMetrics().get(0).count()).isEqualTo(2),
                 () -> assertThat(response.categoryMetrics().get(1).categoryType())
-                        .isEqualTo(DRAMA.getType()),
+                        .isEqualTo(drama.getCategoryType().getType()),
                 () -> assertThat(response.categoryMetrics().get(1).count()).isEqualTo(1)
         );
     }
