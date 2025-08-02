@@ -150,9 +150,9 @@ public interface AdminControllerApiSpec {
             @Valid @ModelAttribute AdminScheduledContentsRequest adminContentJobGetsRequest
     );
 
-    @Operation(summary = "배치 예정 목록", description = "배치 예정 목록을 조회한다.")
+    @Operation(summary = "수정 배치 작업 상세보기", description = "수정 배치 작업 상세를 볼 수 있다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "배치 예정 목록반환"),
+            @ApiResponse(responseCode = "200", description = "수정 배치 작업 상세 반환"),
     })
     @GetMapping("/api/admin/batch/contents/updatejob/{jobId}")
     ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(
