@@ -9,6 +9,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -17,6 +18,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
@@ -354,5 +356,10 @@ public class AdminService {
                 .toList();
 
         return new AdminDirectorsRegisterResponse(savedDirectors);
+    }
+
+    public CursorPageResponse<AdminDirectorsGetResponse> getDirectors(
+            AdminDirectorsGetRequest adminDirectorsGetRequest) {
+        return adminQuery.getDirectors(adminDirectorsGetRequest);
     }
 }
