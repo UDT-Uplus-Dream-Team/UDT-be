@@ -4,7 +4,9 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.sql.Timestamp;
@@ -36,6 +38,8 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
                 jobId = Long.parseLong(parts[0]);
                 createdAt = LocalDateTime.parse(parts[1]);
                 jobType = parts[2];
+            } else {
+                throw new RestApiException(BatchErrorCode.CURSOR_BAD_REQUEST);
             }
         }
 
