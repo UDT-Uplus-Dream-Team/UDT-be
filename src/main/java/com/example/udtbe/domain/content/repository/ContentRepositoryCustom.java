@@ -1,5 +1,6 @@
 package com.example.udtbe.domain.content.repository;
 
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.content.dto.request.ContentsGetRequest;
@@ -30,4 +31,6 @@ public interface ContentRepositoryCustom {
     List<RecentContentsResponse> getRecentContents(int size);
 
     List<PopularContentByPlatformResponse> findPopularContentsByPlatform();
+
+    AdminContentCategoryMetricResponse getContentCategoryMetric();
 }

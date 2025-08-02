@@ -12,6 +12,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -354,5 +355,9 @@ public class AdminService {
                 .toList();
 
         return new AdminDirectorsRegisterResponse(savedDirectors);
+    }
+
+    public AdminContentCategoryMetricResponse getContentCategoryMetric() {
+        return adminQuery.getContentCategoryMetric();
     }
 }

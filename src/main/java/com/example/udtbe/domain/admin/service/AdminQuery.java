@@ -4,6 +4,7 @@ import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -168,5 +169,9 @@ public class AdminQuery {
         if (!directorRepository.existsById(directorId)) {
             throw new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND);
         }
+    }
+
+    public AdminContentCategoryMetricResponse getContentCategoryMetric() {
+        return contentRepository.getContentCategoryMetric();
     }
 }

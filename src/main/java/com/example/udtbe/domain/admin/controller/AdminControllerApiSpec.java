@@ -8,6 +8,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -125,5 +126,12 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/scheduler-test")
     ResponseEntity<Void> schedulerTestContent();
+
+    @Operation(summary = "콘텐츠 카테고리 지표 조회", description = "콘텐츠 카테고리 별 비율 정보를 가져온다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "콘텐츠 카테고리 별 비율 정보"),
+    })
+    @GetMapping("/api/admin/metrics/categories")
+    ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric();
 }
 
