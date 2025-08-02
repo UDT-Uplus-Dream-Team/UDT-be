@@ -3,7 +3,7 @@ package com.example.udtbe.domain.batch.repository;
 import com.example.udtbe.domain.admin.dto.response.AdminContentJobGetResponse;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
-import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -86,7 +86,7 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
         List<AdminContentJobGetResponse> results = resultList.stream()
                 .map(row -> new AdminContentJobGetResponse(
                         ((Number) row[0]).longValue(),
-                        BatchStatus.from((String) row[1]),
+                        BatchStepStatus.from((String) row[1]),
                         ((Number) row[2]).longValue(),
                         ((Timestamp) row[3]).toLocalDateTime(),
                         ((Timestamp) row[4]).toLocalDateTime(),

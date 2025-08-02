@@ -1,12 +1,12 @@
 package com.example.udtbe.domain.admin.dto.response;
 
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
-import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
 import java.time.LocalDateTime;
 
 public record AdminContentJobGetResponse(
         Long id,
-        BatchStatus status,
+        BatchStepStatus status,
         Long memberId,
         LocalDateTime createdAt,
         LocalDateTime updateAt,
