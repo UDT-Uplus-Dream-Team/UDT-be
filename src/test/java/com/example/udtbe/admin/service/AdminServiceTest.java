@@ -27,14 +27,20 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -98,6 +104,8 @@ public class AdminServiceTest {
     private MemberQuery memberQuery;
     @Mock
     private FeedbackStatisticsQuery feedbackStatisticsQuery;
+    @Mock
+    private AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
 
     @InjectMocks
     private AdminService adminService;
@@ -471,7 +479,7 @@ public class AdminServiceTest {
         Long id = 300L;
         Content content = mock(Content.class);
         ContentMetadata metadata = mock(ContentMetadata.class);
-        given(adminQuery.findContentByContentId(id)).willReturn(content);
+        given(adminQuery.findAndValidContentByContentId(id)).willReturn(content);
         given(adminQuery.findContentMetadateByContentId(id))
                 .willReturn(metadata);
 
@@ -480,7 +488,7 @@ public class AdminServiceTest {
 
         // then
         assertAll(
-                () -> verify(adminQuery).findContentByContentId(eq(id)),
+                () -> verify(adminQuery).findAndValidContentByContentId(eq(id)),
                 () -> verify(content).delete(eq(true)),
 
                 () -> verify(contentGenreRepository).deleteAllByContent(content),
@@ -657,5 +665,38 @@ public class AdminServiceTest {
                         director3.getId()
                 )
         );
+    }
+
+    @DisplayName("배치 작업 목록을 커서 기반 페이지네이션으로 조회할 수 있다.")
+    @Test
+    void getBatchJobs() {
+        // given
+        AdminScheduledContentsRequest request = new AdminScheduledContentsRequest("5", 10,
+                "FAILED");
+        BatchFilterType type = BatchFilterType.from(request.type());
+
+        List<AdminScheduledContentResponse> jobs = List.of(
+                new AdminScheduledContentResponse(5L, BatchStepStatus.PENDING, 1L,
+                        LocalDateTime.now(),
+                        LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE),
+                new AdminScheduledContentResponse(4L, BatchStepStatus.FAILED, 1L,
+                        LocalDateTime.now(),
+                        LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE)
+        );
+        CursorPageResponse<AdminScheduledContentResponse> expectedResponse = new CursorPageResponse<>(
+                jobs, "4", true);
+
+        given(adminContentJobRepositoryImpl.getJobsByCursor(request.cursor(), request.size(),
+                type))
+                .willReturn(expectedResponse);
+
+        // when
+        CursorPageResponse<AdminScheduledContentResponse> actualResponse = adminService.getBatchJobs(
+                request);
+
+        // then
+        assertThat(actualResponse).isSameAs(expectedResponse);
+        then(adminContentJobRepositoryImpl).should()
+                .getJobsByCursor(request.cursor(), request.size(), type);
     }
 }
