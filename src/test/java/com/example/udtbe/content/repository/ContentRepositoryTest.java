@@ -1,5 +1,7 @@
 package com.example.udtbe.content.repository;
 
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.DRAMA;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.MOVIE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -21,6 +23,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 class ContentRepositoryTest extends DataJpaSupport {
 
@@ -42,6 +45,7 @@ class ContentRepositoryTest extends DataJpaSupport {
                 .hasMessage(ContentErrorCode.CONTENT_NOT_FOUND.getMessage());
     }
 
+    @Transactional
     @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
     @Test
     void getContentCategoryMetric() {
@@ -69,10 +73,10 @@ class ContentRepositoryTest extends DataJpaSupport {
         // then
         assertAll(
                 () -> assertThat(response.categoryMetrics().get(0).categoryType())
-                        .isEqualTo(savedCategories.get(0).getCategoryType().getType()),
+                        .isEqualTo(MOVIE.getType()),
                 () -> assertThat(response.categoryMetrics().get(0).count()).isEqualTo(2),
                 () -> assertThat(response.categoryMetrics().get(1).categoryType())
-                        .isEqualTo(savedCategories.get(1).getCategoryType().getType()),
+                        .isEqualTo(DRAMA.getType()),
                 () -> assertThat(response.categoryMetrics().get(1).count()).isEqualTo(1)
         );
     }
