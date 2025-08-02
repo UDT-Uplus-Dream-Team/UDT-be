@@ -11,6 +11,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
@@ -21,10 +22,13 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.content.dto.CastMapper;
@@ -87,15 +91,13 @@ public class AdminService {
     private final MemberQuery memberQuery;
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
     private final AdminContentMapper adminContentMapper;
+    private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
 
 
     @Transactional
     @LogReturn
     public AdminContentRegisterResponse registerBulkContent(Member member,
             AdminContentRegisterRequest request) {
-        adminQuery.validRegisterAndUpdateContent(request.categories(), request.platforms(),
-                request.casts(),
-                request.directors());
         AdminContentRegisterJob job = AdminContentMapper.toContentRegisterJob(request,
                 member.getId());
 
@@ -107,9 +109,6 @@ public class AdminService {
     @LogReturn
     public AdminContentUpdateResponse updateBulkContent(Member member, Long contentId,
             AdminContentUpdateRequest request) {
-        adminQuery.validRegisterAndUpdateContent(request.categories(), request.platforms(),
-                request.casts(),
-                request.directors());
         AdminContentUpdateJob job = AdminContentMapper.toContentUpdateJob(request, contentId,
                 member.getId());
         adminContentUpdateJobRepository.save(job);
@@ -119,7 +118,6 @@ public class AdminService {
     @Transactional
     @LogReturn
     public AdminContentDeleteResponse deleteBulkContent(Member member, Long contentId) {
-        adminQuery.validContentByContentId(contentId);
         AdminContentDeleteJob job = AdminContentMapper.toContentDeleteJob(contentId,
                 member.getId());
         adminContentDeleteJobRepository.save(job);
@@ -254,7 +252,7 @@ public class AdminService {
 
     @LogReturn
     public void deleteContent(Long contentId) {
-        Content content = adminQuery.findContentByContentId(contentId);
+        Content content = adminQuery.findAndValidContentByContentId(contentId);
         content.delete(true);
         deleteContentRelation(content);
         ContentMetadata contentMetadata = adminQuery.findContentMetadateByContentId(contentId);
@@ -361,5 +359,11 @@ public class AdminService {
     public CursorPageResponse<AdminDirectorsGetResponse> getDirectors(
             AdminDirectorsGetRequest adminDirectorsGetRequest) {
         return adminQuery.getDirectors(adminDirectorsGetRequest);
+
+    public CursorPageResponse<AdminScheduledContentResponse> getBatchJobs(
+            AdminScheduledContentsRequest request) {
+        BatchFilterType type = BatchFilterType.from(request.type());
+        return adminContentJobRepositoryImpl
+                .getJobsByCursor(request.cursor(), request.size(), type);
     }
 }

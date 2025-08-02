@@ -11,7 +11,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
-import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.FeedbackStatistics;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class AdminContentMapper {
         request.platforms().forEach(dto -> platformDTOs.put(dto.platformType(), dto));
 
         return AdminContentRegisterJob.of(
-                BatchStatus.PENDING,
+                BatchStepStatus.PENDING,
                 memberId,
                 request.title(),
                 request.description(),
@@ -63,7 +63,7 @@ public class AdminContentMapper {
         request.platforms().forEach(dto -> platformDTOs.put(dto.platformType(), dto));
 
         return AdminContentUpdateJob.of(
-                BatchStatus.PENDING,
+                BatchStepStatus.PENDING,
                 memberId,
                 contentId,
                 request.title(),
@@ -85,7 +85,7 @@ public class AdminContentMapper {
 
     public static AdminContentDeleteJob toContentDeleteJob(Long contentId, Long memberId) {
         return AdminContentDeleteJob.of(
-                BatchStatus.PENDING,
+                BatchStepStatus.PENDING,
                 memberId,
                 contentId
         );
