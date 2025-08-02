@@ -1,6 +1,7 @@
 package com.example.udtbe.domain.admin.service;
 
 import com.example.udtbe.domain.admin.dto.AdminContentMapper;
+import com.example.udtbe.domain.admin.dto.AdminMemberMapper;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
@@ -9,6 +10,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
@@ -16,6 +18,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
 import com.example.udtbe.domain.content.dto.CastMapper;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
@@ -241,6 +244,31 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
+    public CursorPageResponse<AdminMemberListGetResponse> getMemberList(
+            AdminMemberListGetRequest request) {
+
+        List<Member> memberList = memberQuery.findMembersForAdmin(request.cursor(),
+                request.size() + 1, request.keyword());
+
+        boolean hasNext = memberList.size() > request.size();
+        List<Member> limited = hasNext ? memberList.subList(0, request.size()) : memberList;
+
+        List<AdminMemberListGetResponse> dtoList = limited.stream()
+                .map(m -> {
+                    List<FeedbackStatistics> stats =
+                            feedbackStatisticsQuery.findByMember(m.getId());
+                    return AdminMemberMapper.toListDto(m, stats);
+                })
+                .toList();
+
+        String nextCursor = hasNext
+                ? String.valueOf(limited.get(limited.size() - 1).getId())
+                : null;
+
+        return new CursorPageResponse<>(dtoList, nextCursor, hasNext);
+    }
+
+    @Transactional(readOnly = true)
     public AdminMemberInfoGetResponse getMemberFeedbackInfo(Long memberId) {
 
         Member member = memberQuery.findMemberById(memberId);
@@ -268,7 +296,7 @@ public class AdminService {
                 detail
         );
     }
-  
+
     @Transactional
     public AdminCastsRegisterResponse registerCasts(
             AdminCastsRegisterRequest adminCastsRegisterRequest) {

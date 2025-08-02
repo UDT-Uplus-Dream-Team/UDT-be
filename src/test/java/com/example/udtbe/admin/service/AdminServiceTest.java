@@ -22,10 +22,12 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -528,10 +530,62 @@ public class AdminServiceTest {
         then(memberQuery).should().findMemberById(memberId);
         then(feedbackStatisticsQuery).should().findByMemberOrThrow(memberId);
     }
-  
+
+    @DisplayName("유저 정보를 무한 스크롤로 조회할 수 있다.")
+    @Test
+    void getMemberList() {
+        // given
+        AdminMemberListGetRequest req = new AdminMemberListGetRequest(
+                null,
+                2,
+                null
+        );
+
+        Member member1 = MemberFixture.member("member1@test.com", Role.ROLE_USER);
+        Member member2 = MemberFixture.member("member2@test.com", Role.ROLE_USER);
+        Member member3 = MemberFixture.member("member3@test.com", Role.ROLE_USER);
+
+        ReflectionTestUtils.setField(member1, "id", 3L);
+        ReflectionTestUtils.setField(member2, "id", 2L);
+        ReflectionTestUtils.setField(member3, "id", 1L);
+
+        given(memberQuery.findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword()))
+                .willReturn(List.of(member1, member2, member3));
+
+        given(feedbackStatisticsQuery.findByMemberOrThrow(3L))
+                .willReturn(List.of(
+                        FeedbackStatistics.of(GenreType.ACTION, 1, 0, 0, false, member1),
+                        FeedbackStatistics.of(GenreType.DRAMA, 2, 1, 0, false, member1)
+                ));
+        given(feedbackStatisticsQuery.findByMemberOrThrow(2L))
+                .willReturn(List.of(
+                        FeedbackStatistics.of(GenreType.DRAMA, 1, 0, 1, false, member2)
+                ));
+
+        // when
+        CursorPageResponse<AdminMemberListGetResponse> res = adminService.getMemberList(req);
+
+        // then
+        assertThat(res.item()).hasSize(2);
+        assertThat(res.hasNext()).isTrue();
+        assertThat(res.nextCursor()).isEqualTo("2");
+
+        AdminMemberListGetResponse dto1 = res.item().get(0);
+        assertThat(dto1.id()).isEqualTo(3L);
+        assertThat(dto1.totalLikeCount()).isEqualTo(3);
+        assertThat(dto1.totalDislikeCount()).isEqualTo(1);
+        assertThat(dto1.totalUninterestedCount()).isZero();
+
+        verify(memberQuery, times(1))
+                .findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword());
+        verify(feedbackStatisticsQuery, times(1)).findByMemberOrThrow(3L);
+        verify(feedbackStatisticsQuery, times(1)).findByMemberOrThrow(2L);
+    }
+
     @DisplayName("여러 명의 출연진을 한번에 저장한다.")
     @Test
     void registerCasts() {
+
         // given
         final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "강호동.image.com");
         final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", "유재석.image.com");
