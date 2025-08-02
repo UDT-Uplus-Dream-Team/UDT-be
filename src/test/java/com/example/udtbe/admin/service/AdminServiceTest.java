@@ -37,7 +37,7 @@ import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
@@ -621,10 +621,10 @@ public class AdminServiceTest {
         BatchFilterType type = BatchFilterType.from(request.type());
 
         List<AdminScheduledContentResponse> jobs = List.of(
-                new AdminScheduledContentResponse(5L, BatchStepStatus.PENDING, 1L,
+                new AdminScheduledContentResponse(5L, BatchStatus.PENDING, 1L,
                         LocalDateTime.now(),
                         LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE),
-                new AdminScheduledContentResponse(4L, BatchStepStatus.FAILED, 1L,
+                new AdminScheduledContentResponse(4L, BatchStatus.FAILED, 1L,
                         LocalDateTime.now(),
                         LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE)
         );

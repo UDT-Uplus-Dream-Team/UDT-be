@@ -8,7 +8,7 @@ import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
@@ -122,7 +122,7 @@ public class BatchConfig {
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
                 .queryString("SELECT r FROM AdminContentRegisterJob r WHERE r.status = :status")
-                .parameterValues(Map.of("status", BatchStepStatus.PENDING))
+                .parameterValues(Map.of("status", BatchStatus.PENDING))
                 .build();
     }
 
@@ -134,7 +134,7 @@ public class BatchConfig {
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
                 .queryString("SELECT c FROM AdminContentUpdateJob c WHERE c.status = :status")
-                .parameterValues(Map.of("status", BatchStepStatus.PENDING))
+                .parameterValues(Map.of("status", BatchStatus.PENDING))
                 .build();
     }
 
@@ -146,7 +146,7 @@ public class BatchConfig {
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
                 .queryString("SELECT c FROM AdminContentDeleteJob c WHERE c.status = :status")
-                .parameterValues(Map.of("status", BatchStepStatus.PENDING))
+                .parameterValues(Map.of("status", BatchStatus.PENDING))
                 .build();
     }
 
@@ -154,7 +154,7 @@ public class BatchConfig {
     @StepScope
     public ItemProcessor<AdminContentRegisterJob, AdminContentRegisterJob> contentRegisterProcessor() {
         return request -> {
-            request.changeStatus(BatchStepStatus.PROCESSING);
+            request.changeStatus(BatchStatus.PROCESSING);
             return request;
         };
     }
@@ -163,7 +163,7 @@ public class BatchConfig {
     @StepScope
     public ItemProcessor<AdminContentUpdateJob, AdminContentUpdateJob> contentUpdateProcessor() {
         return request -> {
-            request.changeStatus(BatchStepStatus.PROCESSING);
+            request.changeStatus(BatchStatus.PROCESSING);
             return request;
         };
     }
@@ -172,7 +172,7 @@ public class BatchConfig {
     @StepScope
     public ItemProcessor<AdminContentDeleteJob, AdminContentDeleteJob> contentDeleteProcessor() {
         return request -> {
-            request.changeStatus(BatchStepStatus.PROCESSING);
+            request.changeStatus(BatchStatus.PROCESSING);
             return request;
         };
     }
@@ -186,11 +186,11 @@ public class BatchConfig {
                     AdminContentRegisterRequest adminContentRegisterRequest = AdminContentMapper.toContentRegisterRequest(
                             item);
                     adminService.registerContent(adminContentRegisterRequest);
-                    item.changeStatus(BatchStepStatus.COMPLETED);
+                    item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentRegisterJobRepository.save(item);
                 } catch (Exception e) {
-                    item.changeStatus(BatchStepStatus.FAILED);
+                    item.changeStatus(BatchStatus.FAILED);
                     item.finish();
                     adminContentRegisterJobRepository.save(item);
                 }
@@ -207,11 +207,11 @@ public class BatchConfig {
                     AdminContentUpdateRequest adminContentUpdateRequest = AdminContentMapper.toContentUpdateRequest(
                             item);
                     adminService.updateContent(item.getContentId(), adminContentUpdateRequest);
-                    item.changeStatus(BatchStepStatus.COMPLETED);
+                    item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentUpdateJobRepository.save(item);
                 } catch (Exception e) {
-                    item.changeStatus(BatchStepStatus.FAILED);
+                    item.changeStatus(BatchStatus.FAILED);
                     item.finish();
                     adminContentUpdateJobRepository.save(item);
                 }
@@ -226,11 +226,11 @@ public class BatchConfig {
             items.forEach(item -> {
                 try {
                     adminService.deleteContent(item.getContentId());
-                    item.changeStatus(BatchStepStatus.COMPLETED);
+                    item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentDeleteJobRepository.save(item);
                 } catch (Exception e) {
-                    item.changeStatus(BatchStepStatus.FAILED);
+                    item.changeStatus(BatchStatus.FAILED);
                     item.finish();
                     adminContentDeleteJobRepository.save(item);
                 }

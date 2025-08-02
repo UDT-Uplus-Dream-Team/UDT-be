@@ -4,7 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import com.example.udtbe.global.util.OptionalLongConverter;
@@ -39,7 +39,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private BatchStepStatus status;
+    private BatchStatus status;
 
     private LocalDateTime scheduledAt;
 
@@ -87,7 +87,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     private List<String> countries;
 
     @Builder(access = PRIVATE)
-    private AdminContentRegisterJob(BatchStepStatus status, Long memberId,
+    private AdminContentRegisterJob(BatchStatus status, Long memberId,
             LocalDateTime scheduledAt,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl,
@@ -114,7 +114,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentRegisterJob of(BatchStepStatus batchStepStatus, Long memberId,
+    public static AdminContentRegisterJob of(BatchStatus batchStepStatus, Long memberId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
@@ -140,7 +140,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
                 .build();
     }
 
-    public void changeStatus(BatchStepStatus status) {
+    public void changeStatus(BatchStatus status) {
         this.status = status;
     }
 
