@@ -96,9 +96,6 @@ public class AdminService {
     @LogReturn
     public AdminContentRegisterResponse registerBulkContent(Member member,
             AdminContentRegisterRequest request) {
-        adminQuery.validRegisterAndUpdateContent(request.categories(), request.platforms(),
-                request.casts(),
-                request.directors());
         AdminContentRegisterJob job = AdminContentMapper.toContentRegisterJob(request,
                 member.getId());
 
@@ -110,9 +107,6 @@ public class AdminService {
     @LogReturn
     public AdminContentUpdateResponse updateBulkContent(Member member, Long contentId,
             AdminContentUpdateRequest request) {
-        adminQuery.validRegisterAndUpdateContent(request.categories(), request.platforms(),
-                request.casts(),
-                request.directors());
         AdminContentUpdateJob job = AdminContentMapper.toContentUpdateJob(request, contentId,
                 member.getId());
         adminContentUpdateJobRepository.save(job);
@@ -122,7 +116,6 @@ public class AdminService {
     @Transactional
     @LogReturn
     public AdminContentDeleteResponse deleteBulkContent(Member member, Long contentId) {
-        adminQuery.validContentByContentId(contentId);
         AdminContentDeleteJob job = AdminContentMapper.toContentDeleteJob(contentId,
                 member.getId());
         adminContentDeleteJobRepository.save(job);
@@ -257,7 +250,7 @@ public class AdminService {
 
     @LogReturn
     public void deleteContent(Long contentId) {
-        Content content = adminQuery.findContentByContentId(contentId);
+        Content content = adminQuery.findAndValidContentByContentId(contentId);
         content.delete(true);
         deleteContentRelation(content);
         ContentMetadata contentMetadata = adminQuery.findContentMetadateByContentId(contentId);
