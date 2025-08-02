@@ -30,4 +30,8 @@ public class CategoryFixture {
 
         return categories;
     }
+
+    public static Category category(CategoryType categoryType) {
+        return Category.of(categoryType);
+    }
 }
