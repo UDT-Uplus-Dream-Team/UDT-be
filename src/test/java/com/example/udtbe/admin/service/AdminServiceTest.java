@@ -477,7 +477,7 @@ public class AdminServiceTest {
         Long id = 300L;
         Content content = mock(Content.class);
         ContentMetadata metadata = mock(ContentMetadata.class);
-        given(adminQuery.findContentByContentId(id)).willReturn(content);
+        given(adminQuery.findAndValidContentByContentId(id)).willReturn(content);
         given(adminQuery.findContentMetadateByContentId(id))
                 .willReturn(metadata);
 
@@ -486,7 +486,7 @@ public class AdminServiceTest {
 
         // then
         assertAll(
-                () -> verify(adminQuery).findContentByContentId(eq(id)),
+                () -> verify(adminQuery).findAndValidContentByContentId(eq(id)),
                 () -> verify(content).delete(eq(true)),
 
                 () -> verify(contentGenreRepository).deleteAllByContent(content),
