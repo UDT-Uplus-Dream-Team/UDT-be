@@ -133,7 +133,7 @@ public interface AdminControllerApiSpec {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "배치 예정 목록반환"),
     })
-    @PostMapping("/api/admin/batch")
+    @GetMapping("/api/admin/batch")
     ResponseEntity<CursorPageResponse<AdminContentJobGetResponse>> getBatchJobs(
             @Valid @RequestBody AdminContentJobGetsRequest adminContentJobGetsRequest
     );
