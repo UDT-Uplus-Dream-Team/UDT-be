@@ -9,9 +9,13 @@ import com.example.udtbe.domain.survey.dto.request.SurveyCreateRequest;
 import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.domain.survey.exception.SurveyErrorCode;
 import com.example.udtbe.global.exception.RestApiException;
+import com.example.udtbe.global.security.dto.AuthInfo;
+import com.example.udtbe.global.security.dto.CustomOauth2User;
 import com.example.udtbe.global.token.cookie.CookieUtil;
+import com.example.udtbe.global.token.service.TokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +28,7 @@ public class SurveyService {
     private final SurveyQuery surveyQuery;
     private final AuthQuery authQuery;
     private final CookieUtil cookieUtil;
+    private final TokenProvider tokenProvider;
 
     @Transactional
     public void createSurvey(SurveyCreateRequest request, Member member,
@@ -46,6 +51,14 @@ public class SurveyService {
         authQuery.save(member);
 
         cookieUtil.deleteCookie(response);
-        response.addCookie(cookieUtil.createOnboardingCookie());
+
+        CustomOauth2User customOauth2User = new CustomOauth2User(
+                AuthInfo.of(member.getName(), member.getEmail(), member.getRole())
+        );
+
+        String token = tokenProvider.generateAccessToken(member, customOauth2User, new Date());
+        tokenProvider.generateRefreshToken(member, customOauth2User, new Date());
+
+        response.addCookie(cookieUtil.createCookie(token));
     }
 }
