@@ -31,7 +31,6 @@ import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentCategory;
 import com.example.udtbe.domain.content.entity.Director;
-import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -316,7 +315,7 @@ public class AdminControllerTest extends ApiSupport {
         // given
         List<AdminCastDTO> casts = new ArrayList<>();
         for (int i = 0; i < 31; i++) {
-            casts.add(new AdminCastDTO("name" + i, "url" + i));
+            casts.add(new AdminCastDTO("castName" + i, "url" + i));
         }
         AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(casts);
 
@@ -393,7 +392,7 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.item").isArray())
                 .andExpect(jsonPath("$.item[0].castId").value(savedCast.getId()))
-                .andExpect(jsonPath("$.item[0].name").value(savedCast.getCastName()))
+                .andExpect(jsonPath("$.item[0].castName").value(savedCast.getCastName()))
                 .andExpect(jsonPath("$.nextCursor").isEmpty())
                 .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
         ;
@@ -500,7 +499,7 @@ public class AdminControllerTest extends ApiSupport {
         // given
         List<AdminDirectorDTO> directors = new ArrayList<>();
         for (int i = 0; i < 31; i++) {
-            directors.add(new AdminDirectorDTO("name" + i, "url" + i));
+            directors.add(new AdminDirectorDTO("castName" + i, "url" + i));
         }
         AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(directors);
 
@@ -577,7 +576,8 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.item").isArray())
                 .andExpect(jsonPath("$.item[0].directorId").value(savedDirector.getId()))
-                .andExpect(jsonPath("$.item[0].name").value(savedDirector.getDirectorName()))
+                .andExpect(
+                        jsonPath("$.item[0].directorName").value(savedDirector.getDirectorName()))
                 .andExpect(jsonPath("$.nextCursor").isEmpty())
                 .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
         ;
@@ -675,7 +675,7 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.totalSkip").value(
                         metric1.getTotalSkip() + (metric2.getTotalSkip())));
     }
-  
+
     @Transactional
     @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
     @Test
@@ -715,5 +715,5 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.categoryMetrics[3].count").value(0))
         ;
     }
-  
+
 }

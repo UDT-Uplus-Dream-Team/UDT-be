@@ -42,10 +42,10 @@ class DirectorRepositoryTest extends DataJpaSupport {
         // then
         assertAll(
                 () -> assertThat(response.item()).hasSize(2),
-                () -> assertThat(response.item().get(0).name()).isEqualTo(
+                () -> assertThat(response.item().get(0).directorName()).isEqualTo(
                         director3.getDirectorName()
                 ),
-                () -> assertThat(response.item().get(1).name()).isEqualTo(
+                () -> assertThat(response.item().get(1).directorName()).isEqualTo(
                         director1.getDirectorName()
                 ),
                 () -> assertThat(response.nextCursor()).isNull(),
