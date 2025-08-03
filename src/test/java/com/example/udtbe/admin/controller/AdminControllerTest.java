@@ -1,5 +1,9 @@
 package com.example.udtbe.admin.controller;
 
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.ANIMATION;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.DRAMA;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.MOVIE;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.VARIETY;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,6 +25,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentCategory;
 import com.example.udtbe.domain.content.entity.Director;
 import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.repository.CastRepository;
@@ -209,9 +214,9 @@ public class AdminControllerTest extends ApiSupport {
         for (int i = 1; i <= 4; i++) {
             Category category;
             if (i % 2 == 0) {
-                category = categoryRepository.findByCategoryType(CategoryType.MOVIE).get();
+                category = categoryRepository.findByCategoryType(MOVIE).get();
             } else {
-                category = categoryRepository.findByCategoryType(CategoryType.DRAMA).get();
+                category = categoryRepository.findByCategoryType(DRAMA).get();
             }
             Content content = ContentFixture.content("T" + i, "D");
             contentRepository.save(content);
@@ -550,7 +555,6 @@ public class AdminControllerTest extends ApiSupport {
         ;
     }
 
-
     @DisplayName("이름으로 감독을 검색한다.")
     @Test
     void getDirectorsByDirectorName() throws Exception {
@@ -623,4 +627,45 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.message").value("감독은 최대 20명 조회할 수 있습니다."))
         ;
     }
+
+    @Transactional
+    @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
+    @Test
+    void getContentCategoryMetric() throws Exception {
+        // given
+        Content content1 = ContentFixture.content("영화1", "영화1");
+        Content content2 = ContentFixture.content("영화2", "영화2");
+        Content content3 = ContentFixture.content("드라마", "드라마");
+        contentRepository.saveAll(List.of(content1, content2, content3));
+
+        Category movie = categoryRepository.findByCategoryType(MOVIE).get();
+        Category drama = categoryRepository.findByCategoryType(DRAMA).get();
+        Category animation = categoryRepository.findByCategoryType(ANIMATION).get();
+        Category variety = categoryRepository.findByCategoryType(VARIETY).get();
+
+        ContentCategory contentCategory1 = ContentCategoryFixture.contentCategory(content1, movie);
+        ContentCategory contentCategory2 = ContentCategoryFixture.contentCategory(content2, movie);
+        ContentCategory contentCategory3 = ContentCategoryFixture.contentCategory(content3, drama);
+
+        contentCategoryRepository.saveAll(
+                List.of(contentCategory1, contentCategory2, contentCategory3)
+        );
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/metrics/categories")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryMetrics").isArray())
+                .andExpect(jsonPath("$.categoryMetrics[0].categoryId").value(movie.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[0].count").value(2))
+                .andExpect(jsonPath("$.categoryMetrics[1].categoryId").value(drama.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[1].count").value(1))
+                .andExpect(jsonPath("$.categoryMetrics[2].categoryId").value(animation.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[2].count").value(0))
+                .andExpect(jsonPath("$.categoryMetrics[3].categoryId").value(variety.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[3].count").value(0))
+        ;
+    }
+  
 }

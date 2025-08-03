@@ -14,6 +14,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -367,4 +368,9 @@ public class AdminService {
         return adminContentJobRepositoryImpl
                 .getJobsByCursor(request.cursor(), request.size(), type);
     }
+  
+    public AdminContentCategoryMetricResponse getContentCategoryMetric() {
+      return adminQuery.getContentCategoryMetric();
+    }
+
 }

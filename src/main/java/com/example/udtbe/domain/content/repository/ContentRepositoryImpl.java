@@ -21,6 +21,9 @@ import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminDirectorDetailsDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.common.CategoryMetricDTO;
+import com.example.udtbe.domain.admin.dto.common.QCategoryMetricDTO;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.QAdminContentGetResponse;
@@ -443,6 +446,21 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
             }
         }
         return result;
+    }
+
+    @Override
+    public AdminContentCategoryMetricResponse getContentCategoryMetric() {
+        List<CategoryMetricDTO> categoryMetricDTOS = queryFactory
+                .select(new QCategoryMetricDTO(category, content.id.count()))
+                .from(category)
+                .leftJoin(category.contentCategories, contentCategory)
+                .leftJoin(contentCategory.content, content)
+                .on(content.isDeleted.isFalse())
+                .groupBy(category.id)
+                .orderBy(category.id.asc())
+                .fetch();
+
+        return new AdminContentCategoryMetricResponse(categoryMetricDTOS);
     }
 
     private List<Long> getContentIdsByPlatformTypes(List<String> platforms,

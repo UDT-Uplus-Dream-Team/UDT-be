@@ -10,6 +10,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -128,6 +129,12 @@ public class AdminController implements AdminControllerApiSpec {
                 adminContentJobGetsRequest);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(adminContentJobGetResponseCursorPageResponse);
+    }
+  
+    @Override
+    public ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric() {
+        AdminContentCategoryMetricResponse response = adminService.getContentCategoryMetric();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }
