@@ -3,7 +3,7 @@ package com.example.udtbe.domain.batch.entity;
 
 import static lombok.AccessLevel.PRIVATE;
 
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import jakarta.persistence.Column;
@@ -30,7 +30,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private BatchStepStatus status;
+    private BatchStatus status;
 
     private LocalDateTime scheduledAt;
 
@@ -42,7 +42,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
 
     @Builder(access = PRIVATE)
-    private AdminContentDeleteJob(BatchStepStatus status, LocalDateTime scheduledAt, Long memberId,
+    private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long memberId,
             Long contentId) {
         this.status = status;
         this.scheduledAt = scheduledAt;
@@ -50,7 +50,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
         this.contentId = contentId;
     }
 
-    public static AdminContentDeleteJob of(BatchStepStatus status, Long memberId, Long contentId) {
+    public static AdminContentDeleteJob of(BatchStatus status, Long memberId, Long contentId) {
         return AdminContentDeleteJob.builder()
                 .status(status)
                 .scheduledAt(getScheduledAt())
@@ -59,7 +59,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
                 .build();
     }
 
-    public void changeStatus(BatchStepStatus status) {
+    public void changeStatus(BatchStatus status) {
         this.status = status;
     }
 

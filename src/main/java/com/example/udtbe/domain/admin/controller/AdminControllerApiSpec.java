@@ -19,7 +19,9 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +29,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -145,9 +148,25 @@ public interface AdminControllerApiSpec {
             @ApiResponse(responseCode = "200", description = "배치 예정 목록반환"),
     })
     @GetMapping("/api/admin/batch")
-    ResponseEntity<CursorPageResponse<AdminScheduledContentResponse>> getBatchJobs(
+    ResponseEntity<CursorPageResponse<AdminScheduledContentResponse>> getBatches(
             @Valid @ModelAttribute AdminScheduledContentsRequest adminContentJobGetsRequest
     );
+
+    @Operation(summary = "배치 결과 목록 조회", description = "배치 집계 결과 목록을 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "배치 결과 목록반환"),
+    })
+    @GetMapping("/api/admin/batch/results")
+    ResponseEntity<List<AdminScheduledContentResultResponse>> getBatchResults();
+
+    @Operation(summary = "전체 배치 집계 결과 조회", description = "전체 배치 집계 결과를 조회한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "전체 배치 집계 조회")
+    })
+
+    @GetMapping("/api/admin/batch/metrics")
+    ResponseEntity<AdminScheduledContentMetricGetResponse> getBatchMetric();
+
 
     @Operation(summary = "콘텐츠 카테고리 지표 조회", description = "콘텐츠 카테고리 별 비율 정보를 가져온다.")
     @ApiResponses({

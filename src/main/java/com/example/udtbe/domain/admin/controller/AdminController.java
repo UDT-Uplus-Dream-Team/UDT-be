@@ -19,11 +19,14 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -123,7 +126,7 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<CursorPageResponse<AdminScheduledContentResponse>> getBatchJobs(
+    public ResponseEntity<CursorPageResponse<AdminScheduledContentResponse>> getBatches(
             AdminScheduledContentsRequest adminContentJobGetsRequest) {
         CursorPageResponse<AdminScheduledContentResponse> adminContentJobGetResponseCursorPageResponse = adminService.getBatchJobs(
                 adminContentJobGetsRequest);
@@ -134,6 +137,19 @@ public class AdminController implements AdminControllerApiSpec {
     @Override
     public ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric() {
         AdminContentCategoryMetricResponse response = adminService.getContentCategoryMetric();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<List<AdminScheduledContentResultResponse>> getBatchResults() {
+        List<AdminScheduledContentResultResponse> responses = adminService.getsScheduledResults();
+        return ResponseEntity.status(HttpStatus.OK).body(responses);
+    }
+
+    @Override
+    public ResponseEntity<AdminScheduledContentMetricGetResponse> getBatchMetric() {
+
+        AdminScheduledContentMetricGetResponse response = adminService.getScheduledMetric();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

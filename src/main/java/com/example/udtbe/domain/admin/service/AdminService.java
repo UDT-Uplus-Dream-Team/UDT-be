@@ -23,15 +23,19 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
+import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.dto.CastMapper;
 import com.example.udtbe.domain.content.dto.DirectorMapper;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -93,6 +97,7 @@ public class AdminService {
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
     private final AdminContentMapper adminContentMapper;
     private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
+    private final JobMetricRepository jobMetricRepository;
 
 
     @Transactional
@@ -368,7 +373,46 @@ public class AdminService {
         return adminContentJobRepositoryImpl
                 .getJobsByCursor(request.cursor(), request.size(), type);
     }
-  
+
+    @Transactional
+    public void updateMetric(BatchJobMetric metric) {
+        BatchJobMetric adminContentJobMetric = adminQuery.findAdminContentJobMetric(
+                metric.getType());
+
+        adminContentJobMetric.update(metric.getStatus(), metric.getTotalRead(),
+                metric.getTotalWrite(), metric.getTotalSkip(), metric.getStartTime(),
+                metric.getEndTime());
+    }
+
+    @Transactional
+    public List<AdminScheduledContentResultResponse> getsScheduledResults() {
+        List<BatchJobMetric> metrics = jobMetricRepository.findAllByOrderByIdAsc();
+
+        return metrics.stream().map(m ->
+                new AdminScheduledContentResultResponse(
+                        m.getId(),
+                        m.getType(),
+                        m.getStatus(),
+                        m.getTotalRead(),
+                        m.getTotalWrite(),
+                        m.getTotalSkip(),
+                        m.getStartTime(),
+                        m.getEndTime()
+                )
+        ).toList();
+    }
+
+    @Transactional
+    public AdminScheduledContentMetricGetResponse getScheduledMetric() {
+        List<BatchJobMetric> metrics = jobMetricRepository.findAll();
+
+        long totalRead = metrics.stream().mapToLong(BatchJobMetric::getTotalRead).sum();
+        long totalWrite = metrics.stream().mapToLong(BatchJobMetric::getTotalWrite).sum();
+        long totalSkip = metrics.stream().mapToLong(BatchJobMetric::getTotalSkip).sum();
+
+        return new AdminScheduledContentMetricGetResponse(totalRead, totalWrite, totalSkip);
+    }
+
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
       return adminQuery.getContentCategoryMetric();
     }
