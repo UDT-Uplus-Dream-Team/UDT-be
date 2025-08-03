@@ -57,6 +57,7 @@ public class DirectorQueryDSLImpl implements DirectorQueryDSL {
 
     private BooleanExpression cursorFilter(String cursorId) {
         return Optional.ofNullable(cursorId)
+                .filter(StringUtils::hasText)
                 .map(Long::valueOf)
                 .map(director.id::gt)
                 .orElse(null);
