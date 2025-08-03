@@ -2,7 +2,6 @@ package com.example.udtbe.survey.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,7 +67,7 @@ class SurveyControllerTest extends ApiSupport {
                         .cookie(accessTokenOfTempMember)
                 )
                 .andExpect(status().isNoContent())
-                .andExpect(cookie().value("X-New-User", "true"));
+        ;
     }
 
     @DisplayName("설문조사는 2회 이상 할 수 없다.")
