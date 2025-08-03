@@ -6,7 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 public record AdminDirectorsGetResponse(
 
         Long directorId,
-        String name,
+        String directorName,
         String directorImageUrl
 
 ) {

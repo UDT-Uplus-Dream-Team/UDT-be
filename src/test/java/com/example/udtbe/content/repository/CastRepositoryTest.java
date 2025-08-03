@@ -41,8 +41,8 @@ class CastRepositoryTest extends DataJpaSupport {
         // then
         assertAll(
                 () -> assertThat(response.item()).hasSize(2),
-                () -> assertThat(response.item().get(0).name()).isEqualTo(cast3.getCastName()),
-                () -> assertThat(response.item().get(1).name()).isEqualTo(cast1.getCastName()),
+                () -> assertThat(response.item().get(0).castName()).isEqualTo(cast3.getCastName()),
+                () -> assertThat(response.item().get(1).castName()).isEqualTo(cast1.getCastName()),
                 () -> assertThat(response.nextCursor()).isNull(),
                 () -> assertFalse(response.hasNext())
         );
