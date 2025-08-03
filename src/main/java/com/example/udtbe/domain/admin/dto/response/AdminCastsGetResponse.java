@@ -6,7 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 public record AdminCastsGetResponse(
 
         Long castId,
-        String name,
+        String castName,
         String castImageUrl
 
 ) {
