@@ -56,6 +56,7 @@ public class CastQueryDSLImpl implements CastQueryDSL {
 
     private BooleanExpression cursorFilter(String cursorId) {
         return Optional.ofNullable(cursorId)
+                .filter(StringUtils::hasText)
                 .map(Long::valueOf)
                 .map(cast.id::gt)
                 .orElse(null);
