@@ -87,6 +87,10 @@ dependencies {
     /* spring batch*/
     implementation 'org.springframework.boot:spring-boot-starter-batch'
     testImplementation 'org.springframework.batch:spring-batch-test'
+    
+    /* spring retry */
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
 
     /* hibernate util*/
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.3.1'
