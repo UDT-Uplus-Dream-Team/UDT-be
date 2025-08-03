@@ -414,7 +414,7 @@ public class AdminService {
     }
 
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
-      return adminQuery.getContentCategoryMetric();
+        return adminQuery.getContentCategoryMetric();
     }
 
 }

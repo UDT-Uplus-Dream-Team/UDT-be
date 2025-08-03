@@ -52,6 +52,7 @@ public class BatchConfig {
     private static final String REGISTER_STEP_READER = "contentRegisterReader";
     private static final String UPDATE_STEP_READER = "contentUpdateReader";
     private static final String DELETE_STEP_READER = "contentDeleteReader";
+    private static final int RETRY_LIMIT = 3;
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -99,6 +100,8 @@ public class BatchConfig {
                 .reader(contentRegisterReader())
                 .processor(contentRegisterProcessor())
                 .writer(contentRegisterWriter())
+                .faultTolerant()
+                .retryLimit(RETRY_LIMIT)
                 .listener(stepStatsListener)
                 .build();
     }
@@ -112,6 +115,8 @@ public class BatchConfig {
                 .reader(contentUpdateReader())
                 .processor(contentUpdateProcessor())
                 .writer(contentUpdateWriter())
+                .faultTolerant()
+                .retryLimit(RETRY_LIMIT)
                 .listener(stepStatsListener)
                 .build();
     }
@@ -125,6 +130,8 @@ public class BatchConfig {
                 .reader(contentDeleteReader())
                 .processor(contentDeleteProcessor())
                 .writer(contentDeleteWriter())
+                .faultTolerant()
+                .retryLimit(RETRY_LIMIT)
                 .listener(stepStatsListener)
                 .build();
     }
