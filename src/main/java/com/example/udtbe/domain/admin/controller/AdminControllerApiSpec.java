@@ -5,9 +5,9 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -91,16 +91,6 @@ public interface AdminControllerApiSpec {
             @PathVariable(name = "contentId") Long contentId
     );
 
-
-    @Operation(summary = "콘텐츠 삭제", description = "지정된 ID의 콘텐츠를 소프트 삭제합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 콘텐츠")
-    })
-    @DeleteMapping("/api/admin/contents/{contentId}")
-    ResponseEntity<Void> deleteContent(
-            @PathVariable(name = "contentId") Long contentId
-    );
 
     @Operation(summary = "유저 목록 조회", description = "유저 목록 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저 목록 및 유저별 피드백 합계 정보 반환")
