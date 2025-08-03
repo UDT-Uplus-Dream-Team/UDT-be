@@ -411,7 +411,8 @@ public class AdminService {
         long totalSkip = metrics.stream().mapToLong(BatchJobMetric::getTotalSkip).sum();
 
         return new AdminScheduledContentMetricGetResponse(totalRead, totalWrite, totalSkip);
-  
+    }
+
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
       return adminQuery.getContentCategoryMetric();
     }

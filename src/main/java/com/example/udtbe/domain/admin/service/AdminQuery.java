@@ -131,7 +131,8 @@ public class AdminQuery {
                 .orElseThrow(()
                         -> new RestApiException(BatchErrorCode.ADMIN_CONTENT_JOB_METRIC)
                 );
-      
+    }
+
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
         return contentRepository.getContentCategoryMetric();
     }
