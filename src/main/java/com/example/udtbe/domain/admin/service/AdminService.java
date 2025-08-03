@@ -10,9 +10,9 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -290,7 +290,7 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public CursorPageResponse<AdminMemberListGetResponse> getMemberList(
+    public CursorPageResponse<AdminMemberListGetResponse> getMembers(
             AdminMemberListGetRequest request) {
 
         List<Member> memberList = memberQuery.findMembersForAdmin(request.cursor(),

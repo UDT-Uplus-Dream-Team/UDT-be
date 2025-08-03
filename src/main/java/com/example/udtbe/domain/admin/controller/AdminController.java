@@ -5,9 +5,9 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -82,7 +82,7 @@ public class AdminController implements AdminControllerApiSpec {
     @Override
     public ResponseEntity<CursorPageResponse<AdminMemberListGetResponse>> getMemberList(
             AdminMemberListGetRequest adminMemberListGetRequest) {
-        CursorPageResponse<AdminMemberListGetResponse> adminMemberListGetResponse = adminService.getMemberList(
+        CursorPageResponse<AdminMemberListGetResponse> adminMemberListGetResponse = adminService.getMembers(
                 adminMemberListGetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(adminMemberListGetResponse);
     }

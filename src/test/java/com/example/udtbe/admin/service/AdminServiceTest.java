@@ -25,8 +25,8 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
@@ -550,7 +550,7 @@ public class AdminServiceTest {
         // given
         AdminMemberListGetRequest req = new AdminMemberListGetRequest(
                 null,
-                2,
+                3,
                 null
         );
 
@@ -565,23 +565,27 @@ public class AdminServiceTest {
         given(memberQuery.findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword()))
                 .willReturn(List.of(member1, member2, member3));
 
-        given(feedbackStatisticsQuery.findByMemberOrThrow(3L))
+        given(feedbackStatisticsQuery.findByMember(3L))
                 .willReturn(List.of(
                         FeedbackStatistics.of(GenreType.ACTION, 1, 0, 0, false, member1),
                         FeedbackStatistics.of(GenreType.DRAMA, 2, 1, 0, false, member1)
                 ));
-        given(feedbackStatisticsQuery.findByMemberOrThrow(2L))
+
+        given(feedbackStatisticsQuery.findByMember(2L))
                 .willReturn(List.of(
                         FeedbackStatistics.of(GenreType.DRAMA, 1, 0, 1, false, member2)
                 ));
 
+        given(feedbackStatisticsQuery.findByMember(1L))
+                .willReturn(List.of());
+
         // when
-        CursorPageResponse<AdminMemberListGetResponse> res = adminService.getMemberList(req);
+        CursorPageResponse<AdminMemberListGetResponse> res = adminService.getMembers(req);
 
         // then
-        assertThat(res.item()).hasSize(2);
-        assertThat(res.hasNext()).isTrue();
-        assertThat(res.nextCursor()).isEqualTo("2");
+        assertThat(res.item()).hasSize(3);
+        assertThat(res.hasNext()).isFalse();
+        assertThat(res.nextCursor()).isEqualTo(null);
 
         AdminMemberListGetResponse dto1 = res.item().get(0);
         assertThat(dto1.id()).isEqualTo(3L);
@@ -591,8 +595,9 @@ public class AdminServiceTest {
 
         verify(memberQuery, times(1))
                 .findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword());
-        verify(feedbackStatisticsQuery, times(1)).findByMemberOrThrow(3L);
-        verify(feedbackStatisticsQuery, times(1)).findByMemberOrThrow(2L);
+        verify(feedbackStatisticsQuery, times(1)).findByMember(3L);
+        verify(feedbackStatisticsQuery, times(1)).findByMember(2L);
+        verify(feedbackStatisticsQuery, times(1)).findByMember(1L);
     }
 
     @DisplayName("여러 명의 출연진을 한번에 저장한다.")
