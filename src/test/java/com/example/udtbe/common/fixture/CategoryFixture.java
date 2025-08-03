@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class CategoryFixture {
 
     public static List<Category> categories() {
-        List<CategoryType> platformTypes = List.of(
+        List<CategoryType> categoryTypes = List.of(
                 MOVIE,
                 DRAMA,
                 ANIMATION,
@@ -24,10 +24,14 @@ public class CategoryFixture {
         );
 
         List<Category> categories = new ArrayList<>();
-        for (CategoryType categoryType : platformTypes) {
+        for (CategoryType categoryType : categoryTypes) {
             categories.add(Category.of((categoryType)));
         }
 
         return categories;
+    }
+
+    public static Category category(CategoryType categoryType) {
+        return Category.of(categoryType);
     }
 }

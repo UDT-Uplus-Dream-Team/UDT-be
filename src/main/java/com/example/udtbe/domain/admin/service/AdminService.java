@@ -14,6 +14,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
@@ -410,6 +411,9 @@ public class AdminService {
         long totalSkip = metrics.stream().mapToLong(BatchJobMetric::getTotalSkip).sum();
 
         return new AdminScheduledContentMetricGetResponse(totalRead, totalWrite, totalSkip);
+  
+    public AdminContentCategoryMetricResponse getContentCategoryMetric() {
+      return adminQuery.getContentCategoryMetric();
     }
 
 }
