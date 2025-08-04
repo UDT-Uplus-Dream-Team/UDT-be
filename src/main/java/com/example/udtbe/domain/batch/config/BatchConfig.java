@@ -4,6 +4,7 @@ package com.example.udtbe.domain.batch.config;
 import com.example.udtbe.domain.admin.dto.AdminContentMapper;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
@@ -13,8 +14,7 @@ import com.example.udtbe.domain.batch.lisener.StepStatsListener;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
-import jakarta.persistence.EntityManagerFactory;
-import java.util.Map;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -27,8 +27,7 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.boot.autoconfigure.batch.JobLauncherApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -49,22 +48,18 @@ public class BatchConfig {
     public static final String UPDATE_STEP = "contentUpdateStep";
     public static final String DELETE_STEP = "contentDeleteStep";
     public static final String FEEDBACK_STEP = "feedbackStep";
-    private static final String REGISTER_STEP_READER = "contentRegisterReader";
-    private static final String UPDATE_STEP_READER = "contentUpdateReader";
-    private static final String DELETE_STEP_READER = "contentDeleteReader";
+    private static final int CHUNK_SIZE = 5;
     private static final int RETRY_LIMIT = 3;
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
-    private final EntityManagerFactory entityManagerFactory;
     private final AdminService adminService;
+    private final AdminQuery adminQuery;
     private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
     private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
     private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
-
     private final StepStatsListener stepStatsListener;
 
-    private static final int CHUNK_SIZE = 100;
 
     @Bean
     @ConditionalOnMissingBean
@@ -99,10 +94,10 @@ public class BatchConfig {
                         transactionManager)
                 .reader(contentRegisterReader())
                 .processor(contentRegisterProcessor())
-                .writer(contentRegisterWriter())
                 .faultTolerant()
                 .retryLimit(RETRY_LIMIT)
                 .retry(Exception.class)
+                .writer(contentRegisterWriter())
                 .listener(stepStatsListener)
                 .build();
     }
@@ -141,38 +136,26 @@ public class BatchConfig {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<AdminContentRegisterJob> contentRegisterReader() {
-        return new JpaPagingItemReaderBuilder<AdminContentRegisterJob>()
-                .name(REGISTER_STEP_READER)
-                .entityManagerFactory(entityManagerFactory)
-                .pageSize(CHUNK_SIZE)
-                .queryString("SELECT r FROM AdminContentRegisterJob r WHERE r.status = :status")
-                .parameterValues(Map.of("status", BatchStatus.PENDING))
-                .build();
+    public ListItemReader<AdminContentRegisterJob> contentRegisterReader() {
+        List<AdminContentRegisterJob> pendingJobs = adminContentRegisterJobRepository.findByStatus(
+                BatchStatus.PENDING);
+        return new ListItemReader<>(pendingJobs);
     }
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<AdminContentUpdateJob> contentUpdateReader() {
-        return new JpaPagingItemReaderBuilder<AdminContentUpdateJob>()
-                .name(UPDATE_STEP_READER)
-                .entityManagerFactory(entityManagerFactory)
-                .pageSize(CHUNK_SIZE)
-                .queryString("SELECT c FROM AdminContentUpdateJob c WHERE c.status = :status")
-                .parameterValues(Map.of("status", BatchStatus.PENDING))
-                .build();
+    public ListItemReader<AdminContentUpdateJob> contentUpdateReader() {
+        List<AdminContentUpdateJob> pendingJobs = adminContentUpdateJobRepository.findByStatus(
+                BatchStatus.PENDING);
+        return new ListItemReader<>(pendingJobs);
     }
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<AdminContentDeleteJob> contentDeleteReader() {
-        return new JpaPagingItemReaderBuilder<AdminContentDeleteJob>()
-                .name(DELETE_STEP_READER)
-                .entityManagerFactory(entityManagerFactory)
-                .pageSize(CHUNK_SIZE)
-                .queryString("SELECT c FROM AdminContentDeleteJob c WHERE c.status = :status")
-                .parameterValues(Map.of("status", BatchStatus.PENDING))
-                .build();
+    public ListItemReader<AdminContentDeleteJob> contentDeleteReader() {
+        List<AdminContentDeleteJob> pendingJobs = adminContentDeleteJobRepository.findByStatus(
+                BatchStatus.PENDING);
+        return new ListItemReader<>(pendingJobs);
     }
 
     @Bean
@@ -209,9 +192,11 @@ public class BatchConfig {
             items.forEach(item -> {
 
                 try {
-                    AdminContentRegisterRequest adminContentRegisterRequest = AdminContentMapper.toContentRegisterRequest(
+                    AdminContentRegisterRequest request = AdminContentMapper.toContentRegisterRequest(
                             item);
-                    adminService.registerContent(adminContentRegisterRequest);
+                    adminQuery.validRegisterAndUpdateContent(request.categories(),
+                            request.platforms(), request.casts(), request.directors());
+                    adminService.registerContent(request);
                     item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentRegisterJobRepository.save(item);
@@ -230,9 +215,12 @@ public class BatchConfig {
         return items -> {
             items.forEach(item -> {
                 try {
-                    AdminContentUpdateRequest adminContentUpdateRequest = AdminContentMapper.toContentUpdateRequest(
+                    AdminContentUpdateRequest request = AdminContentMapper.toContentUpdateRequest(
                             item);
-                    adminService.updateContent(item.getContentId(), adminContentUpdateRequest);
+                    adminQuery.validContentByContentId(item.getContentId());
+                    adminQuery.validRegisterAndUpdateContent(request.categories(),
+                            request.platforms(), request.casts(), request.directors());
+                    adminService.updateContent(item.getContentId(), request);
                     item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentUpdateJobRepository.save(item);
@@ -251,6 +239,7 @@ public class BatchConfig {
         return items -> {
             items.forEach(item -> {
                 try {
+                    adminQuery.validContentByContentId(item.getContentId());
                     adminService.deleteContent(item.getContentId());
                     item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
