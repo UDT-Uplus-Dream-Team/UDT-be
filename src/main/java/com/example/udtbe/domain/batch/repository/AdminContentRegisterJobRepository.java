@@ -9,5 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AdminContentRegisterJobRepository extends
         JpaRepository<AdminContentRegisterJob, Long> {
 
-    List<AdminContentRegisterJob> findAllByStatus(BatchStatus status);
+
+    List<AdminContentRegisterJob> findByStatus(BatchStatus status);
 }

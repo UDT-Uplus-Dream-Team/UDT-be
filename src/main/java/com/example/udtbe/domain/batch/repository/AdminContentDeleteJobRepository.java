@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AdminContentDeleteJobRepository extends
         JpaRepository<AdminContentDeleteJob, Long> {
 
-    List<AdminContentDeleteJob> findAllByStatus(BatchStatus status);
+
+    List<AdminContentDeleteJob> findByStatus(BatchStatus status);
 }
