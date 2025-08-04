@@ -10,7 +10,13 @@ import org.springframework.http.HttpStatus;
 public enum BatchErrorCode implements ErrorCode {
 
     CURSOR_BAD_REQUEST(HttpStatus.BAD_REQUEST, "올바른 커서를 입력해주세요."),
-    ADMIN_CONTENT_JOB_METRIC(HttpStatus.NOT_FOUND, "배치 집계를 찾을 수 없습니다.");
+    ADMIN_CONTENT_JOB_METRIC(HttpStatus.NOT_FOUND, "배치 집계를 찾을 수 없습니다."),
+    BATCH_ALREADY_RUNNING(HttpStatus.CONFLICT, "해당 배치 작업이 이미 실행 중입니다."),
+    BATCH_RESTART_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "배치 작업 재시작에 실패했습니다."),
+    BATCH_ALREADY_COMPLETED(HttpStatus.CONFLICT, "해당 배치 인스턴스가 이미 완료되어 재실행할 수 없습니다."),
+    BATCH_INVALID_PARAMETERS(HttpStatus.BAD_REQUEST, "배치 작업에 잘못된 파라미터가 전달되었습니다."),
+    SCHEDULER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "스케줄러를 실행할 수 없습니다.");
+
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -1,7 +1,9 @@
 package com.example.udtbe.domain.batch.scheduler;
 
+import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
+import com.example.udtbe.global.exception.RestApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -28,21 +30,21 @@ public class AdminScheduler {
     private final LuceneIndexService luceneIndexService;
 
     @Scheduled(cron = TimeUtil.SCHEDULED_AT)
+    @Retryable(retryFor = Exception.class, backoff = @Backoff(delay = 5000))
     public void runContentBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
                     .toJobParameters();
-
             jobLauncher.run(contentBatchJob, jobParameters);
-        } catch (JobInstanceAlreadyCompleteException e) {
-            //todo
         } catch (JobExecutionAlreadyRunningException e) {
-            //todo
-        } catch (JobParametersInvalidException e) {
-            //todo
+            throw new RestApiException(BatchErrorCode.BATCH_ALREADY_RUNNING);
         } catch (JobRestartException e) {
-            //todo
+            throw new RestApiException(BatchErrorCode.BATCH_RESTART_FAILED);
+        } catch (JobInstanceAlreadyCompleteException e) {
+            throw new RestApiException(BatchErrorCode.BATCH_ALREADY_COMPLETED);
+        } catch (JobParametersInvalidException e) {
+            throw new RestApiException(BatchErrorCode.BATCH_INVALID_PARAMETERS);
         }
     }
 
@@ -63,8 +65,7 @@ public class AdminScheduler {
     }
 
     @Recover
-    public void recoverRebuildLuceneIndex(Exception ex) {
-        //TODO: 재시도 절차마저 실패시 전략 세우기
-        log.error("Lucene 인덱스 리빌드 모든 재시도 실패 - 관리자 확인 필요", ex);
+    public void recover(Exception e) {
+        throw new RestApiException(BatchErrorCode.SCHEDULER_ERROR);
     }
 }
