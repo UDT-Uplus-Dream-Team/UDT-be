@@ -117,7 +117,7 @@ public class AdminServiceTest {
     private FeedbackStatisticsRepositoryImpl feedbackStatisticsRepositoryImpl;
     @Mock
     private FeedbackStatisticsRepository feedbackStatisticsRepository;
-
+    @Mock
     private JobMetricRepository jobMetricRepository;
 
     @InjectMocks
@@ -707,8 +707,6 @@ public class AdminServiceTest {
         then(adminContentJobRepositoryImpl).should()
                 .getJobsByCursor(request.cursor(), request.size(), type);
     }
-
-}
 
 
     @DisplayName("배치 작업의 메트릭을 업데이트할 수 있다.")
