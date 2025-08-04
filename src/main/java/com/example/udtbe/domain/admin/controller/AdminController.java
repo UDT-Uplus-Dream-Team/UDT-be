@@ -19,7 +19,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
@@ -80,9 +80,9 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<CursorPageResponse<AdminMemberListGetResponse>> getMemberList(
+    public ResponseEntity<CursorPageResponse<AdminMembersGetResponse>> getMemberList(
             AdminMemberListGetRequest adminMemberListGetRequest) {
-        CursorPageResponse<AdminMemberListGetResponse> adminMemberListGetResponse = adminService.getMembers(
+        CursorPageResponse<AdminMembersGetResponse> adminMemberListGetResponse = adminService.getMembers(
                 adminMemberListGetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(adminMemberListGetResponse);
     }

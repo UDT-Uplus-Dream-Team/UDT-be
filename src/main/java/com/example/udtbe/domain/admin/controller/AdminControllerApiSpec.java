@@ -19,7 +19,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -95,7 +95,7 @@ public interface AdminControllerApiSpec {
     @Operation(summary = "유저 목록 조회", description = "유저 목록 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저 목록 및 유저별 피드백 합계 정보 반환")
     @GetMapping("/api/admin/users")
-    ResponseEntity<CursorPageResponse<AdminMemberListGetResponse>> getMemberList(
+    ResponseEntity<CursorPageResponse<AdminMembersGetResponse>> getMemberList(
             @ModelAttribute @Valid AdminMemberListGetRequest adminMemberListGetRequest
     );
 

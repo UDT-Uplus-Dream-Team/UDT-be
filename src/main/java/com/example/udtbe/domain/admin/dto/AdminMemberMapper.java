@@ -1,16 +1,17 @@
 package com.example.udtbe.domain.admin.dto;
 
-import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
+import static lombok.AccessLevel.PRIVATE;
+
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.content.entity.FeedbackStatistics;
 import com.example.udtbe.domain.member.entity.Member;
 import java.util.List;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = PRIVATE)
 public class AdminMemberMapper {
 
-    private AdminMemberMapper() {
-    }
-
-    public static AdminMemberListGetResponse toListDto(Member member,
+    public static AdminMembersGetResponse getMembers(Member member,
             List<FeedbackStatistics> stats) {
 
         List<FeedbackStatistics> statList = stats != null ? stats : List.of();
@@ -20,7 +21,7 @@ public class AdminMemberMapper {
         int uninterestedSum = statList.stream().mapToInt(FeedbackStatistics::getUninterestedCount)
                 .sum();
 
-        return new AdminMemberListGetResponse(
+        return new AdminMembersGetResponse(
                 member.getId(),
                 member.getName(),
                 member.getEmail(),

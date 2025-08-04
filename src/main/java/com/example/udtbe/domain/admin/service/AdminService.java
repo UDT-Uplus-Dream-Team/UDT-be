@@ -24,7 +24,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminMemberListGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
@@ -62,6 +62,7 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
+import com.example.udtbe.domain.content.repository.FeedbackStatisticsRepositoryImpl;
 import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberQuery;
@@ -69,6 +70,8 @@ import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.log.annotation.LogReturn;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,6 +98,7 @@ public class AdminService {
     private final FeedbackStatisticsQuery feedbackStatisticsQuery;
     private final AdminContentMapper adminContentMapper;
     private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
+    private final FeedbackStatisticsRepositoryImpl feedbackStatisticsRepositoryImpl;
 
 
     @Transactional
@@ -290,7 +294,7 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public CursorPageResponse<AdminMemberListGetResponse> getMembers(
+    public CursorPageResponse<AdminMembersGetResponse> getMembers(
             AdminMemberListGetRequest request) {
 
         List<Member> memberList = memberQuery.findMembersForAdmin(request.cursor(),
@@ -299,19 +303,23 @@ public class AdminService {
         boolean hasNext = memberList.size() > request.size();
         List<Member> limited = hasNext ? memberList.subList(0, request.size()) : memberList;
 
-        List<AdminMemberListGetResponse> dtoList = limited.stream()
-                .map(m -> {
-                    List<FeedbackStatistics> stats =
-                            feedbackStatisticsQuery.findByMember(m.getId());
-                    return AdminMemberMapper.toListDto(m, stats);
-                })
-                .toList();
+        List<Long> memberIds = limited.stream().map(Member::getId).toList();
+
+        Map<Long, List<FeedbackStatistics>> statisticsMap =
+                feedbackStatisticsRepositoryImpl.findByMemberIds(memberIds)
+                        .stream()
+                        .collect(Collectors.groupingBy(fs -> fs.getMember().getId()));
+
+        List<AdminMembersGetResponse> members = limited.stream()
+                .map(member -> AdminMemberMapper.getMembers(member,
+                        statisticsMap.getOrDefault(member.getId(), List.of())
+                )).toList();
 
         String nextCursor = hasNext
                 ? String.valueOf(limited.get(limited.size() - 1).getId())
                 : null;
 
-        return new CursorPageResponse<>(dtoList, nextCursor, hasNext);
+        return new CursorPageResponse<>(members, nextCursor, hasNext);
     }
 
     @Transactional(readOnly = true)
