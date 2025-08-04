@@ -32,6 +32,7 @@ public class BatchJobMetric extends TimeBaseEntity {
 
     private Long adminContentJobId;
 
+    @Enumerated(EnumType.STRING)
     private BatchJobType type;
 
     @Enumerated(EnumType.STRING)

@@ -102,6 +102,7 @@ public class BatchConfig {
                 .writer(contentRegisterWriter())
                 .faultTolerant()
                 .retryLimit(RETRY_LIMIT)
+                .retry(Exception.class)
                 .listener(stepStatsListener)
                 .build();
     }
@@ -117,6 +118,7 @@ public class BatchConfig {
                 .writer(contentUpdateWriter())
                 .faultTolerant()
                 .retryLimit(RETRY_LIMIT)
+                .retry(Exception.class)
                 .listener(stepStatsListener)
                 .build();
     }
@@ -132,6 +134,7 @@ public class BatchConfig {
                 .writer(contentDeleteWriter())
                 .faultTolerant()
                 .retryLimit(RETRY_LIMIT)
+                .retry(Exception.class)
                 .listener(stepStatsListener)
                 .build();
     }
@@ -204,6 +207,11 @@ public class BatchConfig {
     public ItemWriter<AdminContentRegisterJob> contentRegisterWriter() {
         return items -> {
             items.forEach(item -> {
+
+                if (item.getTitle().contains("재시작실험")) {
+                    System.exit(1); // 강제로 서버 종료
+                }
+
                 try {
                     AdminContentRegisterRequest adminContentRegisterRequest = AdminContentMapper.toContentRegisterRequest(
                             item);
