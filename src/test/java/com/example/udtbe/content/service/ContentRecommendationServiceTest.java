@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.lenient;
 
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.ContentMetadataFixture;
@@ -89,7 +89,6 @@ class ContentRecommendationServiceTest {
         //테스트 멤버 기준으로 생성
         testSurvey = createTestSurvey();
 
-        // 캐시 매니저 기본 설정 - 캐시 없음 상태로 초기화 (lenient 설정으로 불필요한 스텁 허용)
         lenient().when(cacheManager.getCache(anyLong())).thenReturn(null);
     }
 
