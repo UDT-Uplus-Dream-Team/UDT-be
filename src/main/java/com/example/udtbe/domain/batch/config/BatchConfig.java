@@ -208,10 +208,6 @@ public class BatchConfig {
         return items -> {
             items.forEach(item -> {
 
-                if (item.getTitle().contains("재시작실험")) {
-                    System.exit(1); // 강제로 서버 종료
-                }
-
                 try {
                     AdminContentRegisterRequest adminContentRegisterRequest = AdminContentMapper.toContentRegisterRequest(
                             item);
