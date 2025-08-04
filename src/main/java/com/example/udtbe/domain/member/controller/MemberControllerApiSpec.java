@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -75,7 +74,7 @@ public interface MemberControllerApiSpec {
             responseCode = "200",
             description = "추천 캐시 클리어 성공"
     )
-    @PostMapping("/users/me/recommendations/cache/clear")
+    @DeleteMapping("/users/me/recommendations/cache/clear")
     ResponseEntity<Void> clearMyRecommendationCache(
             @Parameter(description = "인증된 사용자 정보", required = true)
             @AuthenticationPrincipal Member member
