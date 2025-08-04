@@ -4,7 +4,7 @@ import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.member.entity.Member;
 
-public interface FeedbackStaticsChanger {
+public interface FeedbackStatisticsChanger {
 
     long changeFeedbackStatics(Member member,
             GenreType genre,

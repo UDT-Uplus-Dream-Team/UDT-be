@@ -7,6 +7,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -19,6 +20,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
@@ -93,9 +95,18 @@ public interface AdminControllerApiSpec {
             @PathVariable(name = "contentId") Long contentId
     );
 
+
+    @Operation(summary = "유저 목록 조회", description = "유저 목록 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "유저 목록 및 유저별 피드백 합계 정보 반환")
+    @GetMapping("/api/admin/users")
+    ResponseEntity<CursorPageResponse<AdminMembersGetResponse>> getMemberList(
+            @ModelAttribute @Valid AdminMemberListGetRequest adminMemberListGetRequest
+    );
+
+
     @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
-    @GetMapping("/api/admin/users/{userId}")
+    @GetMapping("/api/admin/users/{userId}/metrics")
     ResponseEntity<AdminMemberInfoGetResponse> getMemberFeedbackInfo(
             @PathVariable(name = "userId") Long userId
     );

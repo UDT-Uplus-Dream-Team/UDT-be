@@ -27,12 +27,14 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
@@ -64,6 +66,8 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
+import com.example.udtbe.domain.content.repository.FeedbackStatisticsRepository;
+import com.example.udtbe.domain.content.repository.FeedbackStatisticsRepositoryImpl;
 import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
@@ -109,6 +113,10 @@ public class AdminServiceTest {
     private FeedbackStatisticsQuery feedbackStatisticsQuery;
     @Mock
     private AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
+    @Mock
+    private FeedbackStatisticsRepositoryImpl feedbackStatisticsRepositoryImpl;
+    @Mock
+    private FeedbackStatisticsRepository feedbackStatisticsRepository;
     @Mock
     private JobMetricRepository jobMetricRepository;
 
@@ -548,9 +556,57 @@ public class AdminServiceTest {
         then(feedbackStatisticsQuery).should().findByMemberOrThrow(memberId);
     }
 
+
+    @DisplayName("유저 정보 목록을 무한 스크롤로 조회할 수 있다.")
+    @Test
+    void getMemberList() {
+        // given
+        AdminMemberListGetRequest req = new AdminMemberListGetRequest(
+                null,
+                3,
+                null
+        );
+
+        Member member1 = MemberFixture.member("member1@test.com", Role.ROLE_USER);
+        Member member2 = MemberFixture.member("member2@test.com", Role.ROLE_USER);
+        Member member3 = MemberFixture.member("member3@test.com", Role.ROLE_USER);
+
+        ReflectionTestUtils.setField(member1, "id", 3L);
+        ReflectionTestUtils.setField(member2, "id", 2L);
+        ReflectionTestUtils.setField(member3, "id", 1L);
+
+        given(memberQuery.findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword()))
+                .willReturn(List.of(member1, member2, member3));
+
+        given(feedbackStatisticsRepositoryImpl.findByMemberIds(List.of(3L, 2L, 1L)))
+                .willReturn(List.of(
+                        FeedbackStatistics.of(GenreType.ACTION, 1, 0, 0, false, member1),
+                        FeedbackStatistics.of(GenreType.DRAMA, 2, 1, 0, false, member1),
+                        FeedbackStatistics.of(GenreType.DRAMA, 1, 0, 1, false, member2)
+                ));
+
+        // when
+        CursorPageResponse<AdminMembersGetResponse> res = adminService.getMembers(req);
+
+        // then
+        assertThat(res.item()).hasSize(3);
+        assertThat(res.hasNext()).isFalse();
+        assertThat(res.nextCursor()).isEqualTo(null);
+
+        AdminMembersGetResponse dto1 = res.item().get(0);
+        assertThat(dto1.id()).isEqualTo(3L);
+        assertThat(dto1.totalLikeCount()).isEqualTo(3);
+        assertThat(dto1.totalDislikeCount()).isEqualTo(1);
+        assertThat(dto1.totalUninterestedCount()).isZero();
+
+        verify(memberQuery, times(1))
+                .findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword());
+    }
+
     @DisplayName("여러 명의 출연진을 한번에 저장한다.")
     @Test
     void registerCasts() {
+
         // given
         final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "강호동.image.com");
         final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", "유재석.image.com");
@@ -652,6 +708,7 @@ public class AdminServiceTest {
                 .getJobsByCursor(request.cursor(), request.size(), type);
     }
 
+
     @DisplayName("배치 작업의 메트릭을 업데이트할 수 있다.")
     @Test
     void updateMetric() {
@@ -714,3 +771,4 @@ public class AdminServiceTest {
         assertThat(response.totalSkip()).isEqualTo(metric1.getTotalSkip() + metric2.getTotalSkip());
     }
 }
+

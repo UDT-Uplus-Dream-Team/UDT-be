@@ -12,7 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class FeedbackStaticsChangerImpl implements FeedbackStaticsChanger {
+public class FeedbackStatisticsChangerImpl implements FeedbackStatisticsChanger {
 
     private final JPAQueryFactory qf;
     private final EntityManager em;

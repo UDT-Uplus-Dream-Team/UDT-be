@@ -7,6 +7,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -19,6 +20,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
@@ -79,6 +81,14 @@ public class AdminController implements AdminControllerApiSpec {
         CursorPageResponse<AdminContentGetResponse> contentDTOCursorPageResponse = adminService
                 .getContents(adminContentGetsRequest);
         return ResponseEntity.status(HttpStatus.OK).body(contentDTOCursorPageResponse);
+    }
+
+    @Override
+    public ResponseEntity<CursorPageResponse<AdminMembersGetResponse>> getMemberList(
+            AdminMemberListGetRequest adminMemberListGetRequest) {
+        CursorPageResponse<AdminMembersGetResponse> adminMemberListGetResponse = adminService.getMembers(
+                adminMemberListGetRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(adminMemberListGetResponse);
     }
 
     @Override
