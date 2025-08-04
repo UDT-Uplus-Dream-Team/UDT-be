@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.ContentMetadataFixture;
@@ -88,8 +89,8 @@ class ContentRecommendationServiceTest {
         //테스트 멤버 기준으로 생성
         testSurvey = createTestSurvey();
 
-        // 캐시 매니저 기본 설정 - 캐시 없음 상태로 초기화
-        when(cacheManager.getCache(anyLong())).thenReturn(null);
+        // 캐시 매니저 기본 설정 - 캐시 없음 상태로 초기화 (lenient 설정으로 불필요한 스텁 허용)
+        lenient().when(cacheManager.getCache(anyLong())).thenReturn(null);
     }
 
     @Test
@@ -297,5 +298,19 @@ class ContentRecommendationServiceTest {
         // 기본 피드백 데이터 (필요에 따라 각 테스트에서 오버라이드)
         when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
                 .thenReturn(new ArrayList<>());
+    }
+
+    @Test
+    @DisplayName("사용자 추천 캐시 삭제")
+    void shouldClearUserCache_WhenCacheExists() {
+        // given
+        when(cacheManager.hasCache(testMember.getId())).thenReturn(true);
+
+        // when
+        contentRecommendationService.clearMyRecommendationCache(testMember);
+
+        // then
+        verify(cacheManager).hasCache(testMember.getId());
+        verify(cacheManager).removeMemberCache(testMember.getId());
     }
 }
