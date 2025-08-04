@@ -1,10 +1,15 @@
 package com.example.udtbe.admin.controller;
 
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.ANIMATION;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.DRAMA;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.MOVIE;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.VARIETY;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.BatchJobMetricFixture;
 import com.example.udtbe.common.fixture.CastFixture;
 import com.example.udtbe.common.fixture.ContentCategoryFixture;
 import com.example.udtbe.common.fixture.ContentFixture;
@@ -18,11 +23,14 @@ import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentCategory;
 import com.example.udtbe.domain.content.entity.Director;
-import com.example.udtbe.domain.content.entity.enums.CategoryType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -76,6 +84,8 @@ public class AdminControllerTest extends ApiSupport {
     private CastRepository castRepository;
     @Autowired
     private DirectorRepository directorRepository;
+    @Autowired
+    private JobMetricRepository jobMetricRepository;
 
     @AfterEach
     void tearDown() {
@@ -92,6 +102,7 @@ public class AdminControllerTest extends ApiSupport {
         directorRepository.deleteAllInBatch();
         contentMetadataRepository.deleteAllInBatch();
         contentRepository.deleteAllInBatch();
+        jobMetricRepository.deleteAllInBatch();
     }
 
     @Test
@@ -209,9 +220,9 @@ public class AdminControllerTest extends ApiSupport {
         for (int i = 1; i <= 4; i++) {
             Category category;
             if (i % 2 == 0) {
-                category = categoryRepository.findByCategoryType(CategoryType.MOVIE).get();
+                category = categoryRepository.findByCategoryType(MOVIE).get();
             } else {
-                category = categoryRepository.findByCategoryType(CategoryType.DRAMA).get();
+                category = categoryRepository.findByCategoryType(DRAMA).get();
             }
             Content content = ContentFixture.content("T" + i, "D");
             contentRepository.save(content);
@@ -304,7 +315,7 @@ public class AdminControllerTest extends ApiSupport {
         // given
         List<AdminCastDTO> casts = new ArrayList<>();
         for (int i = 0; i < 31; i++) {
-            casts.add(new AdminCastDTO("name" + i, "url" + i));
+            casts.add(new AdminCastDTO("castName" + i, "url" + i));
         }
         AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(casts);
 
@@ -381,7 +392,7 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.item").isArray())
                 .andExpect(jsonPath("$.item[0].castId").value(savedCast.getId()))
-                .andExpect(jsonPath("$.item[0].name").value(savedCast.getCastName()))
+                .andExpect(jsonPath("$.item[0].castName").value(savedCast.getCastName()))
                 .andExpect(jsonPath("$.nextCursor").isEmpty())
                 .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
         ;
@@ -488,7 +499,7 @@ public class AdminControllerTest extends ApiSupport {
         // given
         List<AdminDirectorDTO> directors = new ArrayList<>();
         for (int i = 0; i < 31; i++) {
-            directors.add(new AdminDirectorDTO("name" + i, "url" + i));
+            directors.add(new AdminDirectorDTO("castName" + i, "url" + i));
         }
         AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(directors);
 
@@ -550,7 +561,6 @@ public class AdminControllerTest extends ApiSupport {
         ;
     }
 
-
     @DisplayName("이름으로 감독을 검색한다.")
     @Test
     void getDirectorsByDirectorName() throws Exception {
@@ -566,7 +576,8 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.item").isArray())
                 .andExpect(jsonPath("$.item[0].directorId").value(savedDirector.getId()))
-                .andExpect(jsonPath("$.item[0].name").value(savedDirector.getDirectorName()))
+                .andExpect(
+                        jsonPath("$.item[0].directorName").value(savedDirector.getDirectorName()))
                 .andExpect(jsonPath("$.nextCursor").isEmpty())
                 .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
         ;
@@ -623,4 +634,86 @@ public class AdminControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.message").value("감독은 최대 20명 조회할 수 있습니다."))
         ;
     }
+
+    @DisplayName("배치 작업 결과 목록을 조회할 수 있다.")
+    @Test
+    void getBatchResults() throws Exception {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        jobMetricRepository.saveAll(List.of(metric1, metric2));
+
+        // when // then
+        mockMvc.perform(get("/api/admin/batch/results")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @DisplayName("배치 작업 메트릭을 조회할 수 있다.")
+    @Test
+    void getBatchMetric() throws Exception {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        jobMetricRepository.saveAll(List.of(metric1, metric2));
+
+        // when // then
+        mockMvc.perform(get("/api/admin/batch/metrics")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalRead").value(
+                        metric1.getTotalRead() + (metric2.getTotalRead())))
+                .andExpect(jsonPath("$.totalWrite").value(
+                        metric1.getTotalWrite() + (metric2.getTotalWrite())))
+                .andExpect(jsonPath("$.totalSkip").value(
+                        metric1.getTotalSkip() + (metric2.getTotalSkip())));
+    }
+
+    @Transactional
+    @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
+    @Test
+    void getContentCategoryMetric() throws Exception {
+        // given
+        Content content1 = ContentFixture.content("영화1", "영화1");
+        Content content2 = ContentFixture.content("영화2", "영화2");
+        Content content3 = ContentFixture.content("드라마", "드라마");
+        contentRepository.saveAll(List.of(content1, content2, content3));
+
+        Category movie = categoryRepository.findByCategoryType(MOVIE).get();
+        Category drama = categoryRepository.findByCategoryType(DRAMA).get();
+        Category animation = categoryRepository.findByCategoryType(ANIMATION).get();
+        Category variety = categoryRepository.findByCategoryType(VARIETY).get();
+
+        ContentCategory contentCategory1 = ContentCategoryFixture.contentCategory(content1, movie);
+        ContentCategory contentCategory2 = ContentCategoryFixture.contentCategory(content2, movie);
+        ContentCategory contentCategory3 = ContentCategoryFixture.contentCategory(content3, drama);
+
+        contentCategoryRepository.saveAll(
+                List.of(contentCategory1, contentCategory2, contentCategory3)
+        );
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/metrics/categories")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryMetrics").isArray())
+                .andExpect(jsonPath("$.categoryMetrics[0].categoryId").value(movie.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[0].count").value(2))
+                .andExpect(jsonPath("$.categoryMetrics[1].categoryId").value(drama.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[1].count").value(1))
+                .andExpect(jsonPath("$.categoryMetrics[2].categoryId").value(animation.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[2].count").value(0))
+                .andExpect(jsonPath("$.categoryMetrics[3].categoryId").value(variety.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[3].count").value(0))
+        ;
+    }
+
 }

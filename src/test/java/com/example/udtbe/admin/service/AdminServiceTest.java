@@ -14,6 +14,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.udtbe.common.fixture.BatchJobMetricFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
@@ -34,13 +35,17 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
+import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -113,6 +118,7 @@ public class AdminServiceTest {
     @Mock
     private FeedbackStatisticsRepository feedbackStatisticsRepository;
 
+    private JobMetricRepository jobMetricRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -595,8 +601,6 @@ public class AdminServiceTest {
 
         verify(memberQuery, times(1))
                 .findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword());
-//        verify(memberQuery).findMembersForAdmin(req.cursor(), req.size() + 1, req.keyword());
-//        verify(feedbackStatisticsRepository).findByMemberIds(List.of(3L, 2L, 1L));
     }
 
     @DisplayName("여러 명의 출연진을 한번에 저장한다.")
@@ -680,10 +684,10 @@ public class AdminServiceTest {
         BatchFilterType type = BatchFilterType.from(request.type());
 
         List<AdminScheduledContentResponse> jobs = List.of(
-                new AdminScheduledContentResponse(5L, BatchStepStatus.PENDING, 1L,
+                new AdminScheduledContentResponse(5L, BatchStatus.PENDING, 1L,
                         LocalDateTime.now(),
                         LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE),
-                new AdminScheduledContentResponse(4L, BatchStepStatus.FAILED, 1L,
+                new AdminScheduledContentResponse(4L, BatchStatus.FAILED, 1L,
                         LocalDateTime.now(),
                         LocalDateTime.now(), LocalDateTime.now(), BatchJobType.DELETE)
         );
@@ -703,4 +707,70 @@ public class AdminServiceTest {
         then(adminContentJobRepositoryImpl).should()
                 .getJobsByCursor(request.cursor(), request.size(), type);
     }
+
 }
+
+
+    @DisplayName("배치 작업의 메트릭을 업데이트할 수 있다.")
+    @Test
+    void updateMetric() {
+        // given
+        BatchJobMetric metric = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.DELETE, 100);
+        BatchJobMetric findMetric = mock(BatchJobMetric.class);
+
+        given(adminQuery.findAdminContentJobMetric(metric.getType())).willReturn(findMetric);
+
+        // when
+        adminService.updateMetric(metric);
+
+        // then
+        verify(findMetric).update(metric.getStatus(), metric.getTotalRead(),
+                metric.getTotalWrite(), metric.getTotalSkip(), metric.getStartTime(),
+                metric.getEndTime());
+    }
+
+    @DisplayName("배치 작업 결과 목록을 조회할 수 있다.")
+    @Test
+    void getsScheduledResults() {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        List<BatchJobMetric> metrics = List.of(metric1, metric2);
+        given(jobMetricRepository.findAllByOrderByIdAsc()).willReturn(metrics);
+
+        // when
+        List<AdminScheduledContentResultResponse> responses = adminService.getsScheduledResults();
+
+        // then
+        assertThat(responses).hasSize(2);
+        assertThat(responses.get(0).resultId()).isEqualTo(metric1.getId());
+        assertThat(responses.get(1).resultId()).isEqualTo(metric2.getId());
+    }
+
+    @DisplayName("배치 작업 메트릭을 조회할 수 있다.")
+    @Test
+    void getScheduledMetric() {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.DELETE, 100);
+
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 50, 10);
+
+        List<BatchJobMetric> metrics = List.of(metric1, metric2);
+        given(jobMetricRepository.findAll()).willReturn(metrics);
+
+        // when
+        AdminScheduledContentMetricGetResponse response = adminService.getScheduledMetric();
+
+        // then
+        assertThat(response.totalRead()).isEqualTo(metric1.getTotalRead() + metric2.getTotalRead());
+        assertThat(response.totalWrite()).isEqualTo(
+                metric1.getTotalWrite() + metric2.getTotalWrite());
+        assertThat(response.totalSkip()).isEqualTo(metric1.getTotalSkip() + metric2.getTotalSkip());
+    }
+}
+

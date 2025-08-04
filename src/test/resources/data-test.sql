@@ -75,3 +75,4 @@ VALUES (1, '봉준호', 'https://example.com/images/bong-joon-ho.jpg', false, NO
        (3, '김지운', 'https://example.com/images/kim-jee-woon.jpg', false, NOW(), NOW()),
        (4, '임상수', 'https://example.com/images/im-sang-soo.jpg', false, NOW(), NOW()),
        (5, '류승완', 'https://example.com/images/ryoo-seung-wan.jpg', false, NOW(), NOW());
+

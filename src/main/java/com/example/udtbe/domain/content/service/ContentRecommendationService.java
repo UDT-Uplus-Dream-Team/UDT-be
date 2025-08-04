@@ -486,4 +486,12 @@ public class ContentRecommendationService {
         log.info("===== 캐싱된 추천 분석 완료 =====");
     }
 
+    public void clearMyRecommendationCache(Member member) {
+        Long memberId = member.getId();
+        boolean hadCache = cacheManager.hasCache(memberId);
+        if (hadCache) {
+            cacheManager.removeMemberCache(memberId);
+        }
+    }
+
 }

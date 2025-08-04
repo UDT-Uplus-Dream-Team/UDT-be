@@ -3,7 +3,7 @@ package com.example.udtbe.domain.batch.repository;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
@@ -91,7 +91,7 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
         List<AdminScheduledContentResponse> results = resultList.stream()
                 .map(row -> new AdminScheduledContentResponse(
                         ((Number) row[0]).longValue(),
-                        BatchStepStatus.from((String) row[1]),
+                        BatchStatus.from((String) row[1]),
                         ((Number) row[2]).longValue(),
                         ((Timestamp) row[3]).toLocalDateTime(),
                         ((Timestamp) row[4]).toLocalDateTime(),

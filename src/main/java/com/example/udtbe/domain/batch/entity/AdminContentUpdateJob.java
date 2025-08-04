@@ -4,7 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
-import com.example.udtbe.domain.batch.entity.enums.BatchStepStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.global.entity.TimeBaseEntity;
 import com.example.udtbe.global.util.OptionalLongConverter;
@@ -39,7 +39,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private BatchStepStatus status;
+    private BatchStatus status;
 
     private LocalDateTime scheduledAt;
 
@@ -89,7 +89,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     private List<String> countries;
 
     @Builder(access = PRIVATE)
-    private AdminContentUpdateJob(BatchStepStatus status, LocalDateTime scheduledAt,
+    private AdminContentUpdateJob(BatchStatus status, LocalDateTime scheduledAt,
             Long memberId,
             Long contentId, String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
@@ -116,7 +116,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentUpdateJob of(BatchStepStatus status, Long memberId,
+    public static AdminContentUpdateJob of(BatchStatus status, Long memberId,
             Long contentId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
@@ -145,7 +145,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
                 .build();
     }
 
-    public void changeStatus(BatchStepStatus status) {
+    public void changeStatus(BatchStatus status) {
         this.status = status;
     }
 
