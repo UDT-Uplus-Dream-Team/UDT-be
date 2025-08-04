@@ -60,7 +60,7 @@ VALUES (1, 'NETFLIX', NOW(), NOW(), false),
 INSERT INTO batch_job_metric (admin_content_job_id, type, status, total_read, total_write,
                               total_skip,
                               start_time, end_time, created_at, updated_at)
-VALUES (1, 'REGISTER', 'PENDING', 0, 0, 0, null, null, NOW(), NOW()),
-       (2, 'UPDATE', 'PENDING', 0, 0, 0, null, null, NOW(), NOW()),
-       (3, 'DELETE', 'PENDING', 0, 0, 0, null, null, NOW(), NOW()),
-       (4, 'FEEDBACK', 'PENDING', 0, 0, 0, null, null, NOW(), NOW());
+VALUES (1, 'REGISTER', 'NOOP', 0, 0, 0, null, null, NOW(), NOW()),
+       (2, 'UPDATE', 'NOOP', 0, 0, 0, null, null, NOW(), NOW()),
+       (3, 'DELETE', 'NOOP', 0, 0, 0, null, null, NOW(), NOW()),
+       (4, 'FEEDBACK', 'NOOP', 0, 0, 0, null, null, NOW(), NOW());
