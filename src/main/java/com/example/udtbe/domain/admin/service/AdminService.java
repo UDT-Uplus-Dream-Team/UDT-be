@@ -456,7 +456,7 @@ public class AdminService {
         return adminQuery.getContentCategoryMetric();
     }
 
-    public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetail(Long jobId) {
+    public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetails(Long jobId) {
         AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
 
         return AdminContentMapper.toAdminContentRegJobDetailResponse(job);

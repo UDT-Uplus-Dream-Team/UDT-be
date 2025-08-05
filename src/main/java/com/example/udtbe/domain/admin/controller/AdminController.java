@@ -179,8 +179,8 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchJobs(Long jobId) {
-        AdminContentRegJobGetDetailResponse response = adminService.getBatchRegisterJobDetail(
+    public ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchRegJobDetails(Long jobId) {
+        AdminContentRegJobGetDetailResponse response = adminService.getBatchRegisterJobDetails(
                 jobId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

@@ -783,7 +783,7 @@ public class AdminServiceTest {
         given(adminQuery.findAdminContentRegisterJobById(jobId)).willReturn(job);
 
         // when
-        adminService.getBatchRegisterJobDetail(jobId);
+        adminService.getBatchRegisterJobDetails(jobId);
 
         // then
         verify(adminQuery).findAdminContentRegisterJobById(jobId);

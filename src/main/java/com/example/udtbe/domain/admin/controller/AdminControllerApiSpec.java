@@ -200,7 +200,7 @@ public interface AdminControllerApiSpec {
             @ApiResponse(responseCode = "200", description = "등록 배치 작업 상세 반환"),
     })
     @GetMapping("/api/admin/batch/contents/registerjob/{jobId}")
-    ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchJobs(
+    ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchRegJobDetails(
             @PathVariable(value = "jobId") Long jobId
     );
 
