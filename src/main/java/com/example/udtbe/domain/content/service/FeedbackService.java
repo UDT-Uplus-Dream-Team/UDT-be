@@ -80,6 +80,7 @@ public class FeedbackService {
 
         if (prev.isDeleted()) {
             prev.switchDeleted();
+            prev.updateFeedbackType(newType);
             addStatEvents(member, genres, newType, INCREASE, statEvents);
         } else if (!Objects.equals(oldType, newType)) {
             addStatEvents(member, genres, oldType, DECREASE, statEvents);
