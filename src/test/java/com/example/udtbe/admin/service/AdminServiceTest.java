@@ -40,6 +40,9 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
+import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
+import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
@@ -769,6 +772,51 @@ public class AdminServiceTest {
         assertThat(response.totalWrite()).isEqualTo(
                 metric1.getTotalWrite() + metric2.getTotalWrite());
         assertThat(response.totalSkip()).isEqualTo(metric1.getTotalSkip() + metric2.getTotalSkip());
+    }
+
+    @DisplayName("배치 등록 작업의 상세 정보를 조회할 수 있다.")
+    @Test
+    void getBatchRegisterJobDetail() {
+        // given
+        Long jobId = 1L;
+        AdminContentRegisterJob job = mock(AdminContentRegisterJob.class);
+        given(adminQuery.findAdminContentRegisterJobById(jobId)).willReturn(job);
+
+        // when
+        adminService.getBatchRegisterJobDetail(jobId);
+
+        // then
+        verify(adminQuery).findAdminContentRegisterJobById(jobId);
+    }
+
+    @DisplayName("배치 수정 작업의 상세 정보를 조회할 수 있다.")
+    @Test
+    void getBatchUpdateJobDetail() {
+        // given
+        Long jobId = 1L;
+        AdminContentUpdateJob job = mock(AdminContentUpdateJob.class);
+        given(adminQuery.findAdminContentUpdateJobById(jobId)).willReturn(job);
+
+        // when
+        adminService.getBatchUpJobDetails(jobId);
+
+        // then
+        verify(adminQuery).findAdminContentUpdateJobById(jobId);
+    }
+
+    @DisplayName("배치 삭제 작업의 상세 정보를 조회할 수 있다.")
+    @Test
+    void getBatchDeleteJobDetail() {
+        // given
+        Long jobId = 1L;
+        AdminContentDeleteJob job = mock(AdminContentDeleteJob.class);
+        given(adminQuery.findAdminContentDelJobById(jobId)).willReturn(job);
+
+        // when
+        adminService.getBatchDelJobDetails(jobId);
+
+        // then
+        verify(adminQuery).findAdminContentDelJobById(jobId);
     }
 }
 
