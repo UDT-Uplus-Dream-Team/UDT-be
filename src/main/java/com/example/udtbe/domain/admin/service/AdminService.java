@@ -386,11 +386,13 @@ public class AdminService {
         return new AdminCastsRegisterResponse(savedCastIds);
     }
 
+    @Transactional
     public CursorPageResponse<AdminCastsGetResponse> getCasts(
             AdminCastsGetRequest adminCastsGetRequest) {
         return adminQuery.getCasts(adminCastsGetRequest);
     }
 
+    @Transactional
     public AdminDirectorsRegisterResponse registerDirectors(
             AdminDirectorsRegisterRequest adminDirectorsRegisterRequest) {
 
@@ -414,6 +416,7 @@ public class AdminService {
         return adminQuery.getDirectors(adminDirectorsGetRequest);
     }
 
+    @Transactional(readOnly = true)
     public CursorPageResponse<AdminScheduledContentResponse> getBatchJobs(
             AdminScheduledContentsRequest request) {
         BatchFilterType type = BatchFilterType.from(request.type());
@@ -495,22 +498,26 @@ public class AdminService {
         return adminContentJobRepositoryImpl.getScheduledContentMetrics();
     }
 
+    @Transactional
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
         return adminQuery.getContentCategoryMetric();
     }
 
+    @Transactional(readOnly = true)
     public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetails(Long jobId) {
         AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
 
         return AdminContentMapper.toAdminContentRegJobDetailResponse(job);
     }
 
+    @Transactional(readOnly = true)
     public AdminContentUpJobGetDetailResponse getBatchUpJobDetails(Long jobId) {
         AdminContentUpdateJob job = adminQuery.findAdminContentUpdateJobById(jobId);
 
         return AdminContentMapper.toAdminContentUpdateJobDetailResponse(job);
     }
 
+    @Transactional(readOnly = true)
     public AdminContentDelJobGetDetailResponse getBatchDelJobDetails(Long jobId) {
         AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
 
