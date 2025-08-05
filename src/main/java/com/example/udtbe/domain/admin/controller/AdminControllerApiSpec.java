@@ -36,6 +36,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -199,5 +200,13 @@ public interface AdminControllerApiSpec {
     @PostMapping("/api/admin/signin")
     ResponseEntity<Void> signin(@RequestBody @Valid AdminSinginRequest request,
             HttpServletResponse response);
+
+
+    @Operation(summary = "INVALID 상태 배치 작업 전체 삭제", description = "모든 INVALID 상태의 배치 작업(등록/수정/삭제)을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제된 작업 건수 정보 반환"),
+    })
+    @DeleteMapping("/api/admin/batch/invalid")
+    ResponseEntity<Void> deleteInvalidBatchJobs();
 
 }

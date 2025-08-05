@@ -16,6 +16,7 @@ public enum BatchErrorCode implements ErrorCode {
     BATCH_ALREADY_COMPLETED(HttpStatus.CONFLICT, "해당 배치 인스턴스가 이미 완료되어 재실행할 수 없습니다."),
     BATCH_INVALID_PARAMETERS(HttpStatus.BAD_REQUEST, "배치 작업에 잘못된 파라미터가 전달되었습니다."),
     SCHEDULER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "스케줄러를 실행할 수 없습니다."),
+    BATCH_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "배치 작업 삭제에 실패했습니다."),
 
     // Skip 대상 에러 (비즈니스 로직 에러)
     BUSINESS_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "비즈니스 유효성 검증 실패"),

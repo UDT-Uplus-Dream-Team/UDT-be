@@ -13,4 +13,6 @@ public interface AdminContentRegisterJobRepository extends
     List<AdminContentRegisterJob> findByStatus(BatchStatus status);
     
     List<AdminContentRegisterJob> findByStatusIn(List<BatchStatus> statuses);
+    
+    void deleteByStatus(BatchStatus status);
 }

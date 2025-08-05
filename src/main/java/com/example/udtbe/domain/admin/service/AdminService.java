@@ -453,4 +453,9 @@ public class AdminService {
         return adminQuery.getContentCategoryMetric();
     }
 
+    @Transactional
+    public void deleteInvalidBatchJobs() {
+        adminQuery.deleteInvalidBatchJobs();
+    }
+
 }

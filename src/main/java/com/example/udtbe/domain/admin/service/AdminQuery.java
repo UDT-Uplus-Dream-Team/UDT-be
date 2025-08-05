@@ -13,7 +13,11 @@ import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.admin.repository.AdminRepository;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
+import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
@@ -55,6 +59,9 @@ public class AdminQuery {
     private final CountryRepository countryRepository;
     private final JobMetricRepository jobMetricRepository;
     private final AdminRepository adminRepository;
+    private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
+    private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
+    private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
 
 
     public void validContentByContentId(Long contentId) {
@@ -213,6 +220,16 @@ public class AdminQuery {
     public Admin getAdmin(String email) {
         return adminRepository.findByEmail(email)
                 .orElseThrow(() -> new RestApiException(ADMIN_NOT_FOUND));
+    }
+
+    public void deleteInvalidBatchJobs() {
+        try {
+            adminContentRegisterJobRepository.deleteByStatus(BatchStatus.INVALID);
+            adminContentUpdateJobRepository.deleteByStatus(BatchStatus.INVALID);
+            adminContentDeleteJobRepository.deleteByStatus(BatchStatus.INVALID);
+        } catch (Exception e) {
+            throw new RestApiException(BatchErrorCode.BATCH_DELETE_FAILED);
+        }
     }
 
 }
