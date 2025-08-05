@@ -18,10 +18,6 @@ public enum BatchErrorCode implements ErrorCode {
     BATCH_ALREADY_COMPLETED(HttpStatus.CONFLICT, "해당 배치 인스턴스가 이미 완료되어 재실행할 수 없습니다."),
     BATCH_INVALID_PARAMETERS(HttpStatus.BAD_REQUEST, "배치 작업에 잘못된 파라미터가 전달되었습니다."),
     SCHEDULER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "스케줄러를 실행할 수 없습니다."),
-  
-    ADMIN_CONTENT_REGISTER_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "등록 배치작업을 찾을 수 없습니다."),
-    ADMIN_CONTENT_UPDATE_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "수정 배치작업을 찾을 수 없습니다."),
-    ADMIN_CONTENT_DELETE_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "삭제 배치 작업이 존재하지 않습니다.");
     
     // Skip 대상 에러 (비즈니스 로직 에러)
     BUSINESS_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "비즈니스 유효성 검증 실패"),
