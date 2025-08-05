@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,6 +45,7 @@ import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -769,6 +771,34 @@ public class AdminServiceTest {
         assertThat(response.totalWrite()).isEqualTo(
                 metric1.getTotalWrite() + metric2.getTotalWrite());
         assertThat(response.totalSkip()).isEqualTo(metric1.getTotalSkip() + metric2.getTotalSkip());
+    }
+
+    @Test
+    @DisplayName("INVALID 상태 배치 작업 삭제 성공")
+    void deleteInvalidBatchJobs_Success() {
+        // when
+        adminService.deleteInvalidBatchJobs();
+
+        // then
+        then(adminQuery).should(times(1)).deleteInvalidBatchJobs();
+    }
+
+    @Test
+    @DisplayName("INVALID 상태 배치 작업 삭제 실패 시 예외 전파")
+    void deleteInvalidBatchJobs_Failure_ThrowsException() {
+        // given
+        RestApiException expectedException = new RestApiException(
+                BatchErrorCode.BATCH_DELETE_FAILED);
+        doThrow(expectedException).when(adminQuery).deleteInvalidBatchJobs();
+
+        // when & then
+        assertThatThrownBy(() -> adminService.deleteInvalidBatchJobs())
+                .isInstanceOf(RestApiException.class)
+                .hasMessage(BatchErrorCode.BATCH_DELETE_FAILED.getMessage())
+                .extracting(e -> ((RestApiException) e).getErrorCode())
+                .isEqualTo(BatchErrorCode.BATCH_DELETE_FAILED);
+
+        then(adminQuery).should(times(1)).deleteInvalidBatchJobs();
     }
 }
 
