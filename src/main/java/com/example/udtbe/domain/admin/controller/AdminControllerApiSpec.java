@@ -9,6 +9,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
@@ -33,6 +34,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -98,7 +100,6 @@ public interface AdminControllerApiSpec {
             @PathVariable(name = "contentId") Long contentId
     );
 
-
     @Operation(summary = "유저 목록 조회", description = "유저 목록 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저 목록 및 유저별 피드백 합계 정보 반환")
     @GetMapping("/api/admin/users")
@@ -106,6 +107,12 @@ public interface AdminControllerApiSpec {
             @ModelAttribute @Valid AdminMemberListGetRequest adminMemberListGetRequest
     );
 
+    @Operation(summary = "Feedback 통계 전체 동기화", description = "풀 스캔으로 전체 Feedback 통계를 동기화 요청합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "풀 스캔 동기화 요청이 정상 접수되었습니다.")
+    })
+    @PostMapping("/api/admin/feedback/full-scan")
+    ResponseEntity<Void> triggerFullScan();
 
     @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
@@ -181,7 +188,6 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/batch/metrics")
     ResponseEntity<AdminScheduledContentMetricGetResponse> getBatchMetric();
 
-
     @Operation(summary = "콘텐츠 카테고리 지표 조회", description = "콘텐츠 카테고리 별 비율 정보를 가져온다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "콘텐츠 카테고리 별 비율 정보"),
@@ -215,5 +221,12 @@ public interface AdminControllerApiSpec {
     ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(
             @PathVariable(value = "jobId") Long jobId
     );
+    @Operation(summary = "어드민 로그인", description = "백오피스에서 관리자 로그인을 한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "백오피스 관리자 로그인 성공"),
+    })
+    @PostMapping("/api/admin/signin")
+    ResponseEntity<Void> signin(@RequestBody @Valid AdminSinginRequest request,
+            HttpServletResponse response);
 
 }

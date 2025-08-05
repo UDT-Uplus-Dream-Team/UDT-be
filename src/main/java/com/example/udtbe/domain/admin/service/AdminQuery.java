@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.admin.service;
 
+import static com.example.udtbe.domain.admin.exception.AdminErrorCode.ADMIN_NOT_FOUND;
+
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
@@ -10,6 +12,8 @@ import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.admin.entity.Admin;
+import com.example.udtbe.domain.admin.repository.AdminRepository;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
@@ -59,6 +63,7 @@ public class AdminQuery {
     private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
     private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
     private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
+    private final AdminRepository adminRepository;
 
 
     public void validContentByContentId(Long contentId) {
@@ -231,4 +236,9 @@ public class AdminQuery {
                 new RestApiException(BatchErrorCode.ADMIN_CONTENT_DELETE_JOB_NOT_FOUND)
         );
     }
+    public Admin getAdmin(String email) {
+        return adminRepository.findByEmail(email)
+                .orElseThrow(() -> new RestApiException(ADMIN_NOT_FOUND));
+    }
+
 }
