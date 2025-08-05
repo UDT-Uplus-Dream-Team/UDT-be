@@ -92,17 +92,13 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
     private String errorMessage;
 
-    private Integer retryCount = 0;
-
-    private Integer skipCount = 0;
-
     @Builder(access = PRIVATE)
     private AdminContentUpdateJob(BatchStatus status, LocalDateTime scheduledAt,
-            Long memberId,
-            Long contentId, String title, String description, String posterUrl, String backdropUrl,
-            String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
-            Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
-            List<Long> directors, List<Long> casts, List<String> countries) {
+            Long memberId, Long contentId, String title, String description, String posterUrl,
+            String backdropUrl, String trailerUrl, LocalDateTime openDate, int runningTime,
+            int episode, String rating, Map<String, AdminCategoryDTO> categories,
+            Map<String, AdminPlatformDTO> platforms, List<Long> directors, List<Long> casts,
+            List<String> countries) {
 
         this.status = status;
         this.scheduledAt = scheduledAt;
@@ -122,8 +118,6 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.directors = directors;
         this.casts = casts;
         this.countries = countries;
-        this.retryCount = 0;
-        this.skipCount = 0;
     }
 
     public static AdminContentUpdateJob of(BatchStatus status, Long memberId,
@@ -162,22 +156,6 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     public void setError(String errorCode, String errorMessage) {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
-    }
-
-    public void incrementRetryCount() {
-        this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
-    }
-
-    public void resetRetryCount() {
-        this.retryCount = 0;
-    }
-
-    public void incrementSkipCount() {
-        this.skipCount = (this.skipCount == null ? 0 : this.skipCount) + 1;
-    }
-
-    public void resetSkipCount() {
-        this.skipCount = 0;
     }
 
     private static LocalDateTime getScheduledAt() {

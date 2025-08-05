@@ -41,13 +41,11 @@ public class StepStatsListener implements StepExecutionListener {
         long rollbackCount = stepExecution.getRollbackCount();
         long commitCount = stepExecution.getCommitCount();
 
-        // 상세 통계 로깅
         logDetailedStats(stepExecution, totalRead, totalWrite, totalSkip,
                 processCount, readSkip, writeSkip, rollbackCount, commitCount);
 
         BatchJobStatus batchJobStatus = determineBatchJobStatus(totalRead, totalWrite, totalSkip);
 
-        // 에러 정보 로깅
         logFailureExceptions(stepExecution);
 
         BatchJobMetric metric = BatchJobMetric.of(
@@ -62,8 +60,6 @@ public class StepStatsListener implements StepExecutionListener {
         );
 
         adminService.updateMetric(metric);
-
-        log.info("===== Step 완료: {} =====", stepExecution.getStepName());
         return stepExecution.getExitStatus();
     }
 
@@ -75,7 +71,7 @@ public class StepStatsListener implements StepExecutionListener {
         } else if (stepName.equals(BatchConfig.DELETE_STEP)) {
             return BatchJobType.DELETE;
         }
-        return BatchJobType.REGISTER; // 기본값
+        return BatchJobType.REGISTER;
     }
 
     private BatchJobStatus determineBatchJobStatus(long totalRead, long totalWrite,

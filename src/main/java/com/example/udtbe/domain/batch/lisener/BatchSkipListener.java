@@ -23,33 +23,27 @@ public class BatchSkipListener implements SkipListener<Object, Object> {
 
     @Override
     public void onSkipInWrite(Object item, Throwable t) {
-        log.error("🚨 SKIP LISTENER CALLED - onSkipInWrite: item={}, exception={}", item,
-                t.getMessage());
-
-        if (item instanceof AdminContentRegisterJob registerJob) {
-            registerJob.changeStatus(BatchStatus.FAILED);
-            adminContentRegisterJobRepository.save(registerJob);
-        } else if (item instanceof AdminContentUpdateJob updateJob) {
-            updateJob.changeStatus(BatchStatus.FAILED);
-            adminContentUpdateJobRepository.save(updateJob);
-        } else if (item instanceof AdminContentDeleteJob deleteJob) {
-            deleteJob.changeStatus(BatchStatus.FAILED);
-            adminContentDeleteJobRepository.save(deleteJob);
-        }
+        setStatus(item, t);
     }
 
     @Override
     public void onSkipInProcess(Object item, Throwable t) {
-        log.warn("Item skipped in process phase: {}, reason: {}", item, t.getMessage());
+        setStatus(item, t);
+    }
+
+    private void setStatus(Object item, Throwable t) {
 
         if (item instanceof AdminContentRegisterJob registerJob) {
             registerJob.changeStatus(BatchStatus.FAILED);
+            registerJob.setError("등록 실패", t.getMessage());
             adminContentRegisterJobRepository.save(registerJob);
         } else if (item instanceof AdminContentUpdateJob updateJob) {
             updateJob.changeStatus(BatchStatus.FAILED);
+            updateJob.setError("등록 실패", t.getMessage());
             adminContentUpdateJobRepository.save(updateJob);
         } else if (item instanceof AdminContentDeleteJob deleteJob) {
             deleteJob.changeStatus(BatchStatus.FAILED);
+            deleteJob.setError("삭제 실패", t.getMessage());
             adminContentDeleteJobRepository.save(deleteJob);
         }
     }
