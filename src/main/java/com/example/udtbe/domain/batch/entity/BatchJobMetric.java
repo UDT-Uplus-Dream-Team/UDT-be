@@ -27,7 +27,7 @@ public class BatchJobMetric extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "admin_content_job_metric_id")
+    @Column(name = "batch_job_metric_id")
     private Long id;
 
     private Long adminContentJobId;
