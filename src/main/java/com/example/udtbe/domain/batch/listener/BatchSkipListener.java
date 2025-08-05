@@ -1,4 +1,4 @@
-package com.example.udtbe.domain.batch.lisener;
+package com.example.udtbe.domain.batch.listener;
 
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
