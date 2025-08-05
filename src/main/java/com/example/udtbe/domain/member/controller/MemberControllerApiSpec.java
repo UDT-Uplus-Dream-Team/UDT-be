@@ -11,6 +11,7 @@ import com.example.udtbe.domain.member.dto.response.MemberUpdatePlatformResponse
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -64,4 +65,18 @@ public interface MemberControllerApiSpec {
     ResponseEntity<Void> deleteCuratedContents(
             @RequestBody @Valid CuratedContentListDeleteRequest request,
             @AuthenticationPrincipal Member member);
+
+    @Operation(
+            summary = "개인 추천 캐시 클리어 API",
+            description = "내 추천 캐시를 클리어합니다. 다음 추천 요청 시 새로운 데이터로 계산됩니다."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "추천 캐시 클리어 성공"
+    )
+    @DeleteMapping("/users/me/recommendations/cache/clear")
+    ResponseEntity<Void> clearMyRecommendationCache(
+            @Parameter(description = "인증된 사용자 정보", required = true)
+            @AuthenticationPrincipal Member member
+    );
 }

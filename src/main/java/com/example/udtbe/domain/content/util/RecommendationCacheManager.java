@@ -39,16 +39,11 @@ public class RecommendationCacheManager {
         return cache != null && !cache.isExpired(EXPIRATION_HOURS);
     }
 
-    public void removeCache(Long memberId) {
+    public void removeMemberCache(Long memberId) {
         MemberRecommendationCache removed = memberCaches.remove(memberId);
         if (removed != null) {
             log.info("기본 추천 캐시 제거 완료: memberId={}", memberId);
         }
-    }
-
-    public void removeMemberCaches(Long memberId) {
-        removeCache(memberId);
-        log.info("사용자 캐시 제거 완료: memberId={}", memberId);
     }
 
     public void clearAllCaches() {

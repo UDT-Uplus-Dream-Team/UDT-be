@@ -35,14 +35,23 @@ public class Director extends TimeBaseEntity {
     private boolean isDeleted;
 
     @Builder(access = PRIVATE)
-    private Director(String directorName, boolean isDeleted) {
+    private Director(String directorName, boolean isDeleted, String directorImageUrl) {
         this.directorName = directorName;
         this.isDeleted = isDeleted;
+        this.directorImageUrl = directorImageUrl;
     }
 
     public static Director of(String directorName) {
         return Director.builder()
                 .directorName(directorName)
+                .isDeleted(false)
+                .build();
+    }
+
+    public static Director of(String directorName, String directorImageUrl) {
+        return Director.builder()
+                .directorName(directorName)
+                .directorImageUrl(directorImageUrl)
                 .isDeleted(false)
                 .build();
     }

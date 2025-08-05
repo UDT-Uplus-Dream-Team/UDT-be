@@ -111,8 +111,8 @@ jobs:
 
           script: |
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-            docker stop udt_prod_server || true
-            docker rm udt_prod_server || true
+            docker stop udt_prod_server node-exporter mysql-exporter || true
+            docker rm udt_prod_server node-exporter mysql-exporter || true
             cd ~/udt
             docker pull ${{ secrets.DOCKER_USERNAME }}/udt-prod:latest
             docker-compose pull

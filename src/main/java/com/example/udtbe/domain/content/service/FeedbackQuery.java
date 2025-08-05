@@ -39,4 +39,9 @@ public class FeedbackQuery {
     public Optional<Feedback> findFeedbackByMemberIdAndContentId(Long memberId, Long contentId) {
         return feedbackRepository.findFeedbackByMemberIdAndContentId(memberId, contentId);
     }
+
+    public List<Feedback> findFeedbackByIdList(Long memberId,
+            List<Long> feedbackIds) {
+        return feedbackRepository.findByMemberIdAndIdIn(memberId, feedbackIds);
+    }
 }

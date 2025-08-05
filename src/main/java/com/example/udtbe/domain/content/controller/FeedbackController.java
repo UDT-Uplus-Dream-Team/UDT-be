@@ -3,6 +3,7 @@ package com.example.udtbe.domain.content.controller;
 import com.example.udtbe.domain.content.dto.common.FeedbackContentDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.dto.request.FeedbackCreateBulkRequest;
+import com.example.udtbe.domain.content.dto.request.FeedbackListDeleteRequest;
 import com.example.udtbe.domain.content.service.FeedbackService;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
@@ -27,15 +28,14 @@ public class FeedbackController implements FeedbackControllerApiSpec {
     @Override
     public ResponseEntity<CursorPageResponse<FeedbackContentDTO>> getFeedbackByCursor(
             FeedbackContentGetRequest request, Member member) {
-        // TODO: 3차 MVP 때 플랫폼별, 장르별 FeedbackSortType 반영
         CursorPageResponse<FeedbackContentDTO> response = feedbackService.getFeedbackList(
                 request, member);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Override
-    public ResponseEntity<Void> deleteFeedback(Long feedbackId, Member member) {
-        feedbackService.deleteFeedback(feedbackId, member);
+    public ResponseEntity<Void> deleteFeedback(FeedbackListDeleteRequest request, Member member) {
+        feedbackService.deleteFeedback(request.feedbackIds(), member);
         return ResponseEntity.noContent().build();
     }
 }

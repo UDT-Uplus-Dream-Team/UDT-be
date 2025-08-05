@@ -29,4 +29,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long>, Feedb
               c.id ASC
             """)
     List<Content> findTopRankedContents(Pageable pageable);
+
+    List<Feedback> findByMemberIdAndIdIn(Long memberId, List<Long> feedbackIds);
+
 }

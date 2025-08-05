@@ -4,7 +4,7 @@ import com.example.udtbe.domain.content.entity.Cast;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CastRepository extends JpaRepository<Cast, Long> {
+public interface CastRepository extends JpaRepository<Cast, Long>, CastQueryDSL {
 
     Optional<Cast> findByCastNameAndCastImageUrl(String castName, String castImageUrl);
 }

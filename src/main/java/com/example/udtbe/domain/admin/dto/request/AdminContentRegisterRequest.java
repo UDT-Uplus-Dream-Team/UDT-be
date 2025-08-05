@@ -1,6 +1,5 @@
 package com.example.udtbe.domain.admin.dto.request;
 
-import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import jakarta.validation.constraints.Min;
@@ -41,9 +40,9 @@ public record AdminContentRegisterRequest(
 
         List<String> countries,
 
-        List<String> directors,
+        List<Long> directors,
 
-        List<AdminCastDTO> casts,
+        List<Long> casts,
 
         @NotEmpty(message = "플랫폼을 하나 이상 선택해주세요.")
         List<AdminPlatformDTO> platforms

@@ -41,7 +41,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/temp-signup",
             "/actuator/health",
             "/actuator/prometheus",
-            "/actuator/metrics"
+            "/actuator/metrics",
+            "/api/auth/reissue/token"
     );
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final TokenProvider tokenProvider;
