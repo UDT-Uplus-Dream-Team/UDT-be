@@ -130,6 +130,12 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
                 .containsExactly(
                         IntStream.range(0, size).mapToObj(i -> lastId - i).toArray(Long[]::new));
         assertThat(page.hasNext()).isTrue();
-        assertThat(page.nextCursor()).isEqualTo(String.valueOf(lastId - size + 1));
+
+        AdminContentGetResponse lastItemOnPage = dtos.get(dtos.size() - 1);
+        Long lastItemIdOnPage = lastItemOnPage.contentId();
+        String[] cursorParts = page.nextCursor().split("\\|");
+
+        assertThat(cursorParts).hasSize(2);
+        assertThat(cursorParts[0]).isEqualTo(String.valueOf(lastItemIdOnPage));
     }
 }

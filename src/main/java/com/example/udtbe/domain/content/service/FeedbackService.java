@@ -6,11 +6,11 @@ import com.example.udtbe.domain.content.dto.common.FeedbackCreateDTO;
 import com.example.udtbe.domain.content.dto.request.FeedbackContentGetRequest;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.exception.FeedbackErrorCode;
+import com.example.udtbe.domain.content.entity.enums.FeedbackType;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.repository.FeedbackRepository;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
-import com.example.udtbe.global.exception.RestApiException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +25,8 @@ public class FeedbackService {
 
     private final FeedbackQuery feedbackQuery;
     private final FeedbackRepository feedbackRepository;
+    private final ContentQuery contentQuery;
+    private final FeedbackStatisticsQuery feedbackStatisticsQuery;
 
     @Transactional
     public void saveFeedbacks(List<FeedbackCreateDTO> requests, Member member) {
@@ -33,25 +35,46 @@ public class FeedbackService {
         for (FeedbackCreateDTO feedbackCreateDTO : requests) {
             Content content = feedbackQuery.findContentById(feedbackCreateDTO.contentId());
 
+            List<GenreType> genres = contentQuery.getGenreTypeById(feedbackCreateDTO.contentId());
+
+            FeedbackType newFeedbackType = feedbackCreateDTO.feedback();
+
             Optional<Feedback> findFeedback = feedbackQuery.findFeedbackByMemberIdAndContentId(
                     member.getId(),
                     content.getId());
 
-            if (findFeedback.isPresent()) {
-                Feedback feedback = findFeedback.get();
-                if (feedback.isDeleted()) {
-                    feedback.switchDeleted();
-                }
-                feedback.updateFeedbackType(feedbackCreateDTO.feedback());
-                feedbacks.add(feedback);
-            } else {
-                Feedback newFeedback = Feedback.of(feedbackCreateDTO.feedback(), false, member,
-                        content);
+            if (findFeedback.isEmpty()) {
+                Feedback newFeedback = Feedback.of(newFeedbackType, false, member, content);
+                genres.forEach(
+                        genreType -> feedbackStatisticsQuery.increaseStatics(member, genreType,
+                                newFeedbackType));
                 feedbacks.add(newFeedback);
+                continue;
             }
+
+            Feedback prevFeedback = findFeedback.get();
+            FeedbackType prevFeedbackType = prevFeedback.getFeedbackType();
+
+            if (prevFeedback.isDeleted()) {
+                prevFeedback.switchDeleted();
+                genres.forEach(
+                        genreType -> feedbackStatisticsQuery.increaseStatics(member, genreType,
+                                newFeedbackType));
+            }
+
+            if (prevFeedbackType != newFeedbackType) {
+                genres.forEach(genreType -> {
+                    feedbackStatisticsQuery.decreaseStatics(member, genreType, prevFeedbackType);
+                    feedbackStatisticsQuery.increaseStatics(member, genreType, newFeedbackType);
+                });
+                prevFeedback.updateFeedbackType(newFeedbackType);
+            }
+            feedbacks.add(prevFeedback);
         }
 
-        feedbackRepository.saveAll(feedbacks);
+        if (!feedbacks.isEmpty()) {
+            feedbackRepository.saveAll(feedbacks);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -74,14 +97,14 @@ public class FeedbackService {
     }
 
     @Transactional
-    public void deleteFeedback(Long feedbackId, Member member) {
-        Feedback feedback = feedbackQuery.findFeedbackById(feedbackId);
-
-        if (!feedback.getMember().getId().equals(member.getId())) {
-            throw new RestApiException(FeedbackErrorCode.FEEDBACK_OWNER_MISSMATCH);
+    public void deleteFeedback(List<Long> feedbackIds, Member member) {
+        List<Feedback> feedbacks = feedbackQuery.findFeedbackByIdList(member.getId(), feedbackIds);
+        for (Feedback feedback : feedbacks) {
+            feedback.switchDeleted();
+            List<GenreType> genres = contentQuery.getGenreTypeById(feedback.getContent().getId());
+            genres.forEach(
+                    genreType -> feedbackStatisticsQuery.decreaseStatics(member, genreType,
+                            feedback.getFeedbackType()));
         }
-
-        feedback.switchDeleted();
     }
-
 }

@@ -50,11 +50,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(
                         (auth) -> auth
+                                .requestMatchers("/", "/api/auth/reissue/token").permitAll()
                                 .requestMatchers("/api/survey").hasAnyAuthority(ROLE_GUEST.name())
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(ROLE_ADMIN.name())
                                 .requestMatchers("/api/**")
                                 .hasAnyAuthority(ROLE_USER.name(), ROLE_ADMIN.name())
-                                .requestMatchers("/", "/api/auth/reissue/token").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2Login(
@@ -104,7 +104,9 @@ public class SecurityConfig {
                         "http://localhost:3000",
                         "https://localhost:3000",
                         "http://localhost:8080",
-                        "https://local.banditbool.com:3000"
+                        "https://local.banditbool.com:3000",
+                        "http://3.34.143.98",
+                        "https://3.34.143.98"
                 ));
         configuration.setAllowedMethods(
                 Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

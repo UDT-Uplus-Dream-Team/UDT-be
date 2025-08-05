@@ -6,6 +6,7 @@ import com.example.udtbe.domain.content.dto.request.RecentContentsRequest;
 import com.example.udtbe.domain.content.dto.request.WeeklyRecommendationRequest;
 import com.example.udtbe.domain.content.dto.response.ContentDetailsGetResponse;
 import com.example.udtbe.domain.content.dto.response.ContentsGetResponse;
+import com.example.udtbe.domain.content.dto.response.PopularContentByPlatformResponse;
 import com.example.udtbe.domain.content.dto.response.PopularContentsResponse;
 import com.example.udtbe.domain.content.dto.response.RecentContentsResponse;
 import com.example.udtbe.domain.content.dto.response.WeeklyRecommendedContentsResponse;
@@ -13,6 +14,7 @@ import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
+import com.example.udtbe.domain.content.util.PopularContentByPlatformStore;
 import com.example.udtbe.domain.content.util.PopularContentStore;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.config.WeeklyGenrePolicyProperties;
@@ -32,6 +34,7 @@ public class ContentService {
     private final ContentQuery contentQuery;
     private final WeeklyGenrePolicyProperties weeklyGenrePolicyProperties;
     private final PopularContentStore popularContentStore;
+    private final PopularContentByPlatformStore popularContentByPlatformStore;
 
     @Transactional(readOnly = true)
     public CursorPageResponse<ContentsGetResponse> getContents(ContentsGetRequest request) {
@@ -89,5 +92,9 @@ public class ContentService {
         curatedContents.stream()
                 .filter(content -> !content.isDeleted())
                 .forEach(CuratedContent::softDelete);
+    }
+
+    public List<PopularContentByPlatformResponse> getPopularContentsByPlatform() {
+        return popularContentByPlatformStore.get();
     }
 }

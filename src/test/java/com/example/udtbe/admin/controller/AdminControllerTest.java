@@ -1,21 +1,36 @@
 package com.example.udtbe.admin.controller;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.ANIMATION;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.DRAMA;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.MOVIE;
+import static com.example.udtbe.domain.content.entity.enums.CategoryType.VARIETY;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.udtbe.common.fixture.BatchJobMetricFixture;
+import com.example.udtbe.common.fixture.CastFixture;
+import com.example.udtbe.common.fixture.ContentCategoryFixture;
+import com.example.udtbe.common.fixture.ContentFixture;
+import com.example.udtbe.common.fixture.DirectorFixture;
 import com.example.udtbe.common.support.ApiSupport;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
+import com.example.udtbe.domain.admin.dto.common.AdminDirectorDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
-import com.example.udtbe.domain.admin.service.AdminQuery;
+import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.repository.JobMetricRepository;
+import com.example.udtbe.domain.content.entity.Cast;
+import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
+import com.example.udtbe.domain.content.entity.ContentCategory;
+import com.example.udtbe.domain.content.entity.Director;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -29,17 +44,16 @@ import com.example.udtbe.domain.content.repository.ContentRepository;
 import com.example.udtbe.domain.content.repository.DirectorRepository;
 import com.example.udtbe.domain.content.repository.GenreRepository;
 import com.example.udtbe.domain.content.repository.PlatformRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 @Sql(scripts = "classpath:data-test.sql")
 public class AdminControllerTest extends ApiSupport {
@@ -71,9 +85,7 @@ public class AdminControllerTest extends ApiSupport {
     @Autowired
     private DirectorRepository directorRepository;
     @Autowired
-    private AdminQuery adminQuery;
-
-    private AdminContentRegisterRequest adminContentRegisterRequest;
+    private JobMetricRepository jobMetricRepository;
 
     @AfterEach
     void tearDown() {
@@ -90,38 +102,41 @@ public class AdminControllerTest extends ApiSupport {
         directorRepository.deleteAllInBatch();
         contentMetadataRepository.deleteAllInBatch();
         contentRepository.deleteAllInBatch();
+        jobMetricRepository.deleteAllInBatch();
     }
 
-    @BeforeEach
-    void setup() throws Exception {
-        adminContentRegisterRequest = new AdminContentRegisterRequest(
+    @Test
+    @DisplayName("콘텐츠 등록 시 배치 목록 DB에 저장할 수 있다.")
+    void contentRegister() throws Exception {
+        // when & then
+        AdminContentRegisterRequest adminContentRegisterRequest = new AdminContentRegisterRequest(
                 "테스트 제목", "테스트 설명",
                 "https://poster", "https://backdrop", "https://trailer",
                 LocalDateTime.of(2025, 7, 11, 0, 0),
                 100, 1, "전체관람가",
                 List.of(new AdminCategoryDTO("영화", List.of("액션"))),
-                List.of("한국"), List.of("테스트 감독"),
-                List.of(new AdminCastDTO("테스트 배우", "https://cast.jpg")),
+                List.of("한국"), List.of(1L, 2L),
+                List.of(1L, 2L),
                 List.of(new AdminPlatformDTO("넷플릭스", "https://watch"))
         );
-    }
 
-    @Test
-    @DisplayName("콘텐츠 등록 시 DB에 저장할 수 있다.")
-    void contentRegister() throws Exception {
-        // when & then
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
+        mockMvc.perform(post("/api/admin/contents/registerjob")
                         .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.registerJobId").value(1L))
                 .andReturn();
     }
 
     @Test
-    @DisplayName("콘텐츠 수정 시 필드와 메타데이터가 변경될 수 있다.")
+    @DisplayName("콘텐츠 수정 시 배치 목록 DB에 저장할 수 있다.")
     void updateContent() throws Exception {
+
+        Content content = ContentFixture.content("테스트 제목", "테스트 설명");
+        contentRepository.save(content);
+
         // given
         AdminContentUpdateRequest adminContentUpdateRequest = new AdminContentUpdateRequest(
                 "수정 테스트 제목", "수정 테스트 설명",
@@ -132,55 +147,49 @@ public class AdminControllerTest extends ApiSupport {
                         new AdminCategoryDTO("애니메이션", List.of("키즈")),
                         new AdminCategoryDTO("드라마", List.of("서사/드라마"))
                 ),
-                List.of("한국"), List.of("수정 테스트 감독"),
-                List.of(new AdminCastDTO("수정 테스트 배우", "c1")),
+                List.of("한국"), List.of(1L, 2L),
+                List.of(1L, 2L),
                 List.of(
                         new AdminPlatformDTO("넷플릭스", "w1"),
                         new AdminPlatformDTO("디즈니+", "w2")
                 )
         );
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
-                        .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        JsonNode node = objectMapper.readTree(mr.getResponse().getContentAsString());
-        Long id = node.get("contentId").asLong();
-
-        // when & then
-        mockMvc.perform(patch("/api/admin/contents/{id}", id)
+        mockMvc.perform(post("/api/admin/contents/updatejob/{contentId}", content.getId())
                         .content(objectMapper.writeValueAsString(adminContentUpdateRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.updateJobId").value(1L))
+                .andReturn();
     }
 
     @Test
+    @DisplayName("콘텐츠 삭제 시 배치 목록 DB에 저장할 수 있다.")
+    void deleteContent() throws Exception {
+
+        // given
+        Content content = ContentFixture.content("존재하지 않는 콘텐츠", "x");
+        contentRepository.save(content);
+
+        // when
+        mockMvc.perform(post("/api/admin/contents/deletejob/{contentId}", content.getId())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.deleteJobId").value(1L))
+                .andReturn();
+    }
+
+
+    @Test
     @DisplayName("페이징 조회 시 데이터와 nextCursor가 반환될 수 있다.")
+    @Transactional
     void getContents() throws Exception {
         // given
         for (int i = 1; i <= 4; i++) {
-            new AdminContentRegisterRequest(
-                    "T" + i, "D",
-                    "p", "b", "t",
-                    LocalDateTime.now(), 10, 1, "전체",
-                    List.of(new AdminCategoryDTO("영화", List.of("액션"))),
-                    List.of("KR"), List.of("D"),
-                    List.of(new AdminCastDTO("C", "u")),
-                    List.of(new AdminPlatformDTO("넷플릭스", "u"))
-            );
-
-            mockMvc.perform(post("/api/admin/contents")
-                            .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(accessTokenOfAdmin)
-                    )
-                    .andExpect(status().isCreated())
-                    .andReturn();
+            Content content = ContentFixture.content("T" + i, "D");
+            contentRepository.save(content);
         }
 
         // when & then
@@ -205,35 +214,19 @@ public class AdminControllerTest extends ApiSupport {
 
     @Test
     @DisplayName("페이징 카테고리 필터링 조회 시 데이터와 nextCursor가 반환될 수 있다.")
+    @Transactional
     void getContentsByCategory() throws Exception {
         // given
         for (int i = 1; i <= 4; i++) {
-            String categoryType;
+            Category category;
             if (i % 2 == 0) {
-                categoryType = "영화";
+                category = categoryRepository.findByCategoryType(MOVIE).get();
             } else {
-                categoryType = "드라마";
+                category = categoryRepository.findByCategoryType(DRAMA).get();
             }
-            AdminContentRegisterRequest adminContentRegisterRequest1 = new AdminContentRegisterRequest(
-                    "T" + i, "D",
-                    "p", "b", "t",
-                    LocalDateTime.now(), 10, 1, "전체",
-                    List.of(
-                            new AdminCategoryDTO(categoryType, List.of("서사/드라마")),
-                            new AdminCategoryDTO("애니메이션", List.of("키즈"))
-                    ),
-                    List.of("KR"), List.of("D"),
-                    List.of(new AdminCastDTO("C", "u")),
-                    List.of(new AdminPlatformDTO("넷플릭스", "u"))
-            );
-
-            mockMvc.perform(post("/api/admin/contents")
-                            .content(objectMapper.writeValueAsString(adminContentRegisterRequest1))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(accessTokenOfAdmin)
-                    )
-                    .andExpect(status().isCreated())
-                    .andReturn();
+            Content content = ContentFixture.content("T" + i, "D");
+            contentRepository.save(content);
+            ContentCategoryFixture.contentCategory(content, category);
         }
 
         // when & then
@@ -260,58 +253,467 @@ public class AdminControllerTest extends ApiSupport {
 
     @Test
     @DisplayName("상세 조회 시 매핑된 필드가 반환될 수 있다.")
+    @Transactional
     void getContentSuccess() throws Exception {
         //given
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
-                        .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        JsonNode node = objectMapper.readTree(mr.getResponse().getContentAsString());
-        Long id = node.get("contentId").asLong();
+        Content content = ContentFixture.content("T", "D");
+        contentRepository.save(content);
 
         // when & then
-        mockMvc.perform(get("/api/admin/contents/{id}", id)
+        mockMvc.perform(get("/api/admin/contents/{id}", content.getId())
                         .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value(adminContentRegisterRequest.title()))
-                .andExpect(jsonPath("$.categories[0].categoryType")
-                        .value(adminContentRegisterRequest.categories().get(0).categoryType()));
+                .andExpect(jsonPath("$.title").value(content.getTitle()));
     }
 
 
+    @DisplayName("여러 명의 출연진을 한번에 저장한다.")
     @Test
-    @DisplayName("삭제 시 isDeleted 플래그가 설정될 수 있다. 그 다음 조회 시 404에러가 나올 수 있다.")
-    void deleteContent() throws Exception {
+    void registerCasts() throws Exception {
         // given
-        MvcResult mr = mockMvc.perform(post("/api/admin/contents")
-                        .content(objectMapper.writeValueAsString(adminContentRegisterRequest))
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "강호동.image.com");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", "유재석.image.com");
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO("이효리", "이효리.image.com");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(accessTokenOfAdmin)
                 )
                 .andExpect(status().isCreated())
-                .andReturn();
-
-        JsonNode node = objectMapper.readTree(mr.getResponse().getContentAsString());
-        Long id = node.get("contentId").asLong();
-
-        // when
-        mockMvc.perform(delete("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isNoContent());
-
-        Content c = contentRepository.findById(id).orElseThrow();
-        assertThat(c.isDeleted()).isTrue();
-
-        // 조회 시 404
-        mockMvc.perform(get("/api/admin/contents/{id}", id)
-                        .cookie(accessTokenOfAdmin)
-                )
-                .andExpect(status().isNotFound());
+                .andExpect(jsonPath("$.castIds").isArray())
+                .andExpect(jsonPath("$.castIds.length()").value(3))
+        ;
     }
+
+    @DisplayName("저장할 출연자 요청 값이 존재하지 않으면 다건 출연자를 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastRequestsIsNull() throws Exception {
+        // given
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(null);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진 정보는 필수입니다."))
+        ;
+    }
+
+    @DisplayName("한 번에 31명 이상의 출연자를 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastCountExceedsLimit() throws Exception {
+        // given
+        List<AdminCastDTO> casts = new ArrayList<>();
+        for (int i = 0; i < 31; i++) {
+            casts.add(new AdminCastDTO("castName" + i, "url" + i));
+        }
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(casts);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최대 30명까지 등록할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("출연진의 이름이 없다면 출연진을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastNameIsEmtpy() throws Exception {
+        // given
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("", "강호동.image.com");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO(null, "유재석.image.com");
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO(" ", "이효리.image.com");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("출연진의 사진 URI가 없다면 출연진을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastImageUriIsEmtpy() throws Exception {
+        // given
+        final AdminCastDTO adminCastDTO1 = new AdminCastDTO("강호동", "");
+        final AdminCastDTO adminCastDTO2 = new AdminCastDTO("유재석", null);
+        final AdminCastDTO adminCastDTO3 = new AdminCastDTO("이효리", " ");
+        AdminCastsRegisterRequest request = new AdminCastsRegisterRequest(
+                List.of(adminCastDTO1, adminCastDTO2, adminCastDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/casts")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진 사진 주소은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름으로 출연진을 검색한다.")
+    @Test
+    void getCastsByCastName() throws Exception {
+        // given
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item").isArray())
+                .andExpect(jsonPath("$.item[0].castId").value(savedCast.getId()))
+                .andExpect(jsonPath("$.item[0].castName").value(savedCast.getCastName()))
+                .andExpect(jsonPath("$.nextCursor").isEmpty())
+                .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
+        ;
+    }
+
+    @DisplayName("이름 없이 요청 시 출연진을 검색할 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastNameIsBlank() throws Exception {
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", "")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("검색할 출연진 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 출연진 검색 인원은 최소 1명이야 한다.")
+    @Test
+    void throwValidExceptionWhenCastSizeIsLessThanOne() throws Exception {
+        // given
+        final String size = "0";
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최소 1명 이상 조회해야 합니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 출연진 검색 인원은 최대 20명을 넘을 수 없다.")
+    @Test
+    void throwValidExceptionWhenCastSizeExceedsLimit() throws Exception {
+        // given
+        final String size = "21";
+        final String castName = "김두루미";
+        Cast savedCast = castRepository.save(CastFixture.cast(castName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/casts")
+                        .param("name", savedCast.getCastName())
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("출연진은 최대 20명 조회할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("여러 명의 감독을 한번에 저장한다.")
+    @Test
+    void registerDirectors() throws Exception {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("봉준호", "봉준호.image.com");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO("박찬욱", "박찬욱.image.com");
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO("류승완", "류승완.image.com");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.directorIds").isArray())
+                .andExpect(jsonPath("$.directorIds.length()").value(3))
+        ;
+    }
+
+    @DisplayName("저장할 감독 요청 값이 존재하지 않으면 다건 감독을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorRequestsIsNull() throws Exception {
+        // given
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(null);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독 정보는 필수입니다."))
+        ;
+    }
+
+    @DisplayName("한 번에 31명 이상의 감독를 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorCountExceedsLimit() throws Exception {
+        // given
+        List<AdminDirectorDTO> directors = new ArrayList<>();
+        for (int i = 0; i < 31; i++) {
+            directors.add(new AdminDirectorDTO("castName" + i, "url" + i));
+        }
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(directors);
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독은 최대 30명까지 등록할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("감독의 이름이 없다면 감독을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorNameIsEmtpy() throws Exception {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("", "봉준호.image.com");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO(null, "박찬욱.image.com");
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO(" ", "류승완.image.com");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("감독의 사진 URI가 없다면 감독을 저장할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorImageUriIsEmtpy() throws Exception {
+        // given
+        final AdminDirectorDTO adminDirectorDTO1 = new AdminDirectorDTO("봉준호", "");
+        final AdminDirectorDTO adminDirectorDTO2 = new AdminDirectorDTO("박찬욱", null);
+        final AdminDirectorDTO adminDirectorDTO3 = new AdminDirectorDTO("류승완", " ");
+        AdminDirectorsRegisterRequest request = new AdminDirectorsRegisterRequest(
+                List.of(adminDirectorDTO1, adminDirectorDTO2, adminDirectorDTO3)
+        );
+
+        // when  // then
+        mockMvc.perform(post("/api/admin/directors")
+                        .content(toJson(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독 사진 주소은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름으로 감독을 검색한다.")
+    @Test
+    void getDirectorsByDirectorName() throws Exception {
+        // given
+        final String directorName = "김두루미";
+        Director savedDirector = directorRepository.save(DirectorFixture.director(directorName));
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", savedDirector.getDirectorName())
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item").isArray())
+                .andExpect(jsonPath("$.item[0].directorId").value(savedDirector.getId()))
+                .andExpect(
+                        jsonPath("$.item[0].directorName").value(savedDirector.getDirectorName()))
+                .andExpect(jsonPath("$.nextCursor").isEmpty())
+                .andExpect(jsonPath("$.hasNext").value(Boolean.FALSE))
+        ;
+    }
+
+    @DisplayName("이름 없이 요청 시 감독을 검색할 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorNameIsBlank() throws Exception {
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", "")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("검색할 감독 이름은 필수입니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 감독 검색 인원은 최소 1명이야 한다.")
+    @Test
+    void throwValidExceptionWhenDirectorSizeIsLessThanOne() throws Exception {
+        // given
+        final String size = "0";
+        final String directorName = "봉준호";
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", directorName)
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독은 최소 1명 이상 조회해야 합니다."))
+        ;
+    }
+
+    @DisplayName("이름을 이용한 감독 검색 인원은 최대 20명을 넘을 수 없다.")
+    @Test
+    void throwValidExceptionWhenDirectorSizeExceedsLimit() throws Exception {
+        // given
+        final String size = "21";
+        final String directorName = "봉준호";
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/directors")
+                        .param("name", directorName)
+                        .param("size", size)
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("404"))
+                .andExpect(jsonPath("$.message").value("감독은 최대 20명 조회할 수 있습니다."))
+        ;
+    }
+
+    @DisplayName("배치 작업 결과 목록을 조회할 수 있다.")
+    @Test
+    void getBatchResults() throws Exception {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        jobMetricRepository.saveAll(List.of(metric1, metric2));
+
+        // when // then
+        mockMvc.perform(get("/api/admin/batch/results")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @DisplayName("배치 작업 메트릭을 조회할 수 있다.")
+    @Test
+    void getBatchMetric() throws Exception {
+        // given
+        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
+                BatchJobType.REGISTER, 100);
+        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
+                BatchJobType.UPDATE, 100, 40);
+        jobMetricRepository.saveAll(List.of(metric1, metric2));
+
+        // when // then
+        mockMvc.perform(get("/api/admin/batch/metrics")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalRead").value(
+                        metric1.getTotalRead() + (metric2.getTotalRead())))
+                .andExpect(jsonPath("$.totalWrite").value(
+                        metric1.getTotalWrite() + (metric2.getTotalWrite())))
+                .andExpect(jsonPath("$.totalSkip").value(
+                        metric1.getTotalSkip() + (metric2.getTotalSkip())));
+    }
+
+    @Transactional
+    @DisplayName("콘텐츠 카테고리 별 총 개수 지표를 가져온다.")
+    @Test
+    void getContentCategoryMetric() throws Exception {
+        // given
+        Content content1 = ContentFixture.content("영화1", "영화1");
+        Content content2 = ContentFixture.content("영화2", "영화2");
+        Content content3 = ContentFixture.content("드라마", "드라마");
+        contentRepository.saveAll(List.of(content1, content2, content3));
+
+        Category movie = categoryRepository.findByCategoryType(MOVIE).get();
+        Category drama = categoryRepository.findByCategoryType(DRAMA).get();
+        Category animation = categoryRepository.findByCategoryType(ANIMATION).get();
+        Category variety = categoryRepository.findByCategoryType(VARIETY).get();
+
+        ContentCategory contentCategory1 = ContentCategoryFixture.contentCategory(content1, movie);
+        ContentCategory contentCategory2 = ContentCategoryFixture.contentCategory(content2, movie);
+        ContentCategory contentCategory3 = ContentCategoryFixture.contentCategory(content3, drama);
+
+        contentCategoryRepository.saveAll(
+                List.of(contentCategory1, contentCategory2, contentCategory3)
+        );
+
+        // when  // then
+        mockMvc.perform(get("/api/admin/metrics/categories")
+                        .cookie(accessTokenOfAdmin)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryMetrics").isArray())
+                .andExpect(jsonPath("$.categoryMetrics[0].categoryId").value(movie.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[0].count").value(2))
+                .andExpect(jsonPath("$.categoryMetrics[1].categoryId").value(drama.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[1].count").value(1))
+                .andExpect(jsonPath("$.categoryMetrics[2].categoryId").value(animation.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[2].count").value(0))
+                .andExpect(jsonPath("$.categoryMetrics[3].categoryId").value(variety.getId()))
+                .andExpect(jsonPath("$.categoryMetrics[3].count").value(0))
+        ;
+    }
+
 }

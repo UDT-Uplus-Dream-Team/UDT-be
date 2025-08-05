@@ -1,6 +1,7 @@
 package com.example.udtbe.domain.member.controller;
 
 import com.example.udtbe.domain.content.dto.request.CuratedContentListDeleteRequest;
+import com.example.udtbe.domain.content.service.ContentRecommendationService;
 import com.example.udtbe.domain.content.service.ContentService;
 import com.example.udtbe.domain.member.dto.request.MemberCuratedContentGetsRequest;
 import com.example.udtbe.domain.member.dto.request.MemberUpdateGenreRequest;
@@ -23,6 +24,7 @@ public class MemberController implements MemberControllerApiSpec {
 
     private final MemberService memberService;
     private final ContentService contentService;
+    private final ContentRecommendationService contentRecommendationService;
 
     @Override
     public ResponseEntity<MemberInfoResponse> getMemberInfo(Member member) {
@@ -34,7 +36,6 @@ public class MemberController implements MemberControllerApiSpec {
     public ResponseEntity<CursorPageResponse<MemberCuratedContentGetResponse>> getCuratedContents(
             Member member,
             MemberCuratedContentGetsRequest memberCuratedContentGetsRequest) {
-        // TODO: 3차 MVP 때 엄선된 콘텐츠 필터링 반영
         CursorPageResponse<MemberCuratedContentGetResponse> response
                 = memberService.getCuratedContents(memberCuratedContentGetsRequest, member);
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -63,6 +64,12 @@ public class MemberController implements MemberControllerApiSpec {
     public ResponseEntity<Void> deleteCuratedContents(CuratedContentListDeleteRequest request,
             Member member) {
         contentService.deleteCuratedContents(member.getId(), request.contentIds());
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> clearMyRecommendationCache(Member member) {
+        contentRecommendationService.clearMyRecommendationCache(member);
         return ResponseEntity.ok().build();
     }
 

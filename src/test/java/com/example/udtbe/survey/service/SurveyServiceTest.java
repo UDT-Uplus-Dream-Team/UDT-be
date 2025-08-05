@@ -1,6 +1,7 @@
 package com.example.udtbe.survey.service;
 
 import static com.example.udtbe.domain.member.entity.enums.Role.ROLE_GUEST;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,10 +19,13 @@ import com.example.udtbe.domain.survey.exception.SurveyErrorCode;
 import com.example.udtbe.domain.survey.service.SurveyQuery;
 import com.example.udtbe.domain.survey.service.SurveyService;
 import com.example.udtbe.global.exception.RestApiException;
+import com.example.udtbe.global.security.dto.CustomOauth2User;
 import com.example.udtbe.global.token.cookie.CookieUtil;
+import com.example.udtbe.global.token.service.TokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +47,9 @@ class SurveyServiceTest {
     @Mock
     AuthQuery authQuery;
 
+    @Mock
+    TokenProvider tokenProvider;
+
     @InjectMocks
     SurveyService surveyService;
 
@@ -51,7 +58,9 @@ class SurveyServiceTest {
     void createSurvey() {
         // given
         final String email = "test@naver.com";
+        final String token = "exnofneonon141418befbqub";
         final HttpServletResponse response = new MockHttpServletResponse();
+        final Cookie accessToken = new Cookie("Authorization", token);
 
         Member member = MemberFixture.member(email, ROLE_GUEST);
         List<String> platforms = List.of("넷플릭스", "디즈니+");
@@ -63,7 +72,12 @@ class SurveyServiceTest {
         given(surveyQuery.save(any(Survey.class))).willReturn(null);
         given(authQuery.save(any(Member.class))).willReturn(null);
         willDoNothing().given(cookieUtil).deleteCookie(any(HttpServletResponse.class));
-        given(cookieUtil.createOnboardingCookie()).willReturn(new Cookie("X-New-User", "true"));
+        given(tokenProvider.generateAccessToken(
+                any(Member.class),
+                any(CustomOauth2User.class),
+                any(Date.class))
+        ).willReturn(token);
+        given(cookieUtil.createCookie(token)).willReturn(accessToken);
 
         // when
         surveyService.createSurvey(request, member, response);
@@ -71,7 +85,15 @@ class SurveyServiceTest {
         // then
         assertAll(
                 () -> verify(surveyQuery, times(1)).existsByMember(member),
-                () -> verify(surveyQuery, times(1)).save(any(Survey.class))
+                () -> verify(surveyQuery, times(1)).save(any(Survey.class)),
+                () -> {
+                    MockHttpServletResponse mockResponse = (MockHttpServletResponse) response;
+                    Cookie[] cookies = mockResponse.getCookies();
+                    assertThat(cookies).isNotNull();
+                    assertThat(cookies).hasSize(1);
+                    assertThat(cookies[0].getName()).isEqualTo("Authorization");
+                    assertThat(cookies[0].getValue()).isEqualTo(token);
+                }
         );
     }
 
