@@ -17,10 +17,13 @@ import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -451,6 +454,24 @@ public class AdminService {
 
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
         return adminQuery.getContentCategoryMetric();
+    }
+
+    public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetails(Long jobId) {
+        AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
+
+        return AdminContentMapper.toAdminContentRegJobDetailResponse(job);
+    }
+
+    public AdminContentUpJobGetDetailResponse getBatchUpJobDetails(Long jobId) {
+        AdminContentUpdateJob job = adminQuery.findAdminContentUpdateJobById(jobId);
+
+        return AdminContentMapper.toAdminContentUpdateJobDetailResponse(job);
+    }
+
+    public AdminContentDelJobGetDetailResponse getBatchDelJobDetails(Long jobId) {
+        AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
+
+        return AdminContentMapper.toAdminContentDelJobDetailResponse(job);
     }
 
 }

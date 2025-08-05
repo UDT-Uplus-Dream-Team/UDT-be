@@ -44,9 +44,9 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
     private String errorMessage;
 
-    private Integer retryCount = 0;
+    private int retryCount = 0;
 
-    private Integer skipCount = 0;
+    private int skipCount = 0;
 
     @Builder(access = PRIVATE)
     private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long memberId,
@@ -78,19 +78,11 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     }
 
     public void incrementRetryCount() {
-        this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
-    }
-
-    public void resetRetryCount() {
-        this.retryCount = 0;
+        this.retryCount += 1;
     }
 
     public void incrementSkipCount() {
-        this.skipCount = (this.skipCount == null ? 0 : this.skipCount) + 1;
-    }
-
-    public void resetSkipCount() {
-        this.skipCount = 0;
+        this.skipCount += 1;
     }
 
     private static LocalDateTime getScheduledAt() {

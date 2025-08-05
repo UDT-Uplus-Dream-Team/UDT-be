@@ -5,8 +5,11 @@ import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
@@ -173,6 +176,74 @@ public class AdminContentMapper {
                 adminContentRegisterRequest.rating()
         );
     }
+
+    public static AdminContentRegJobGetDetailResponse toAdminContentRegJobDetailResponse(
+            AdminContentRegisterJob job) {
+        List<AdminCategoryDTO> categoryDTOs = new ArrayList<>(job.getCategories().values());
+        List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
+
+        return new AdminContentRegJobGetDetailResponse(
+                job.getTitle(),
+                job.getDescription(),
+                job.getPosterUrl(),
+                job.getBackdropUrl(),
+                job.getTrailerUrl(),
+                job.getOpenDate(),
+                job.getRunningTime(),
+                job.getEpisode(),
+                job.getRating(),
+                categoryDTOs,
+                job.getCountries(),
+                job.getCasts(),
+                job.getDirectors(),
+                platformDTOs,
+                job.getErrorCode(),
+                job.getErrorMessage(),
+                job.getRetryCount(),
+                job.getSkipCount()
+        );
+    }
+
+    public static AdminContentUpJobGetDetailResponse toAdminContentUpdateJobDetailResponse(
+            AdminContentUpdateJob job) {
+        List<AdminCategoryDTO> categoryDTOs = new ArrayList<>(job.getCategories().values());
+        List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
+
+        return new AdminContentUpJobGetDetailResponse(
+                job.getContentId(),
+                job.getTitle(),
+                job.getDescription(),
+                job.getPosterUrl(),
+                job.getBackdropUrl(),
+                job.getTrailerUrl(),
+                job.getOpenDate(),
+                job.getRunningTime(),
+                job.getEpisode(),
+                job.getRating(),
+                categoryDTOs,
+                job.getCountries(),
+                job.getCasts(),
+                job.getDirectors(),
+                platformDTOs,
+                job.getErrorCode(),
+                job.getErrorMessage(),
+                job.getRetryCount(),
+                job.getSkipCount()
+        );
+    }
+
+    public static AdminContentDelJobGetDetailResponse toAdminContentDelJobDetailResponse(
+            AdminContentDeleteJob job) {
+
+        return new AdminContentDelJobGetDetailResponse(
+                job.getContentId(),
+                job.getErrorCode(),
+                job.getErrorMessage(),
+                job.getRetryCount(),
+                job.getSkipCount()
+        );
+    }
+
     // 배치 관련 끝---
 
     public static List<AdminMemberGenreFeedbackDTO> toGenreFeedbackDtoList(

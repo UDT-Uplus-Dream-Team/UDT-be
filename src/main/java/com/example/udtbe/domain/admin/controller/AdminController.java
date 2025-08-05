@@ -13,10 +13,13 @@ import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -176,6 +179,27 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
+    public ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchRegJobDetails(Long jobId) {
+        AdminContentRegJobGetDetailResponse response = adminService.getBatchRegisterJobDetails(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(Long jobId) {
+        AdminContentUpJobGetDetailResponse response = adminService.getBatchUpJobDetails(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(Long jobId) {
+        AdminContentDelJobGetDetailResponse adminContentDelJobGetDetailResponse = adminService.getBatchDelJobDetails(
+                jobId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(adminContentDelJobGetDetailResponse);
+    }
+
     public ResponseEntity<Void> signin(AdminSinginRequest request, HttpServletResponse response) {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

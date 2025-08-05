@@ -13,10 +13,13 @@ import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -192,6 +195,32 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/metrics/categories")
     ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric();
 
+    @Operation(summary = "배치 등록 작업 상세보기", description = "등록 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "등록 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/registerjob/{jobId}")
+    ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchRegJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
+
+    @Operation(summary = "배치 수정 작업 상세보기", description = "수정 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/updatejob/{jobId}")
+    ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
+
+    @Operation(summary = "삭제 배치 작업 상세보기", description = "삭제 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/deletejob/{jobId}")
+    ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
     @Operation(summary = "어드민 로그인", description = "백오피스에서 관리자 로그인을 한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "백오피스 관리자 로그인 성공"),

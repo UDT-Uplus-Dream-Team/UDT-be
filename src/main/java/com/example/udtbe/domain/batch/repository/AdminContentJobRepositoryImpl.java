@@ -30,7 +30,7 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
             int size,
             BatchFilterType type) {
 
-        Long jobId = Long.MAX_VALUE;
+        long jobId = Long.MAX_VALUE;
         LocalDateTime createdAt = LocalDateTime.now();
         String jobType = BatchJobType.REGISTER.name();
 
@@ -47,21 +47,23 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
 
         String statusCondition = "";
         if (BatchFilterType.FAILED.equals(type)) {
-            statusCondition = "status = 'FAILED' AND";
-        } else if (BatchFilterType.RESERVATION.equals(type)) {
-            statusCondition = "status NOT IN ('FAILED', 'COMPLETED') AND\n";
+            statusCondition = "status = 'FAILED' AND\n";
+        } else if (BatchFilterType.PENDING.equals(type)) {
+            statusCondition = "status = 'PENDING'  AND\n";
+        } else if (BatchFilterType.INVALID.equals(type)) {
+            statusCondition = "status = 'INVALID'  AND\n";
         }
 
         String sql = """
-                SELECT id, status, member_id, created_at, updated_at, finished_at, job_type
+                SELECT id, status, member_id, created_at, scheduled_at, finished_at, job_type
                 FROM (
-                    SELECT admin_content_register_job_id AS id, status, member_id, created_at, updated_at, finished_at, 'REGISTER' AS job_type
+                    SELECT admin_content_register_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'REGISTER' AS job_type
                     FROM admin_content_register_job
                     UNION ALL
-                    SELECT admin_content_update_job_id AS id, status, member_id, created_at, updated_at, finished_at, 'UPDATE' AS job_type
+                    SELECT admin_content_update_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'UPDATE' AS job_type
                     FROM admin_content_update_job
                     UNION ALL
-                    SELECT admin_content_delete_job_id AS id, status, member_id, created_at, updated_at, finished_at, 'DELETE' AS job_type
+                    SELECT admin_content_delete_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'DELETE' AS job_type
                     FROM admin_content_delete_job
                 ) AS jobs
                 WHERE (

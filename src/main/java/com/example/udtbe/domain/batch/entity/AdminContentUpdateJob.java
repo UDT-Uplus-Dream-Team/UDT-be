@@ -92,9 +92,9 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
     private String errorMessage;
 
-    private Integer retryCount = 0;
+    private int retryCount = 0;
 
-    private Integer skipCount = 0;
+    private int skipCount = 0;
 
     @Builder(access = PRIVATE)
     private AdminContentUpdateJob(BatchStatus status, LocalDateTime scheduledAt,
@@ -122,8 +122,6 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.directors = directors;
         this.casts = casts;
         this.countries = countries;
-        this.retryCount = 0;
-        this.skipCount = 0;
     }
 
     public static AdminContentUpdateJob of(BatchStatus status, Long memberId,
@@ -165,20 +163,14 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     }
 
     public void incrementRetryCount() {
-        this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
+        this.retryCount += 1;
     }
 
-    public void resetRetryCount() {
-        this.retryCount = 0;
-    }
 
     public void incrementSkipCount() {
-        this.skipCount = (this.skipCount == null ? 0 : this.skipCount) + 1;
+        this.skipCount += 1;
     }
 
-    public void resetSkipCount() {
-        this.skipCount = 0;
-    }
 
     private static LocalDateTime getScheduledAt() {
         return TimeUtil.getScheduledAt();

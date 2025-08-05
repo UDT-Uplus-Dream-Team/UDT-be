@@ -39,7 +39,11 @@ public enum BatchErrorCode implements ErrorCode {
     SYSTEM_OUT_OF_MEMORY(HttpStatus.INTERNAL_SERVER_ERROR, "시스템 메모리 부족 (재시작 필요)"),
     DISK_SPACE_FULL(HttpStatus.INTERNAL_SERVER_ERROR, "디스크 공간 부족 (재시작 필요)"),
     SYSTEM_SHUTDOWN(HttpStatus.INTERNAL_SERVER_ERROR, "시스템 종료 (재시작 필요)"),
-    CRITICAL_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "심각한 시스템 오류 (재시작 필요)");
+    CRITICAL_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "심각한 시스템 오류 (재시작 필요)"),
+    ADMIN_CONTENT_REGISTER_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "콘텐츠 등록 배치 작업을 찾을 수 없습니다."),
+    ADMIN_CONTENT_UPDATE_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "콘텐츠 수정 배치 작업을 찾을 수 없습니다."),
+    ADMIN_CONTENT_DELETE_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "콘텐츠 삭제 배치 작업을 찾을 수 없습니다."),
+    ;
 
 
     private final HttpStatus httpStatus;
