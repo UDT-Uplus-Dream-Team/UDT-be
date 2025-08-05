@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.admin.service;
 
+import static com.example.udtbe.domain.admin.exception.AdminErrorCode.ADMIN_NOT_FOUND;
+
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
@@ -7,6 +9,8 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
+import com.example.udtbe.domain.admin.repository.AdminRepository;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
@@ -50,6 +54,7 @@ public class AdminQuery {
     private final DirectorRepository directorRepository;
     private final CountryRepository countryRepository;
     private final JobMetricRepository jobMetricRepository;
+    private final AdminRepository adminRepository;
 
 
     public void validContentByContentId(Long contentId) {
@@ -203,6 +208,11 @@ public class AdminQuery {
 
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
         return contentRepository.getContentCategoryMetric();
+    }
+
+    public Admin getAdmin(String email) {
+        return adminRepository.findByEmail(email)
+                .orElseThrow(() -> new RestApiException(ADMIN_NOT_FOUND));
     }
 
 }
