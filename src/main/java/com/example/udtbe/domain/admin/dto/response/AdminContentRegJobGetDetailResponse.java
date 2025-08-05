@@ -7,6 +7,8 @@ import java.util.List;
 
 public record AdminContentRegJobGetDetailResponse(
 
+        Long batchJobMetricId,
+
         String title,
 
         String description,

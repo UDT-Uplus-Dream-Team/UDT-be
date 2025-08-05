@@ -3,6 +3,7 @@ package com.example.udtbe.domain.admin.dto;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.common.BatchJobMetricDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminContentRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
@@ -14,9 +15,13 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.FeedbackStatistics;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +31,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdminContentMapper {
 
-    // 배치 관련 mapper 시작
     public static AdminContentRegisterJob toContentRegisterJob(AdminContentRegisterRequest request,
             Long memberId) {
 
@@ -163,26 +167,13 @@ public class AdminContentMapper {
         return new AdminContentDeleteResponse(jobId);
     }
 
-    public static Content toContentEntity(AdminContentRegisterRequest adminContentRegisterRequest) {
-        return Content.of(
-                adminContentRegisterRequest.title(),
-                adminContentRegisterRequest.description(),
-                adminContentRegisterRequest.posterUrl(),
-                adminContentRegisterRequest.backdropUrl(),
-                adminContentRegisterRequest.trailerUrl(),
-                adminContentRegisterRequest.openDate(),
-                adminContentRegisterRequest.runningTime(),
-                adminContentRegisterRequest.episode(),
-                adminContentRegisterRequest.rating()
-        );
-    }
-
     public static AdminContentRegJobGetDetailResponse toAdminContentRegJobDetailResponse(
             AdminContentRegisterJob job) {
         List<AdminCategoryDTO> categoryDTOs = new ArrayList<>(job.getCategories().values());
         List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
 
         return new AdminContentRegJobGetDetailResponse(
+                job.getBatchJobMetricId(),
                 job.getTitle(),
                 job.getDescription(),
                 job.getPosterUrl(),
@@ -210,6 +201,7 @@ public class AdminContentMapper {
         List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
 
         return new AdminContentUpJobGetDetailResponse(
+                job.getBatchJobMetricId(),
                 job.getContentId(),
                 job.getTitle(),
                 job.getDescription(),
@@ -236,6 +228,7 @@ public class AdminContentMapper {
             AdminContentDeleteJob job) {
 
         return new AdminContentDelJobGetDetailResponse(
+                job.getBatchJobMetricId(),
                 job.getContentId(),
                 job.getErrorCode(),
                 job.getErrorMessage(),
@@ -244,7 +237,38 @@ public class AdminContentMapper {
         );
     }
 
-    // 배치 관련 끝---
+    public static BatchJobMetric initBatchJobMetric(BatchJobType batchJobType) {
+        return BatchJobMetric.of(
+                batchJobType,
+                BatchJobStatus.NOOP,
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+    }
+
+    public static BatchJobMetricDTO toBatchJobMetricDTO(BatchJobMetric metric) {
+        return new BatchJobMetricDTO(
+                metric.getTotalRead(),
+                metric.getTotalComplete(),
+                metric.getTotalInvalid(),
+                metric.getTotalFailed()
+        );
+    }
+
+    public static Content toContentEntity(AdminContentRegisterRequest adminContentRegisterRequest) {
+        return Content.of(
+                adminContentRegisterRequest.title(),
+                adminContentRegisterRequest.description(),
+                adminContentRegisterRequest.posterUrl(),
+                adminContentRegisterRequest.backdropUrl(),
+                adminContentRegisterRequest.trailerUrl(),
+                adminContentRegisterRequest.openDate(),
+                adminContentRegisterRequest.runningTime(),
+                adminContentRegisterRequest.episode(),
+                adminContentRegisterRequest.rating()
+        );
+    }
+
 
     public static List<AdminMemberGenreFeedbackDTO> toGenreFeedbackDtoList(
             List<FeedbackStatistics> stats) {

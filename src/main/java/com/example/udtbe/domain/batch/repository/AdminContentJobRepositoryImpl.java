@@ -1,5 +1,10 @@
 package com.example.udtbe.domain.batch.repository;
 
+import static com.example.udtbe.domain.batch.entity.QAdminContentDeleteJob.adminContentDeleteJob;
+import static com.example.udtbe.domain.batch.entity.QAdminContentRegisterJob.adminContentRegisterJob;
+import static com.example.udtbe.domain.batch.entity.QAdminContentUpdateJob.adminContentUpdateJob;
+
+import com.example.udtbe.domain.admin.dto.common.BatchJobMetricDTO;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
@@ -7,11 +12,16 @@ import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -21,6 +31,8 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 @Slf4j
 public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryCustom {
+
+    private final JPAQueryFactory jpaQueryFactory;
 
     @PersistenceContext
     private final EntityManager em;
@@ -114,4 +126,93 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
 
         return new CursorPageResponse<>(results, nextCursor, results.size() < size + 1);
     }
+
+    @Override
+    public BatchJobMetricDTO getContentRegisterJobMetrics(Long metricId) {
+
+        List<Tuple> counts = jpaQueryFactory
+                .select(adminContentRegisterJob.status, adminContentRegisterJob.id.count())
+                .from(adminContentRegisterJob)
+                .where(adminContentRegisterJob.status.in(
+                        BatchStatus.COMPLETED,
+                        BatchStatus.FAILED,
+                        BatchStatus.INVALID).and(
+                        adminContentRegisterJob.batchJobMetricId.eq(metricId)))
+                .groupBy(adminContentRegisterJob.status)
+                .fetch();
+
+        Map<BatchStatus, Long> countMap = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(adminContentRegisterJob.status),
+                        tuple -> Optional.ofNullable(tuple.get(adminContentRegisterJob.id.count()))
+                                .orElse(0L)
+                ));
+
+        long totalCompleted = countMap.getOrDefault(BatchStatus.COMPLETED, 0L);
+        long totalFailed = countMap.getOrDefault(BatchStatus.FAILED, 0L);
+        long totalInvalid = countMap.getOrDefault(BatchStatus.INVALID, 0L);
+        long totalRead = totalCompleted + totalFailed + totalInvalid;
+
+        return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
+    }
+
+
+    @Override
+    public BatchJobMetricDTO getContentUpdateJobMetrics(Long metricId) {
+
+        List<Tuple> counts = jpaQueryFactory
+                .select(adminContentUpdateJob.status, adminContentUpdateJob.id.count())
+                .from(adminContentUpdateJob)
+                .where(adminContentUpdateJob.status.in(
+                        BatchStatus.COMPLETED,
+                        BatchStatus.FAILED,
+                        BatchStatus.INVALID).and(
+                        adminContentUpdateJob.batchJobMetricId.eq(metricId)))
+                .groupBy(adminContentUpdateJob.status)
+                .fetch();
+
+        Map<BatchStatus, Long> countMap = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(adminContentUpdateJob.status),
+                        tuple -> Optional.ofNullable(tuple.get(adminContentUpdateJob.id.count()))
+                                .orElse(0L)
+                ));
+
+        long totalCompleted = countMap.getOrDefault(BatchStatus.COMPLETED, 0L);
+        long totalFailed = countMap.getOrDefault(BatchStatus.FAILED, 0L);
+        long totalInvalid = countMap.getOrDefault(BatchStatus.INVALID, 0L);
+        long totalRead = totalCompleted + totalFailed + totalInvalid;
+
+        return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
+    }
+
+    @Override
+    public BatchJobMetricDTO getContentDeleteJobMetrics(Long metricId) {
+
+        List<Tuple> counts = jpaQueryFactory
+                .select(adminContentDeleteJob.status, adminContentDeleteJob.id.count())
+                .from(adminContentDeleteJob)
+                .where(adminContentDeleteJob.status.in(
+                        BatchStatus.COMPLETED,
+                        BatchStatus.FAILED,
+                        BatchStatus.INVALID).and(
+                        adminContentDeleteJob.batchJobMetricId.eq(metricId)))
+                .groupBy(adminContentDeleteJob.status)
+                .fetch();
+
+        Map<BatchStatus, Long> countMap = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(adminContentDeleteJob.status),
+                        tuple -> Optional.ofNullable(tuple.get(adminContentDeleteJob.id.count()))
+                                .orElse(0L)
+                ));
+
+        long totalCompleted = countMap.getOrDefault(BatchStatus.COMPLETED, 0L);
+        long totalFailed = countMap.getOrDefault(BatchStatus.FAILED, 0L);
+        long totalInvalid = countMap.getOrDefault(BatchStatus.INVALID, 0L);
+        long totalRead = totalCompleted + totalFailed + totalInvalid;
+
+        return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
+    }
+    
 }

@@ -2,7 +2,9 @@ package com.example.udtbe.domain.admin.dto.response;
 
 public record AdminContentDelJobGetDetailResponse(
 
-        long contentId,
+        Long batchJobMetricId,
+
+        Long contentId,
 
         String errorCode,
 

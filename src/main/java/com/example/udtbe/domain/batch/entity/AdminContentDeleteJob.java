@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(name = "admin_content_delete_job")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminContentDeleteJob extends TimeBaseEntity {
 
@@ -47,6 +49,8 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     private int retryCount = 0;
 
     private int skipCount = 0;
+
+    private Long batchJobMetricId;
 
     @Builder(access = PRIVATE)
     private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long memberId,
@@ -91,6 +95,10 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
     public void finish() {
         finishedAt = LocalDateTime.now();
+    }
+
+    public void setBatchJobMetricId(Long batchJobMetricId) {
+        this.batchJobMetricId = batchJobMetricId;
     }
 }
 
