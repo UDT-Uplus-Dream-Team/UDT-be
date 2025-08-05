@@ -12,10 +12,13 @@ import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -143,7 +146,7 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(adminContentJobGetResponseCursorPageResponse);
     }
-  
+
     @Override
     public ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric() {
         AdminContentCategoryMetricResponse response = adminService.getContentCategoryMetric();
@@ -161,6 +164,28 @@ public class AdminController implements AdminControllerApiSpec {
 
         AdminScheduledContentMetricGetResponse response = adminService.getScheduledMetric();
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchJobs(Long jobId) {
+        AdminContentRegJobGetDetailResponse response = adminService.getBatchRegisterJobDetail(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(Long jobId) {
+        AdminContentUpJobGetDetailResponse response = adminService.getBatchUpJobDetails(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(Long jobId) {
+        AdminContentDelJobGetDetailResponse adminContentDelJobGetDetailResponse = adminService.getBatchDelJobDetails(
+                jobId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(adminContentDelJobGetDetailResponse);
     }
 
 }

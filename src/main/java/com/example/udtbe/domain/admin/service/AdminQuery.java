@@ -7,9 +7,15 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
+import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
+import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
+import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
+import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
@@ -50,6 +56,9 @@ public class AdminQuery {
     private final DirectorRepository directorRepository;
     private final CountryRepository countryRepository;
     private final JobMetricRepository jobMetricRepository;
+    private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
+    private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
+    private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
 
 
     public void validContentByContentId(Long contentId) {
@@ -205,4 +214,21 @@ public class AdminQuery {
         return contentRepository.getContentCategoryMetric();
     }
 
+    public AdminContentRegisterJob findAdminContentRegisterJobById(Long jobId) {
+        return adminContentRegisterJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_REGISTER_JOB_NOT_FOUND)
+        );
+    }
+
+    public AdminContentUpdateJob findAdminContentUpdateJobById(Long jobId) {
+        return adminContentUpdateJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_UPDATE_JOB_NOT_FOUND)
+        );
+    }
+
+    public AdminContentDeleteJob findAdminContentDelJobById(Long jobId) {
+        return adminContentDeleteJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_DELETE_JOB_NOT_FOUND)
+        );
+    }
 }
