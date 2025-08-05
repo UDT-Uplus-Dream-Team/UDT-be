@@ -9,6 +9,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
@@ -24,11 +25,13 @@ import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
+import com.example.udtbe.domain.admin.service.AdminAuthService;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,6 +45,7 @@ public class AdminController implements AdminControllerApiSpec {
     private final AdminService adminService;
     private final AdminScheduler adminScheduler;
     private final FeedbackFullScanScheduler feedbackFullScanScheduler;
+    private final AdminAuthService adminAuthService;
 
     @Override
     public ResponseEntity<AdminContentRegisterResponse> registerContent(Member memeber,
@@ -171,4 +175,9 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Override
+    public ResponseEntity<Void> signin(AdminSinginRequest request, HttpServletResponse response) {
+        adminAuthService.signin(request, response);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

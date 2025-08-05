@@ -9,6 +9,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
@@ -30,6 +31,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -183,12 +185,19 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/batch/metrics")
     ResponseEntity<AdminScheduledContentMetricGetResponse> getBatchMetric();
 
-
     @Operation(summary = "콘텐츠 카테고리 지표 조회", description = "콘텐츠 카테고리 별 비율 정보를 가져온다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "콘텐츠 카테고리 별 비율 정보"),
     })
     @GetMapping("/api/admin/metrics/categories")
     ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric();
+
+    @Operation(summary = "어드민 로그인", description = "백오피스에서 관리자 로그인을 한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "백오피스 관리자 로그인 성공"),
+    })
+    @PostMapping("/api/admin/signin")
+    ResponseEntity<Void> signin(@RequestBody @Valid AdminSinginRequest request,
+            HttpServletResponse response);
 
 }

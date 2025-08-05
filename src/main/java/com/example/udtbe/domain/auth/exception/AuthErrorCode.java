@@ -14,7 +14,7 @@ public enum AuthErrorCode implements ErrorCode {
     FAIL_REISSUE_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "토큰 재발급에 실패했습니다."),
     MISSING_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "AT가 존재하지 않습니다."),
     DUPLICATED_EMAIL(HttpStatus.BAD_REQUEST, "중복된 이메일입니다."),
-    ;
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
