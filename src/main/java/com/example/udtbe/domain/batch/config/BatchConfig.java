@@ -53,7 +53,7 @@ public class BatchConfig {
     public static final String UPDATE_STEP = "contentUpdateStep";
     public static final String DELETE_STEP = "contentDeleteStep";
     public static final String FEEDBACK_STEP = "feedbackStep";
-    private static final int CHUNK_SIZE = 5;
+    private static final int CHUNK_SIZE = 100;
     private static final int RETRY_LIMIT = 3;
     private static final int SKIP_LIMIT = 200;
 
