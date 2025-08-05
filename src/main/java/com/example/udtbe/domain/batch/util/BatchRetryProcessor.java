@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,7 +43,7 @@ public class BatchRetryProcessor {
                 saveItem.accept(item);
                 stepStatsListener.incrementSkip();
                 return false;
-            } catch (IllegalArgumentException e) {
+            } catch (TransientDataAccessException e) {
                 if (attempt == 1) {
                     setItemStatus(item, BatchStatus.RETRYING, "RETRY_ERROR", e.getMessage());
                 }
