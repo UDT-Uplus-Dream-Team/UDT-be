@@ -97,7 +97,6 @@ public interface AdminControllerApiSpec {
             @PathVariable(name = "contentId") Long contentId
     );
 
-
     @Operation(summary = "유저 목록 조회", description = "유저 목록 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저 목록 및 유저별 피드백 합계 정보 반환")
     @GetMapping("/api/admin/users")
@@ -105,6 +104,12 @@ public interface AdminControllerApiSpec {
             @ModelAttribute @Valid AdminMemberListGetRequest adminMemberListGetRequest
     );
 
+    @Operation(summary = "Feedback 통계 전체 동기화", description = "풀 스캔으로 전체 Feedback 통계를 동기화 요청합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "풀 스캔 동기화 요청이 정상 접수되었습니다.")
+    })
+    @PostMapping("/api/admin/feedback/full-scan")
+    ResponseEntity<Void> triggerFullScan();
 
     @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
@@ -194,4 +199,5 @@ public interface AdminControllerApiSpec {
     @PostMapping("/api/admin/signin")
     ResponseEntity<Void> signin(@RequestBody @Valid AdminSinginRequest request,
             HttpServletResponse response);
+
 }

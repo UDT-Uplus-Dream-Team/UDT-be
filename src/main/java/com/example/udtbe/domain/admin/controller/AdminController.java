@@ -28,6 +28,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultRe
 import com.example.udtbe.domain.admin.service.AdminAuthService;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
+import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,6 +44,7 @@ public class AdminController implements AdminControllerApiSpec {
 
     private final AdminService adminService;
     private final AdminScheduler adminScheduler;
+    private final FeedbackFullScanScheduler feedbackFullScanScheduler;
     private final AdminAuthService adminAuthService;
 
     @Override
@@ -93,6 +95,12 @@ public class AdminController implements AdminControllerApiSpec {
         CursorPageResponse<AdminMembersGetResponse> adminMemberListGetResponse = adminService.getMembers(
                 adminMemberListGetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(adminMemberListGetResponse);
+    }
+
+    @Override
+    public ResponseEntity<Void> triggerFullScan() {
+        feedbackFullScanScheduler.scheduleFullScan();
+        return ResponseEntity.ok().build();
     }
 
     @Override
