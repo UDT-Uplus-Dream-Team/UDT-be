@@ -10,12 +10,15 @@ import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.lisener.BatchSkipListener;
 import com.example.udtbe.domain.batch.lisener.StepStatsListener;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
+import com.example.udtbe.global.exception.RestApiException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -35,11 +38,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.StringUtils;
 
 @Configuration
 @EnableConfigurationProperties(BatchProperties.class)
+@Slf4j
 @RequiredArgsConstructor
 public class BatchConfig {
 
@@ -48,8 +53,9 @@ public class BatchConfig {
     public static final String UPDATE_STEP = "contentUpdateStep";
     public static final String DELETE_STEP = "contentDeleteStep";
     public static final String FEEDBACK_STEP = "feedbackStep";
-    private static final int CHUNK_SIZE = 5;
+    private static final int CHUNK_SIZE = 100;
     private static final int RETRY_LIMIT = 3;
+    private static final int SKIP_LIMIT = 200;
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -59,7 +65,7 @@ public class BatchConfig {
     private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
     private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
     private final StepStatsListener stepStatsListener;
-
+    private final BatchSkipListener batchSkipListener;
 
     @Bean
     @ConditionalOnMissingBean
@@ -75,7 +81,6 @@ public class BatchConfig {
         }
         return runner;
     }
-
 
     @Bean
     public Job contentBatchJob() {
@@ -94,11 +99,14 @@ public class BatchConfig {
                         transactionManager)
                 .reader(contentRegisterReader())
                 .processor(contentRegisterProcessor())
-                .faultTolerant()
-                .retryLimit(RETRY_LIMIT)
-                .retry(Exception.class)
                 .writer(contentRegisterWriter())
+                .faultTolerant()
+                .skip(RestApiException.class)
+                .skipLimit(SKIP_LIMIT)
+                .retry(TransientDataAccessException.class)
+                .retryLimit(RETRY_LIMIT)
                 .listener(stepStatsListener)
+                .listener(batchSkipListener)
                 .build();
     }
 
@@ -106,15 +114,17 @@ public class BatchConfig {
     @JobScope
     public Step contentUpdateStep() {
         return new StepBuilder(UPDATE_STEP, jobRepository)
-                .<AdminContentUpdateJob, AdminContentUpdateJob>chunk(CHUNK_SIZE,
-                        transactionManager)
+                .<AdminContentUpdateJob, AdminContentUpdateJob>chunk(CHUNK_SIZE, transactionManager)
                 .reader(contentUpdateReader())
                 .processor(contentUpdateProcessor())
                 .writer(contentUpdateWriter())
                 .faultTolerant()
+                .skip(RestApiException.class)
+                .skipLimit(SKIP_LIMIT)
+                .retry(TransientDataAccessException.class)
                 .retryLimit(RETRY_LIMIT)
-                .retry(Exception.class)
                 .listener(stepStatsListener)
+                .listener(batchSkipListener)
                 .build();
     }
 
@@ -122,90 +132,89 @@ public class BatchConfig {
     @JobScope
     public Step contentDeleteStep() {
         return new StepBuilder(DELETE_STEP, jobRepository)
-                .<AdminContentDeleteJob, AdminContentDeleteJob>chunk(CHUNK_SIZE,
-                        transactionManager)
+                .<AdminContentDeleteJob, AdminContentDeleteJob>chunk(CHUNK_SIZE, transactionManager)
                 .reader(contentDeleteReader())
                 .processor(contentDeleteProcessor())
                 .writer(contentDeleteWriter())
                 .faultTolerant()
+                .skip(RestApiException.class)
+                .skipLimit(SKIP_LIMIT)
+                .retry(TransientDataAccessException.class)
                 .retryLimit(RETRY_LIMIT)
-                .retry(Exception.class)
                 .listener(stepStatsListener)
+                .listener(batchSkipListener)
                 .build();
     }
 
     @Bean
     @StepScope
     public ListItemReader<AdminContentRegisterJob> contentRegisterReader() {
-        List<AdminContentRegisterJob> pendingJobs = adminContentRegisterJobRepository.findByStatus(
-                BatchStatus.PENDING);
+        List<AdminContentRegisterJob> pendingJobs = adminContentRegisterJobRepository.findByStatusIn(
+                List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING));
         return new ListItemReader<>(pendingJobs);
     }
 
     @Bean
     @StepScope
     public ListItemReader<AdminContentUpdateJob> contentUpdateReader() {
-        List<AdminContentUpdateJob> pendingJobs = adminContentUpdateJobRepository.findByStatus(
-                BatchStatus.PENDING);
+        List<AdminContentUpdateJob> pendingJobs = adminContentUpdateJobRepository.findByStatusIn(
+                List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING));
         return new ListItemReader<>(pendingJobs);
     }
 
     @Bean
     @StepScope
     public ListItemReader<AdminContentDeleteJob> contentDeleteReader() {
-        List<AdminContentDeleteJob> pendingJobs = adminContentDeleteJobRepository.findByStatus(
-                BatchStatus.PENDING);
+        List<AdminContentDeleteJob> pendingJobs = adminContentDeleteJobRepository.findByStatusIn(
+                List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING));
         return new ListItemReader<>(pendingJobs);
     }
 
     @Bean
     @StepScope
     public ItemProcessor<AdminContentRegisterJob, AdminContentRegisterJob> contentRegisterProcessor() {
-        return request -> {
-            request.changeStatus(BatchStatus.PROCESSING);
-            return request;
-        };
+        return item -> item;
     }
 
     @Bean
     @StepScope
     public ItemProcessor<AdminContentUpdateJob, AdminContentUpdateJob> contentUpdateProcessor() {
-        return request -> {
-            request.changeStatus(BatchStatus.PROCESSING);
-            return request;
-        };
+        return item -> item;
     }
 
     @Bean
     @StepScope
     public ItemProcessor<AdminContentDeleteJob, AdminContentDeleteJob> contentDeleteProcessor() {
-        return request -> {
-            request.changeStatus(BatchStatus.PROCESSING);
-            return request;
-        };
+        return item -> item;
     }
 
     @Bean
     @StepScope
     public ItemWriter<AdminContentRegisterJob> contentRegisterWriter() {
         return items -> {
-            items.forEach(item -> {
-
+            for (AdminContentRegisterJob item : items) {
                 try {
+                    item.changeStatus(BatchStatus.PROCESSING);
+                    adminContentRegisterJobRepository.save(item);
+
                     AdminContentRegisterRequest request = AdminContentMapper.toContentRegisterRequest(
                             item);
                     adminQuery.validRegisterAndUpdateContent(request.categories(),
-                            request.platforms(), request.casts(), request.directors());
+                            request.platforms(),
+                            request.casts(), request.directors());
                     adminService.registerContent(request);
+
                     item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentRegisterJobRepository.save(item);
                 } catch (Exception e) {
                     item.changeStatus(BatchStatus.FAILED);
-                    item.finish();
+                    item.setError("REGISTER_ERROR", e.getMessage());
+                    item.incrementRetryCount();
                     adminContentRegisterJobRepository.save(item);
+                    throw e;
                 }
-            });
+            }
         };
     }
 
@@ -213,23 +222,30 @@ public class BatchConfig {
     @StepScope
     public ItemWriter<AdminContentUpdateJob> contentUpdateWriter() {
         return items -> {
-            items.forEach(item -> {
+            for (AdminContentUpdateJob item : items) {
                 try {
+                    item.changeStatus(BatchStatus.PROCESSING);
+                    adminContentUpdateJobRepository.save(item);
+
                     AdminContentUpdateRequest request = AdminContentMapper.toContentUpdateRequest(
                             item);
                     adminQuery.validContentByContentId(item.getContentId());
                     adminQuery.validRegisterAndUpdateContent(request.categories(),
-                            request.platforms(), request.casts(), request.directors());
+                            request.platforms(),
+                            request.casts(), request.directors());
                     adminService.updateContent(item.getContentId(), request);
+
                     item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentUpdateJobRepository.save(item);
                 } catch (Exception e) {
                     item.changeStatus(BatchStatus.FAILED);
-                    item.finish();
+                    item.setError("UPDATE_ERROR", e.getMessage());
+                    item.incrementRetryCount();
                     adminContentUpdateJobRepository.save(item);
+                    throw e;
                 }
-            });
+            }
         };
     }
 
@@ -237,20 +253,25 @@ public class BatchConfig {
     @StepScope
     public ItemWriter<AdminContentDeleteJob> contentDeleteWriter() {
         return items -> {
-            items.forEach(item -> {
+            for (AdminContentDeleteJob item : items) {
                 try {
+                    item.changeStatus(BatchStatus.PROCESSING);
+                    adminContentDeleteJobRepository.save(item);
+
                     adminQuery.validContentByContentId(item.getContentId());
                     adminService.deleteContent(item.getContentId());
+
                     item.changeStatus(BatchStatus.COMPLETED);
                     item.finish();
                     adminContentDeleteJobRepository.save(item);
                 } catch (Exception e) {
                     item.changeStatus(BatchStatus.FAILED);
-                    item.finish();
+                    item.setError("DELETE_ERROR", e.getMessage());
+                    item.incrementRetryCount();
                     adminContentDeleteJobRepository.save(item);
+                    throw e;
                 }
-            });
+            }
         };
     }
 }
-
