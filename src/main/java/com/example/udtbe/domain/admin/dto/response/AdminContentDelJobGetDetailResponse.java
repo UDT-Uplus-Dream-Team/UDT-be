@@ -2,7 +2,15 @@ package com.example.udtbe.domain.admin.dto.response;
 
 public record AdminContentDelJobGetDetailResponse(
 
-        long contentId
+        long contentId,
+
+        String errorCode,
+
+        String errorMessage,
+
+        int retryCount,
+
+        int skipCount
 
 ) {
 

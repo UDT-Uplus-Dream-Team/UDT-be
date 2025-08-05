@@ -196,7 +196,11 @@ public class AdminContentMapper {
                 job.getCountries(),
                 job.getCasts(),
                 job.getDirectors(),
-                platformDTOs
+                platformDTOs,
+                job.getErrorCode(),
+                job.getErrorMessage(),
+                job.getRetryCount(),
+                job.getSkipCount()
         );
     }
 
@@ -220,14 +224,24 @@ public class AdminContentMapper {
                 job.getCountries(),
                 job.getCasts(),
                 job.getDirectors(),
-                platformDTOs
+                platformDTOs,
+                job.getErrorCode(),
+                job.getErrorMessage(),
+                job.getRetryCount(),
+                job.getSkipCount()
         );
     }
 
     public static AdminContentDelJobGetDetailResponse toAdminContentDelJobDetailResponse(
             AdminContentDeleteJob job) {
 
-        return new AdminContentDelJobGetDetailResponse(job.getContentId());
+        return new AdminContentDelJobGetDetailResponse(
+                job.getContentId(),
+                job.getErrorCode(),
+                job.getErrorMessage(),
+                job.getRetryCount(),
+                job.getSkipCount()
+        );
     }
 
     // 배치 관련 끝---

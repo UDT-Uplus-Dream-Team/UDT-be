@@ -35,7 +35,15 @@ public record AdminContentUpJobGetDetailResponse(
 
         List<Long> casts,
 
-        List<AdminPlatformDTO> platforms
+        List<AdminPlatformDTO> platforms,
+
+        String errorCode,
+
+        String errorMessage,
+
+        int retryCount,
+
+        int skipCount
 ) {
 
 }
