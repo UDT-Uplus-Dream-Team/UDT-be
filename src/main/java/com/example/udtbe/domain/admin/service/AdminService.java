@@ -30,9 +30,9 @@ import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentGetResultResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
@@ -81,6 +81,7 @@ import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.exception.code.EnumErrorCode;
 import com.example.udtbe.global.log.annotation.LogReturn;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -449,6 +450,13 @@ public class AdminService {
             return;
         }
 
+        if (metricJob.getTotalRead() != dto.totalRead()
+                || metricJob.getTotalFailed() != dto.totalFailed()
+                || metricJob.getTotalInvalid() != dto.totalInvalid()
+                || metricJob.getTotalComplete() != metricJob.getTotalComplete()) {
+            metricJob.updateEndTime(LocalDateTime.now());
+        }
+
         if (dto.totalRead() == dto.totalCompleted()) {
             status = BatchJobStatus.COMPLETED;
         } else if (dto.totalRead() == dto.totalFailed() || dto.totalRead() == dto.totalInvalid()) {
@@ -474,7 +482,7 @@ public class AdminService {
     }
 
     @Transactional
-    public List<AdminScheduledContentResultResponse> getsScheduledResults() {
+    public CursorPageResponse<AdminScheduledContentGetResultResponse> getsScheduledResults() {
         //todo
         return null;
     }

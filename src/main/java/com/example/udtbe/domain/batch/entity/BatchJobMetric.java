@@ -77,4 +77,8 @@ public class BatchJobMetric extends TimeBaseEntity {
         this.endTime = endTime;
     }
 
+    public void updateEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
 }
