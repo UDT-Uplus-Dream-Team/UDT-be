@@ -103,7 +103,6 @@ public interface AdminControllerApiSpec {
             @ModelAttribute @Valid AdminMemberListGetRequest adminMemberListGetRequest
     );
 
-
     @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
     @GetMapping("/api/admin/users/{userId}/metrics")
@@ -185,5 +184,5 @@ public interface AdminControllerApiSpec {
     })
     @GetMapping("/api/admin/metrics/categories")
     ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric();
-  
+
 }
