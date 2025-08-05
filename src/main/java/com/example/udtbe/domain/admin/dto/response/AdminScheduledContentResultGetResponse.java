@@ -4,7 +4,7 @@ import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import java.time.LocalDateTime;
 
-public record AdminScheduledContentGetResultResponse(
+public record AdminScheduledContentResultGetResponse(
 
         Long resultId,
         BatchJobType type,

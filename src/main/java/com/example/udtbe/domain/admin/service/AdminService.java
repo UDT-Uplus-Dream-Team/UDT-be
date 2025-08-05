@@ -14,6 +14,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
@@ -30,9 +31,9 @@ import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentGetResultResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
@@ -482,15 +483,15 @@ public class AdminService {
     }
 
     @Transactional
-    public CursorPageResponse<AdminScheduledContentGetResultResponse> getsScheduledResults() {
-        //todo
-        return null;
+    public CursorPageResponse<AdminScheduledContentResultGetResponse> getsScheduledResults(
+            AdminScheduledContentResultGetsRequest request) {
+        return adminContentJobRepositoryImpl.getScheduledContentResults(request.cursor(),
+                request.size());
     }
 
     @Transactional
     public AdminScheduledContentMetricGetResponse getScheduledMetric() {
-        //todo
-        return null;
+        return adminContentJobRepositoryImpl.getScheduledContentMetrics();
     }
 
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {

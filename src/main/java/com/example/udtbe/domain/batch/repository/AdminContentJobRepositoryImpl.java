@@ -3,9 +3,14 @@ package com.example.udtbe.domain.batch.repository;
 import static com.example.udtbe.domain.batch.entity.QAdminContentDeleteJob.adminContentDeleteJob;
 import static com.example.udtbe.domain.batch.entity.QAdminContentRegisterJob.adminContentRegisterJob;
 import static com.example.udtbe.domain.batch.entity.QAdminContentUpdateJob.adminContentUpdateJob;
+import static com.example.udtbe.domain.batch.entity.QBatchJobMetric.batchJobMetric;
 
+import com.example.udtbe.domain.admin.dto.AdminContentMapper;
 import com.example.udtbe.domain.admin.dto.common.BatchJobMetricDTO;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
@@ -16,10 +21,12 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -214,5 +221,71 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
 
         return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
     }
-    
+
+    @Override
+    public AdminScheduledContentMetricGetResponse getScheduledContentMetrics() {
+
+        Tuple result = jpaQueryFactory
+                .select(
+                        batchJobMetric.totalRead.sumBigInteger().coalesce(BigInteger.ZERO),
+                        batchJobMetric.totalComplete.sumBigInteger().coalesce(BigInteger.ZERO),
+                        batchJobMetric.totalInvalid.sumBigInteger().coalesce(BigInteger.ZERO),
+                        batchJobMetric.totalFailed.sumBigInteger().coalesce(BigInteger.ZERO)
+                )
+                .from(batchJobMetric)
+                .fetchOne();
+
+        long totalRead = Objects.requireNonNull(result.get(0, BigInteger.class)).longValue();
+        long totalComplete = Objects.requireNonNull(result.get(1, BigInteger.class)).longValue();
+        long totalInvalid = Objects.requireNonNull(result.get(2, BigInteger.class)).longValue();
+        long totalFailed = Objects.requireNonNull(result.get(3, BigInteger.class)).longValue();
+
+        return new AdminScheduledContentMetricGetResponse(
+                totalRead,
+                totalComplete,
+                totalInvalid,
+                totalFailed
+        );
+    }
+
+    @Override
+    public CursorPageResponse<AdminScheduledContentResultGetResponse> getScheduledContentResults(
+            String cursor, int size) {
+
+        Long cursorId;
+        if (!StringUtils.hasText(cursor)) {
+            cursorId = null;
+        } else {
+            try {
+                cursorId = Long.parseLong(cursor);
+            } catch (NumberFormatException e) {
+                throw new RestApiException(BatchErrorCode.CURSOR_BAD_REQUEST);
+            }
+        }
+
+        List<BatchJobMetric> results = jpaQueryFactory
+                .selectFrom(batchJobMetric)
+                .where(cursorId != null ? batchJobMetric.id.lt(cursorId) : null)
+                .orderBy(batchJobMetric.id.desc())
+                .limit(size + 1)
+                .fetch();
+
+        boolean hasNext = results.size() > size;
+        if (hasNext) {
+            results = results.subList(0, size);
+        }
+
+        List<AdminScheduledContentResultGetResponse> responses = results.stream()
+                .map(AdminContentMapper::toAdminScheduledContentResultGetResponse
+                )
+                .toList();
+
+        String nextCursor = hasNext && !results.isEmpty()
+                ? results.get(results.size() - 1).getId().toString()
+                : null;
+
+        return new CursorPageResponse<>(responses, nextCursor, hasNext);
+    }
+
+
 }
