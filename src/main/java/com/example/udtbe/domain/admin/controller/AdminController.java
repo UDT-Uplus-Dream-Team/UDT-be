@@ -26,6 +26,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
+import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import java.util.List;
@@ -40,6 +41,7 @@ public class AdminController implements AdminControllerApiSpec {
 
     private final AdminService adminService;
     private final AdminScheduler adminScheduler;
+    private final FeedbackFullScanScheduler feedbackFullScanScheduler;
 
     @Override
     public ResponseEntity<AdminContentRegisterResponse> registerContent(Member memeber,
@@ -89,6 +91,12 @@ public class AdminController implements AdminControllerApiSpec {
         CursorPageResponse<AdminMembersGetResponse> adminMemberListGetResponse = adminService.getMembers(
                 adminMemberListGetRequest);
         return ResponseEntity.status(HttpStatus.OK).body(adminMemberListGetResponse);
+    }
+
+    @Override
+    public ResponseEntity<Void> triggerFullScan() {
+        feedbackFullScanScheduler.scheduleFullScan();
+        return ResponseEntity.ok().build();
     }
 
     @Override
@@ -143,7 +151,7 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(adminContentJobGetResponseCursorPageResponse);
     }
-  
+
     @Override
     public ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric() {
         AdminContentCategoryMetricResponse response = adminService.getContentCategoryMetric();
