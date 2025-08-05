@@ -206,4 +206,10 @@ public class AdminController implements AdminControllerApiSpec {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @Override
+    public ResponseEntity<Void> cancelBatchJob(String jobType, Long jobId) {
+        adminService.cancelBatchJob(jobId, jobType);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

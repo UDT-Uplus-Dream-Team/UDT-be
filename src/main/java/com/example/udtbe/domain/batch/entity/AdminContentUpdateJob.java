@@ -188,4 +188,8 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.batchJobMetricId = batchJobMetricId;
     }
 
+    public void setStatus(BatchStatus status) {
+        this.status = status;
+    }
+
 }

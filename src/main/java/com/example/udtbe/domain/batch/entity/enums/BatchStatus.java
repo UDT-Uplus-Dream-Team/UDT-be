@@ -5,7 +5,7 @@ import com.example.udtbe.global.exception.code.EnumErrorCode;
 import java.util.Arrays;
 
 public enum BatchStatus {
-    PENDING, PROCESSING, COMPLETED, FAILED, INVALID, RETRYING;
+    PENDING, PROCESSING, COMPLETED, FAILED, INVALID, RETRYING, CANCELLED;
 
     public static BatchStatus from(String value) {
         return Arrays.stream(values())

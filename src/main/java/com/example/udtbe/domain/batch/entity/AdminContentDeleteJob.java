@@ -100,5 +100,9 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     public void setBatchJobMetricId(Long batchJobMetricId) {
         this.batchJobMetricId = batchJobMetricId;
     }
+
+    public void setStatus(BatchStatus status) {
+        this.status = status;
+    }
 }
 

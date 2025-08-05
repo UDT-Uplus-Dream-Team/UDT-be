@@ -39,11 +39,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "관리자 API", description = "관리자 관련 API")
 public interface AdminControllerApiSpec {
@@ -230,5 +232,13 @@ public interface AdminControllerApiSpec {
     @PostMapping("/api/admin/signin")
     ResponseEntity<Void> signin(@RequestBody @Valid AdminSinginRequest request,
             HttpServletResponse response);
+
+    @Operation(summary = "배치 작업 대기열에서 취소", description = "배치 작업을 취소합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "배치 작업을 대기열에서 취소")
+    })
+    @DeleteMapping("/api/admin/batch/contents/cancel/{jobId}")
+    ResponseEntity<Void> cancelBatchJob(@RequestParam(name = "jobType") String jobType,
+            @PathVariable(name = "jobId") Long jobId);
 
 }

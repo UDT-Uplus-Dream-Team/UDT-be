@@ -41,6 +41,7 @@ import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
@@ -514,6 +515,34 @@ public class AdminService {
         AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
 
         return AdminContentMapper.toAdminContentDelJobDetailResponse(job);
+    }
+
+    @Transactional
+    public void cancelBatchJob(Long jobId, String jobType) {
+        BatchJobType batchJobType = BatchJobType.from(jobType);
+
+        if (BatchJobType.REGISTER.equals(batchJobType)) {
+            AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
+            if (job.getStatus().equals(BatchStatus.PENDING) || job.getStatus()
+                    .equals(BatchStatus.FAILED)) {
+                job.setStatus(BatchStatus.CANCELLED);
+            }
+        } else if (BatchJobType.UPDATE.equals(batchJobType)) {
+            AdminContentUpdateJob job = adminQuery.findAdminContentUpdateJobById(jobId);
+            if (job.getStatus().equals(BatchStatus.PENDING) || job.getStatus()
+                    .equals(BatchStatus.FAILED)) {
+                job.setStatus(BatchStatus.CANCELLED);
+            }
+            job.setStatus(BatchStatus.CANCELLED);
+        } else if (BatchJobType.DELETE.equals(batchJobType)) {
+            AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
+            if (job.getStatus().equals(BatchStatus.PENDING) || job.getStatus()
+                    .equals(BatchStatus.FAILED)) {
+                job.setStatus(BatchStatus.CANCELLED);
+            }
+            job.setStatus(BatchStatus.CANCELLED);
+        }
+
     }
 
 }
