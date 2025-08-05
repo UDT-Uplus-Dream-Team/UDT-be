@@ -11,7 +11,6 @@ import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.listener.BatchSkipListener;
-import com.example.udtbe.domain.batch.listener.JobCompletionListener;
 import com.example.udtbe.domain.batch.listener.StepStatsListener;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
@@ -67,7 +66,6 @@ public class BatchConfig {
     private final StepStatsListener stepStatsListener;
     private final BatchSkipListener batchSkipListener;
     private final BatchRetryProcessor batchRetryProcessor;
-    private final JobCompletionListener jobCompletionListener;
 
     @Bean
     @ConditionalOnMissingBean
