@@ -30,7 +30,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGe
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
-import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -58,7 +58,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/registerjob")
     ResponseEntity<AdminContentRegisterResponse> registerContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @Valid @RequestBody AdminContentRegisterRequest adminContentRegisterRequest
     );
 
@@ -70,7 +70,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/updatejob/{contentId}")
     ResponseEntity<AdminContentUpdateResponse> updateContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @PathVariable(name = "contentId") Long contentId,
             @Valid @RequestBody AdminContentUpdateRequest adminContentUpdateRequest
     );
@@ -82,7 +82,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/deletejob/{contentId}")
     ResponseEntity<AdminContentDeleteResponse> deleteContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @PathVariable(name = "contentId") Long contentId
     );
 

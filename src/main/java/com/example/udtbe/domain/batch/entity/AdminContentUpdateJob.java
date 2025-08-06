@@ -47,7 +47,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
     private LocalDateTime finishedAt;
 
-    private Long memberId;
+    private Long adminId;
 
     private Long contentId;
 
@@ -102,7 +102,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
     @Builder(access = PRIVATE)
     private AdminContentUpdateJob(BatchStatus status, LocalDateTime scheduledAt,
-            Long memberId,
+            Long adminId,
             Long contentId, String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
@@ -110,7 +110,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
         this.status = status;
         this.scheduledAt = scheduledAt;
-        this.memberId = memberId;
+        this.adminId = adminId;
         this.contentId = contentId;
         this.title = title;
         this.description = description;
@@ -128,7 +128,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentUpdateJob of(BatchStatus status, Long memberId,
+    public static AdminContentUpdateJob of(BatchStatus status, Long adminId,
             Long contentId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
@@ -138,7 +138,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         return AdminContentUpdateJob.builder()
                 .status(status)
                 .scheduledAt(getScheduledAt())
-                .memberId(memberId)
+                .adminId(adminId)
                 .contentId(contentId)
                 .title(title)
                 .description(description)

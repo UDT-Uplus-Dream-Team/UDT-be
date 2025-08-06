@@ -47,7 +47,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
     private LocalDateTime finishedAt;
 
-    private Long memberId;
+    private Long adminId;
 
     private String title;
 
@@ -99,7 +99,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     private Long batchJobMetricId;
 
     @Builder(access = PRIVATE)
-    private AdminContentRegisterJob(BatchStatus status, Long memberId,
+    private AdminContentRegisterJob(BatchStatus status, Long adminId,
             LocalDateTime scheduledAt,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl,
@@ -109,7 +109,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
         this.status = status;
         this.scheduledAt = scheduledAt;
-        this.memberId = memberId;
+        this.adminId = adminId;
         this.title = title;
         this.description = description;
         this.posterUrl = posterUrl;
@@ -126,7 +126,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentRegisterJob of(BatchStatus batchStepStatus, Long memberId,
+    public static AdminContentRegisterJob of(BatchStatus batchStepStatus, Long adminId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
@@ -134,7 +134,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         return AdminContentRegisterJob.builder()
                 .status(batchStepStatus)
                 .scheduledAt(getScheduledAt())
-                .memberId(memberId)
+                .adminId(adminId)
                 .title(title)
                 .description(description)
                 .posterUrl(posterUrl)
