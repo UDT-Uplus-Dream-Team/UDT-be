@@ -2,7 +2,7 @@ package com.example.udtbe.domain.admin.service;
 
 import static com.example.udtbe.domain.auth.exception.AuthErrorCode.INVALID_CREDENTIALS;
 
-import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSigninRequest;
 import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.global.exception.RestApiException;
 import com.example.udtbe.global.security.dto.AuthInfo;
@@ -27,7 +27,7 @@ public class AdminAuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void signin(AdminSinginRequest request, HttpServletResponse response) {
+    public void signin(AdminSigninRequest request, HttpServletResponse response) {
         Admin findAdmin = adminQuery.getAdmin(request.email());
 
         if (!passwordEncoder.matches(request.password(), findAdmin.getPassword())) {

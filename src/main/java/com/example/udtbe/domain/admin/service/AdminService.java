@@ -260,7 +260,7 @@ public class AdminService {
             }
         }
 
-        ContentMetadata metadata = adminQuery.findContentMetadateByContentId(contentId);
+        ContentMetadata metadata = adminQuery.findContentMetadataByContentId(contentId);
         List<String> categoryTags = request.categories().stream()
                 .map(AdminCategoryDTO::categoryType)
                 .toList();
@@ -278,7 +278,7 @@ public class AdminService {
         Content content = adminQuery.findAndValidContentByContentId(contentId);
         content.delete(true);
         deleteContentRelation(content);
-        ContentMetadata contentMetadata = adminQuery.findContentMetadateByContentId(contentId);
+        ContentMetadata contentMetadata = adminQuery.findContentMetadataByContentId(contentId);
         contentMetadata.delete(true);
     }
 
@@ -454,8 +454,7 @@ public class AdminService {
 
         if (metricJob.getTotalRead() != dto.totalRead()
                 || metricJob.getTotalFailed() != dto.totalFailed()
-                || metricJob.getTotalInvalid() != dto.totalInvalid()
-                || metricJob.getTotalComplete() != metricJob.getTotalComplete()) {
+                || metricJob.getTotalInvalid() != dto.totalInvalid()) {
             metricJob.updateEndTime(LocalDateTime.now());
         }
 

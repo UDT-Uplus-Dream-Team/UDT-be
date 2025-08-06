@@ -23,7 +23,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         log.warn("비인가 사용자 요청 -> 예외 발생 : {}", authException.getMessage());
 
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 

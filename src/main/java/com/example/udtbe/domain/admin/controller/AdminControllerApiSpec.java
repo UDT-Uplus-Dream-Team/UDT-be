@@ -10,7 +10,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSigninRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
@@ -229,7 +229,7 @@ public interface AdminControllerApiSpec {
             @ApiResponse(responseCode = "204", description = "백오피스 관리자 로그인 성공"),
     })
     @PostMapping("/api/admin/signin")
-    ResponseEntity<Void> signin(@RequestBody @Valid AdminSinginRequest request,
+    ResponseEntity<Void> signin(@RequestBody @Valid AdminSigninRequest request,
             HttpServletResponse response);
 
 
