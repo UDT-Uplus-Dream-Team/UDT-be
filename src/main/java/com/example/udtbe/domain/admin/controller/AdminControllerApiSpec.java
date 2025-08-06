@@ -246,6 +246,12 @@ public interface AdminControllerApiSpec {
             @ApiResponse(responseCode = "200", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계 반환")
     })
     @GetMapping("/api/admin/batch/metrics/reservation")
-    public ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric();
+    ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric();
 
+    @Operation(summary = "배치 작업 실패에 대한 재시도", description = "배치 작업 실패에 대한 재시도를 할 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "배치 작업 재시도")
+    })
+    @PostMapping("/api/admin/batch")
+    ResponseEntity<Void> retryFailedContents();
 }

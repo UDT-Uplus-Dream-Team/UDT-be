@@ -32,6 +32,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGe
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
 import com.example.udtbe.domain.admin.service.AdminAuthService;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.admin.service.AdminTriggerService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
@@ -50,6 +51,7 @@ public class AdminController implements AdminControllerApiSpec {
     private final AdminScheduler adminScheduler;
     private final FeedbackFullScanScheduler feedbackFullScanScheduler;
     private final AdminAuthService adminAuthService;
+    private final AdminTriggerService adminTriggerService;
 
     @Override
     public ResponseEntity<AdminContentRegisterResponse> registerContent(Member memeber,
@@ -220,5 +222,10 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Override
+    public ResponseEntity<Void> retryFailedContents() {
+        adminTriggerService.retryFailedBatch();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 
 }
