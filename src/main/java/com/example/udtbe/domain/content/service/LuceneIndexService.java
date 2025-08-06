@@ -92,13 +92,12 @@ public class LuceneIndexService {
         doc.add(new StringField("contentId", contentId.toString(), Field.Store.YES));
         doc.add(new TextField("title", metadata.getTitle(), Field.Store.YES));
 
-        // List<String> 타입의 태그들을 쉼표로 구분된 문자열로 변환
         String platformTag = metadata.getPlatformTag() != null ?
                 String.join(",", metadata.getPlatformTag()) : "";
         String genreTag = metadata.getGenreTag() != null ?
                 String.join(",", metadata.getGenreTag()) : "";
-        String directorTag = metadata.getDirectorTag() != null ?
-                String.join(",", metadata.getDirectorTag()) : "";
+//        String directorTag = metadata.getDirectorTag() != null ?
+//                String.join(",", metadata.getDirectorTag()) : "";
         String rating = metadata.getRating() != null ? metadata.getRating() : "";
 
         doc.add(new TextField("platformTag", platformTag, Field.Store.YES));

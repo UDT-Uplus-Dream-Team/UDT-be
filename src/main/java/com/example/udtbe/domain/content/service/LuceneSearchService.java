@@ -88,7 +88,6 @@ public class LuceneSearchService {
                     String escapedGenre = QueryParser.escape(feedbackGenre);
                     QueryParser genreParser = new QueryParser("genreTag", analyzer);
                     Query genreQuery = genreParser.parse(escapedGenre);
-                    // 피드백 기반 장르에 더 높은 우선순위 부여
                     mainQueryBuilder.add(genreQuery, BooleanClause.Occur.SHOULD);
                     log.trace("피드백 기반 장르 추가: {}", feedbackGenre);
                 }
@@ -99,7 +98,6 @@ public class LuceneSearchService {
 
     }
 
-    //구독중인 플랫폼의 컨텐츠들, 좋아하는 장르(우선순위)를 기준으로 쿼리를 생성
     private BooleanQuery buildRecommendationQuery(List<Long> platformFilteredContentIds,
             List<String> memberGenres, Analyzer analyzer) throws ParseException {
 
