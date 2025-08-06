@@ -72,16 +72,19 @@ public class BatchRetryProcessor {
         log.info("{}", status.name());
         if (item instanceof AdminContentRegisterJob registerJob) {
             registerJob.changeStatus(status);
+            registerJob.finish();
             if (errorCode != null) {
                 registerJob.setError(errorCode, errorMessage);
             }
         } else if (item instanceof AdminContentUpdateJob updateJob) {
             updateJob.changeStatus(status);
+            updateJob.finish();
             if (errorCode != null) {
                 updateJob.setError(errorCode, errorMessage);
             }
         } else if (item instanceof AdminContentDeleteJob deleteJob) {
             deleteJob.changeStatus(status);
+            deleteJob.finish();
             if (errorCode != null) {
                 deleteJob.setError(errorCode, errorMessage);
             }

@@ -29,6 +29,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
 import com.example.udtbe.domain.admin.service.AdminAuthService;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
@@ -206,10 +207,18 @@ public class AdminController implements AdminControllerApiSpec {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
     @Override
     public ResponseEntity<Void> deleteInvalidBatchJobs() {
         adminService.deleteInvalidBatchJobs();
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @Override
+    public ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric() {
+        AdminScheduledResContentMetricResponse response = adminService.getScheduledResContentMetric();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 
 }
