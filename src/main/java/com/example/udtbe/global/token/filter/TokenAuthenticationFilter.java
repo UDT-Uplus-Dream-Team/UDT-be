@@ -58,6 +58,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (tokenProvider.validateToken(accessToken, new Date())) {
             if (tokenProvider.verifyBlackList(accessToken)) {
                 filterChain.doFilter(request, response);
+                return;
             }
 
             saveAuthentication(accessToken);
