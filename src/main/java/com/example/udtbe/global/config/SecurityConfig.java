@@ -54,6 +54,7 @@ public class SecurityConfig {
                         (auth) -> auth
                                 .requestMatchers("/",
                                         "/api/auth/reissue/token",
+                                        "/api/admin/reissue/token",
                                         "/api/admin/signin").permitAll()
                                 .requestMatchers("/api/survey").hasAnyAuthority(ROLE_GUEST.name())
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(ROLE_ADMIN.name())

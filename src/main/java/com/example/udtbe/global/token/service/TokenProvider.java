@@ -125,6 +125,16 @@ public class TokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
+    public Authentication getAdminAuthentication(String token) {
+        Claims claims = parseToken(token);
+        List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
+
+        String subject = claims.getSubject();
+        Admin principal = authQuery.getAdminById(Long.valueOf(subject));
+
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+
     public boolean validateToken(String token, Date date) {
         if (!StringUtils.hasText(token)) {
             return false;
@@ -173,6 +183,13 @@ public class TokenProvider {
 
         String subject = claims.getSubject();
         return authQuery.getMemberById(Long.valueOf(subject));
+    }
+
+    public Admin getAdminAllowExpired(String token) {
+        Claims claims = parseToken(token);
+
+        String subject = claims.getSubject();
+        return authQuery.getAdminById(Long.valueOf(subject));
     }
 
     public String getMemberId(String token) {

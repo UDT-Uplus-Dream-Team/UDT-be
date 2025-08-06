@@ -1,7 +1,9 @@
 package com.example.udtbe.common.support;
 
 import com.example.udtbe.common.config.TestRedisConfig;
+import com.example.udtbe.common.fixture.AdminFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.auth.service.AuthQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -26,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 public abstract class ApiSupport extends TestContainerSupport {
 
-    protected Member loginAdmin;
+    protected Admin loginAdmin;
     protected Member loginMember;
     protected Member loginTempMember;
     protected Cookie accessTokenOfAdmin;
@@ -59,27 +62,29 @@ public abstract class ApiSupport extends TestContainerSupport {
             return;
         }
 
-        this.loginAdmin = authQuery.save(MemberFixture.member("admin@naver.com", Role.ROLE_ADMIN));
-        this.loginMember = authQuery.save(MemberFixture.member("user@naver.com", Role.ROLE_USER));
-        this.loginTempMember = authQuery.save(
+        this.loginAdmin = authQuery.saveAdmin(
+                AdminFixture.admin(UUID.randomUUID().toString()));
+        this.loginMember = authQuery.saveMember(
+                MemberFixture.member("user@naver.com", Role.ROLE_USER));
+        this.loginTempMember = authQuery.saveMember(
                 MemberFixture.member("tempuser@naver.com", Role.ROLE_GUEST));
 
-        AuthInfo authInfoOfAdmin = getAuthInfo(loginAdmin);
-        AuthInfo authInfoOfMember = getAuthInfo(loginMember);
-        AuthInfo authInfoOfTempMember = getAuthInfo(loginTempMember);
+        AuthInfo authInfoOfAdmin = getAuthInfoByAdmin(loginAdmin);
+        AuthInfo authInfoOfMember = getAuthInfoByMember(loginMember);
+        AuthInfo authInfoOfTempMember = getAuthInfoByMember(loginTempMember);
 
         this.accessTokenOfAdmin = cookieUtil.createCookie(
-                generateTokens(loginAdmin, authInfoOfAdmin)
+                generateTokensByAdmin(loginAdmin, authInfoOfAdmin)
         );
         this.accessTokenOfMember = cookieUtil.createCookie(
-                generateTokens(loginMember, authInfoOfMember)
+                generateTokensByMember(loginMember, authInfoOfMember)
         );
         this.accessTokenOfTempMember = cookieUtil.createCookie(
-                generateTokens(loginTempMember, authInfoOfTempMember)
+                generateTokensByMember(loginTempMember, authInfoOfTempMember)
         );
     }
 
-    private String generateTokens(Member member, AuthInfo authInfo) {
+    private String generateTokensByMember(Member member, AuthInfo authInfo) {
         tokenProvider.generateRefreshToken(member, new CustomOauth2User(authInfo),
                 new Date());
 
@@ -87,7 +92,15 @@ public abstract class ApiSupport extends TestContainerSupport {
                 new Date());
     }
 
-    private AuthInfo getAuthInfo(Member member) {
+    private String generateTokensByAdmin(Admin admin, AuthInfo authInfo) {
+        tokenProvider.generateRefreshToken(admin, new CustomOauth2User(authInfo),
+                new Date());
+
+        return tokenProvider.generateAccessToken(admin, new CustomOauth2User(authInfo),
+                new Date());
+    }
+
+    private AuthInfo getAuthInfoByMember(Member member) {
         return AuthInfo.of(
                 member.getName(),
                 member.getEmail(),
@@ -95,5 +108,12 @@ public abstract class ApiSupport extends TestContainerSupport {
         );
     }
 
+    private AuthInfo getAuthInfoByAdmin(Admin admin) {
+        return AuthInfo.of(
+                admin.getName(),
+                admin.getEmail(),
+                admin.getRole()
+        );
+    }
 
 }

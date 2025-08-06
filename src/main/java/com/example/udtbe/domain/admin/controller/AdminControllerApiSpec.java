@@ -29,12 +29,14 @@ import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
-import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +58,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/registerjob")
     ResponseEntity<AdminContentRegisterResponse> registerContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @Valid @RequestBody AdminContentRegisterRequest adminContentRegisterRequest
     );
 
@@ -68,7 +70,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/updatejob/{contentId}")
     ResponseEntity<AdminContentUpdateResponse> updateContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @PathVariable(name = "contentId") Long contentId,
             @Valid @RequestBody AdminContentUpdateRequest adminContentUpdateRequest
     );
@@ -80,7 +82,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/deletejob/{contentId}")
     ResponseEntity<AdminContentDeleteResponse> deleteContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @PathVariable(name = "contentId") Long contentId
     );
 
@@ -240,4 +242,27 @@ public interface AdminControllerApiSpec {
     @DeleteMapping("/api/admin/batch/invalid")
     ResponseEntity<Void> deleteInvalidBatchJobs();
 
+    @Operation(summary = "배치 예정 작업 집계", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계를 얻을 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계 반환")
+    })
+    @GetMapping("/api/admin/batch/metrics/reservation")
+    ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric();
+
+    @Operation(summary = "배치 작업 실패에 대한 재시도", description = "배치 작업 실패에 대한 재시도를 할 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "배치 작업 재시도")
+    })
+    @PostMapping("/api/admin/batch")
+    ResponseEntity<Void> retryFailedContents();
+
+    @Operation(summary = "어드민 로그아웃 API", description = "로그아웃한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/api/admin/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response);
+
+    @Operation(summary = "어드민 토큰 재발급 API", description = "토큰을 재발급한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/api/admin/reissue/token")
+    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response);
 }

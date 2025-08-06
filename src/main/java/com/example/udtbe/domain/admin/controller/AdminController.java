@@ -29,12 +29,15 @@ import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.admin.service.AdminAuthService;
 import com.example.udtbe.domain.admin.service.AdminService;
+import com.example.udtbe.domain.admin.service.AdminTriggerService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
-import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,29 +52,30 @@ public class AdminController implements AdminControllerApiSpec {
     private final AdminScheduler adminScheduler;
     private final FeedbackFullScanScheduler feedbackFullScanScheduler;
     private final AdminAuthService adminAuthService;
+    private final AdminTriggerService adminTriggerService;
 
     @Override
-    public ResponseEntity<AdminContentRegisterResponse> registerContent(Member memeber,
+    public ResponseEntity<AdminContentRegisterResponse> registerContent(Admin admin,
             AdminContentRegisterRequest adminContentRegisterRequest) {
 
         AdminContentRegisterResponse contentRegisterResponse = adminService.registerBulkContent(
-                memeber, adminContentRegisterRequest);
+                admin, adminContentRegisterRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(contentRegisterResponse);
     }
 
     @Override
     public ResponseEntity<AdminContentUpdateResponse> updateContent(
-            Member member, Long contentId, AdminContentUpdateRequest adminContentUpdateRequest) {
+            Admin admin, Long contentId, AdminContentUpdateRequest adminContentUpdateRequest) {
 
-        AdminContentUpdateResponse contentUpdateResponse = adminService.updateBulkContent(member,
+        AdminContentUpdateResponse contentUpdateResponse = adminService.updateBulkContent(admin,
                 contentId, adminContentUpdateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(contentUpdateResponse);
     }
 
     @Override
-    public ResponseEntity<AdminContentDeleteResponse> deleteContent(Member member, Long contentId) {
+    public ResponseEntity<AdminContentDeleteResponse> deleteContent(Admin admin, Long contentId) {
 
-        AdminContentDeleteResponse contentDeleteResponse = adminService.deleteBulkContent(member,
+        AdminContentDeleteResponse contentDeleteResponse = adminService.deleteBulkContent(admin,
                 contentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(contentDeleteResponse);
     }
@@ -212,5 +216,31 @@ public class AdminController implements AdminControllerApiSpec {
         adminService.deleteInvalidBatchJobs();
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @Override
+    public ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric() {
+        AdminScheduledResContentMetricResponse response = adminService.getScheduledResContentMetric();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<Void> retryFailedContents() {
+        adminTriggerService.retryFailedBatch();
+        adminService.allUpdateMetric();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @Override
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        adminAuthService.logout(request, response);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response) {
+        adminAuthService.reissue(request, response);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

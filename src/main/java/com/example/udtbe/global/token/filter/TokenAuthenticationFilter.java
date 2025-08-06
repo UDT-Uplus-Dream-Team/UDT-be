@@ -43,6 +43,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             "/actuator/prometheus",
             "/actuator/metrics",
             "/api/auth/reissue/token",
+            "/api/admin/reissue/token",
             "/api/admin/signin"
     );
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -58,9 +59,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (tokenProvider.validateToken(accessToken, new Date())) {
             if (tokenProvider.verifyBlackList(accessToken)) {
                 filterChain.doFilter(request, response);
+                return;
             }
 
-            saveAuthentication(accessToken);
+            if (request.getRequestURI().startsWith("/api/admin")) {
+                saveAdminAuthentication(accessToken);
+            } else {
+                saveMemberAuthentication(accessToken);
+            }
         }
 
         filterChain.doFilter(request, response);
@@ -73,7 +79,12 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private void saveAuthentication(String accessToken) {
+    private void saveAdminAuthentication(String accessToken) {
+        Authentication authentication = tokenProvider.getAdminAuthentication(accessToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void saveMemberAuthentication(String accessToken) {
         Authentication authentication = tokenProvider.getAuthentication(accessToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
