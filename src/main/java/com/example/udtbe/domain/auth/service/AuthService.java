@@ -108,6 +108,7 @@ public class AuthService {
 
         validateRefreshToken(refreshKey);
         redisUtil.deleteValues(refreshKey);
+        addToBlacklist(accessToken);
         reissueTokens(response, findMember);
     }
 
