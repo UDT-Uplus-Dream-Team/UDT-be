@@ -15,17 +15,12 @@ import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
-import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
 import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
-import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
-import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
-import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
-import com.example.udtbe.domain.batch.repository.JobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -69,9 +64,6 @@ public class AdminQuery {
     private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
     private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
     private final AdminRepository adminRepository;
-    private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
-    private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
-    private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
 
 
     public void validContentByContentId(Long contentId) {
