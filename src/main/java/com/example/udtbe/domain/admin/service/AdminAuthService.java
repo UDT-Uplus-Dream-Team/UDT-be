@@ -2,7 +2,7 @@ package com.example.udtbe.domain.admin.service;
 
 import static com.example.udtbe.domain.auth.exception.AuthErrorCode.INVALID_CREDENTIALS;
 
-import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSigninRequest;
 import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.auth.exception.AuthErrorCode;
 import com.example.udtbe.global.exception.RestApiException;
@@ -37,7 +37,7 @@ public class AdminAuthService {
     private final RedisUtil redisUtil;
 
     @Transactional
-    public void signin(AdminSinginRequest request, HttpServletResponse response) {
+    public void signin(AdminSigninRequest request, HttpServletResponse response) {
         Admin findAdmin = adminQuery.getAdmin(request.email());
 
         if (!passwordEncoder.matches(request.password(), findAdmin.getPassword())) {
@@ -83,11 +83,6 @@ public class AdminAuthService {
 
     private void addToBlacklist(String accessToken) {
         Long expiration = tokenProvider.getExpiration(accessToken, new Date());
-
-        if (expiration <= 0) {
-            return;
-        }
-
         redisUtil.setValues(accessToken, BLACKLIST, Duration.ofMillis(expiration));
 
         if (!BLACKLIST.equals(redisUtil.getValues(accessToken))) {

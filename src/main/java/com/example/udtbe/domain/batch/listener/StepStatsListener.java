@@ -21,7 +21,6 @@ public class StepStatsListener implements StepExecutionListener {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    // 커스텀 통계 추적
     private int successCount = 0;
     private int skipCount = 0;
     private int retryCount = 0;
@@ -43,12 +42,10 @@ public class StepStatsListener implements StepExecutionListener {
         long totalWrite = stepExecution.getWriteCount();
         long totalSkip = stepExecution.getSkipCount();
 
-        // 통합 배치 처리 결과 로깅
         logIntegratedStats(stepExecution, totalRead);
 
         BatchJobStatus batchJobStatus = determineBatchJobStatus(totalRead, totalWrite, totalSkip);
 
-        // 에러 정보 로깅
         logFailureExceptions(stepExecution);
 
         if (BatchConfig.DELETE_STEP.equals(stepExecution.getStepName())) {
@@ -68,7 +65,7 @@ public class StepStatsListener implements StepExecutionListener {
         } else if (stepName.equals(BatchConfig.DELETE_STEP)) {
             return BatchJobType.DELETE;
         }
-        return BatchJobType.REGISTER; // 기본값
+        return BatchJobType.REGISTER;
     }
 
     private BatchJobStatus determineBatchJobStatus(long totalRead, long totalWrite,
@@ -82,7 +79,7 @@ public class StepStatsListener implements StepExecutionListener {
         } else if (totalWrite == 0) {
             return BatchJobStatus.FAILED;
         }
-        return BatchJobStatus.PARTIAL_COMPLETED; // 기본값
+        return BatchJobStatus.PARTIAL_COMPLETED;
     }
 
     private void logFailureExceptions(StepExecution stepExecution) {
@@ -94,7 +91,6 @@ public class StepStatsListener implements StepExecutionListener {
         }
     }
 
-    // 통합 배치 처리 결과 로깅
     private void logIntegratedStats(StepExecution stepExecution, long totalRead) {
         long executionTime =
                 stepExecution.getEndTime() != null && stepExecution.getStartTime() != null
@@ -129,11 +125,9 @@ public class StepStatsListener implements StepExecutionListener {
         log.info("  ├─ ⏱️ 실행시간: {}ms", executionTime);
         log.info("  └─ 🏁 종료상태: {}", stepExecution.getExitStatus().getExitCode());
 
-        // 통계 초기화
         resetStats();
     }
 
-    // 통계 업데이트 메서드들
     public void incrementSuccess() {
         successCount++;
         log.debug("✅ 성공 카운트 증가: {}", successCount);
@@ -166,10 +160,7 @@ public class StepStatsListener implements StepExecutionListener {
         failCount = 0;
         systemFailureCount = 0;
     }
-
-    /**
-     * 배치 완료 이벤트 발행
-     */
+    
     private void publishBatchCompleteEvent(StepExecution stepExecution,
             BatchJobStatus batchJobStatus, long totalRead) {
         long executionTime =

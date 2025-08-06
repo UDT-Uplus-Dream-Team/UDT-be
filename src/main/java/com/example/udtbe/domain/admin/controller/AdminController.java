@@ -10,7 +10,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
-import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSigninRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
@@ -206,7 +206,7 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK).body(adminContentDelJobGetDetailResponse);
     }
 
-    public ResponseEntity<Void> signin(AdminSinginRequest request, HttpServletResponse response) {
+    public ResponseEntity<Void> signin(AdminSigninRequest request, HttpServletResponse response) {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

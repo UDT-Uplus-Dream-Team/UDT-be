@@ -23,8 +23,6 @@ public class BatchSkipListener implements SkipListener<Object, Object> {
 
     @Override
     public void onSkipInWrite(Object item, Throwable t) {
-        log.error("🚨 SKIP LISTENER CALLED - onSkipInWrite: item={}, exception={}", item,
-                t.getMessage());
 
         if (item instanceof AdminContentRegisterJob registerJob) {
             registerJob.changeStatus(BatchStatus.FAILED);
@@ -40,7 +38,6 @@ public class BatchSkipListener implements SkipListener<Object, Object> {
 
     @Override
     public void onSkipInProcess(Object item, Throwable t) {
-        log.warn("Item skipped in process phase: {}, reason: {}", item, t.getMessage());
 
         if (item instanceof AdminContentRegisterJob registerJob) {
             registerJob.changeStatus(BatchStatus.FAILED);

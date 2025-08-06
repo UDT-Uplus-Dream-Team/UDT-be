@@ -265,7 +265,7 @@ public class AdminServiceTest {
         ContentMetadata metadata = mock(ContentMetadata.class);
 
         given(adminQuery.findContentByContentId(id)).willReturn(content);
-        given(adminQuery.findContentMetadateByContentId(id))
+        given(adminQuery.findContentMetadataByContentId(id))
                 .willReturn(metadata);
 
         AdminContentUpdateRequest adminContentUpdateRequest = new AdminContentUpdateRequest(
@@ -324,7 +324,7 @@ public class AdminServiceTest {
                 .mapToInt(dto -> dto.genres().size()).sum();
         assertAll(
                 () -> verify(adminQuery).findContentByContentId(eq(id)),
-                () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
+                () -> verify(adminQuery).findContentMetadataByContentId(eq(id)),
                 () -> verify(content).update(
                         eq(adminContentUpdateRequest.title()),
                         eq(adminContentUpdateRequest.description()),
@@ -494,7 +494,7 @@ public class AdminServiceTest {
         Content content = mock(Content.class);
         ContentMetadata metadata = mock(ContentMetadata.class);
         given(adminQuery.findAndValidContentByContentId(id)).willReturn(content);
-        given(adminQuery.findContentMetadateByContentId(id))
+        given(adminQuery.findContentMetadataByContentId(id))
                 .willReturn(metadata);
 
         // when
@@ -512,7 +512,7 @@ public class AdminServiceTest {
                 () -> verify(contentPlatformRepository).deleteAllByContent(content),
                 () -> verify(contentDirectorRepository).deleteAllByContent(content),
 
-                () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
+                () -> verify(adminQuery).findContentMetadataByContentId(eq(id)),
                 () -> verify(metadata).delete(eq(true))
         );
     }

@@ -139,7 +139,7 @@ public class AdminQuery {
         );
     }
 
-    public ContentMetadata findContentMetadateByContentId(Long contentId) {
+    public ContentMetadata findContentMetadataByContentId(Long contentId) {
         return contentMetadataRepository.findByContent_Id(contentId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CONTENT_METADATA_NOT_FOUND)
         );
