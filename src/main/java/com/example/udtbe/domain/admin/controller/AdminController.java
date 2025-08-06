@@ -37,6 +37,7 @@ import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -227,5 +228,11 @@ public class AdminController implements AdminControllerApiSpec {
         adminTriggerService.retryFailedBatch();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+    @Override
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        adminAuthService.logout(request, response);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }
