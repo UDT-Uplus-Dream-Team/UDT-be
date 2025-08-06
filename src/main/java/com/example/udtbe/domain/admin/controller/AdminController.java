@@ -226,8 +226,10 @@ public class AdminController implements AdminControllerApiSpec {
     @Override
     public ResponseEntity<Void> retryFailedContents() {
         adminTriggerService.retryFailedBatch();
+        adminService.allUpdateMetric();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
     @Override
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         adminAuthService.logout(request, response);
