@@ -126,6 +126,16 @@ public class TokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
+    public Authentication getAdminAuthentication(String token) {
+        Claims claims = parseToken(token);
+        List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
+
+        String subject = claims.getSubject();
+        Admin principal = authQuery.getAdminById(Long.valueOf(subject));
+
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+
     public boolean validateToken(String token, Date date) {
         if (!StringUtils.hasText(token)) {
             return false;
