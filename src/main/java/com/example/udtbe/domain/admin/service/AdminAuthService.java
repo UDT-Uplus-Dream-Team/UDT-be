@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -91,5 +92,55 @@ public class AdminAuthService {
 
     private String getRefreshTokenPrefix(String email) {
         return REFRESH_TOKEN_PREFIX + email;
+    }
+
+    public void reissue(HttpServletRequest request, HttpServletResponse response) {
+        String accessToken = cookieUtil.getCookieValue(request);
+
+        if (Objects.isNull(accessToken)) {
+            throw new RestApiException(AuthErrorCode.MISSING_ACCESS_TOKEN);
+        }
+
+        validateAccessDeniedToken(accessToken);
+
+        Admin findAdmin = tokenProvider.getAdminAllowExpired(accessToken);
+        String refreshKey = getRefreshTokenPrefix(findAdmin.getEmail());
+
+        validateRefreshToken(refreshKey);
+        redisUtil.deleteValues(refreshKey);
+        addToBlacklist(accessToken);
+        reissueTokens(response, findAdmin);
+    }
+
+    private void validateAccessDeniedToken(String accessToken) {
+        if (BLACKLIST.equals(redisUtil.getValues(accessToken))) {
+            throw new RestApiException(AuthErrorCode.UNAUTHORIZED_TOKEN);
+        }
+    }
+
+    private void validateRefreshToken(String refreshKey) {
+        try {
+            redisUtil.validateExpiredFromKey(refreshKey);
+            String refreshToken = redisUtil.getValues(refreshKey);
+
+            if ("false".equals(refreshToken)) {
+                throw new RestApiException(AuthErrorCode.UNAUTHORIZED_TOKEN);
+            }
+        } catch (Exception e) {
+            throw new RestApiException(AuthErrorCode.FAIL_REISSUE_TOKEN);
+        }
+    }
+
+    private void reissueTokens(HttpServletResponse response, Admin findAdmin) {
+        CustomOauth2User customUser = new CustomOauth2User(
+                AuthInfo.of(findAdmin.getName(), findAdmin.getEmail(), findAdmin.getRole())
+        );
+
+        String reissuedAccessToken = tokenProvider.generateAccessToken(findAdmin, customUser,
+                new Date());
+        tokenProvider.generateRefreshToken(findAdmin, customUser, new Date());
+
+        cookieUtil.deleteCookie(response);
+        response.addCookie(cookieUtil.createCookie(reissuedAccessToken));
     }
 }

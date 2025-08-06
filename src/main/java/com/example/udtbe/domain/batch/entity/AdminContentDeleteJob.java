@@ -38,7 +38,7 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
     private LocalDateTime finishedAt;
 
-    private Long memberId;
+    private Long adminId;
 
     private Long contentId;
 
@@ -53,21 +53,21 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
     private Long batchJobMetricId;
 
     @Builder(access = PRIVATE)
-    private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long memberId,
+    private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long adminId,
             Long contentId) {
         this.status = status;
         this.scheduledAt = scheduledAt;
-        this.memberId = memberId;
+        this.adminId = adminId;
         this.contentId = contentId;
         this.retryCount = 0;
         this.skipCount = 0;
     }
 
-    public static AdminContentDeleteJob of(BatchStatus status, Long memberId, Long contentId) {
+    public static AdminContentDeleteJob of(BatchStatus status, Long adminId, Long contentId) {
         return AdminContentDeleteJob.builder()
                 .status(status)
                 .scheduledAt(getScheduledAt())
-                .memberId(memberId)
+                .adminId(adminId)
                 .contentId(contentId)
                 .build();
     }

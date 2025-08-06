@@ -186,6 +186,13 @@ public class TokenProvider {
         return authQuery.getMemberById(Long.valueOf(subject));
     }
 
+    public Admin getAdminAllowExpired(String token) {
+        Claims claims = parseToken(token);
+
+        String subject = claims.getSubject();
+        return authQuery.getAdminById(Long.valueOf(subject));
+    }
+
     public String getMemberId(String token) {
         try {
             Claims claims = parseToken(token);

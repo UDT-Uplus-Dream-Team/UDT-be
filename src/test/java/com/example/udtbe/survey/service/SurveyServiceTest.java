@@ -70,7 +70,7 @@ class SurveyServiceTest {
 
         given(surveyQuery.existsByMember(member)).willReturn(Boolean.FALSE);
         given(surveyQuery.save(any(Survey.class))).willReturn(null);
-        given(authQuery.save(any(Member.class))).willReturn(null);
+        given(authQuery.saveMember(any(Member.class))).willReturn(null);
         willDoNothing().given(cookieUtil).deleteCookie(any(HttpServletResponse.class));
         given(tokenProvider.generateAccessToken(
                 any(Member.class),

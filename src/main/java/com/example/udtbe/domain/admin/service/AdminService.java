@@ -35,6 +35,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGe
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
@@ -120,10 +121,10 @@ public class AdminService {
 
     @Transactional
     @LogReturn
-    public AdminContentRegisterResponse registerBulkContent(Member member,
+    public AdminContentRegisterResponse registerBulkContent(Admin admin,
             AdminContentRegisterRequest request) {
         AdminContentRegisterJob job = AdminContentMapper.toContentRegisterJob(request,
-                member.getId());
+                admin.getId());
 
         adminContentRegisterJobRepository.save(job);
         return AdminContentMapper.toContentRegisterResponse(job.getId());
@@ -131,19 +132,19 @@ public class AdminService {
 
     @Transactional
     @LogReturn
-    public AdminContentUpdateResponse updateBulkContent(Member member, Long contentId,
+    public AdminContentUpdateResponse updateBulkContent(Admin admin, Long contentId,
             AdminContentUpdateRequest request) {
         AdminContentUpdateJob job = AdminContentMapper.toContentUpdateJob(request, contentId,
-                member.getId());
+                admin.getId());
         adminContentUpdateJobRepository.save(job);
         return AdminContentMapper.toContentUpdateResponse(job.getId());
     }
 
     @Transactional
     @LogReturn
-    public AdminContentDeleteResponse deleteBulkContent(Member member, Long contentId) {
+    public AdminContentDeleteResponse deleteBulkContent(Admin admin, Long contentId) {
         AdminContentDeleteJob job = AdminContentMapper.toContentDeleteJob(contentId,
-                member.getId());
+                admin.getId());
         adminContentDeleteJobRepository.save(job);
         return AdminContentMapper.toContentDeleteResponse(job.getId());
     }

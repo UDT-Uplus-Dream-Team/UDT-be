@@ -27,8 +27,12 @@ public class AuthQuery {
                 .orElseThrow(() -> new RestApiException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
-    public Member save(Member member) {
+    public Member saveMember(Member member) {
         return memberRepository.save(member);
+    }
+
+    public Admin saveAdmin(Admin admin) {
+        return adminRepository.save(admin);
     }
 
     public Member getMemberById(Long id) {
@@ -38,6 +42,7 @@ public class AuthQuery {
 
     public void deleteAll() {
         memberRepository.deleteAll();
+        adminRepository.deleteAll();
     }
 
     public boolean existsByEmail(String email) {

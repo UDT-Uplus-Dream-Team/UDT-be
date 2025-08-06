@@ -53,7 +53,7 @@ public class AuthService {
                 })
                 .orElseGet(() -> createMemberFromOauth2Response(oauth2Response));
 
-        return authQuery.save(member);
+        return authQuery.saveMember(member);
     }
 
     @LogReturn()
@@ -108,6 +108,7 @@ public class AuthService {
 
         validateRefreshToken(refreshKey);
         redisUtil.deleteValues(refreshKey);
+        addToBlacklist(accessToken);
         reissueTokens(response, findMember);
     }
 
@@ -157,7 +158,7 @@ public class AuthService {
         Member member = Member.of(request.email(), "홍길동", ROLE_ADMIN, null, MAN,
                 LocalDateTime.now(), false);
 
-        authQuery.save(member);
+        authQuery.saveMember(member);
     }
 
     public void tempSignIn(TempAuthRequest request, HttpServletResponse response) {
