@@ -34,6 +34,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
@@ -524,6 +525,12 @@ public class AdminService {
     @Transactional
     public void deleteInvalidBatchJobs() {
         adminQuery.deleteInvalidBatchJobs();
+    }
+
+
+    @Transactional(readOnly = true)
+    public AdminScheduledResContentMetricResponse getScheduledResContentMetric() {
+        return adminQuery.getCountAdminContentResJob();
     }
 
 }

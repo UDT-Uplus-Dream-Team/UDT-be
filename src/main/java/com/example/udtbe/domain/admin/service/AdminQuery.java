@@ -9,6 +9,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
 import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.admin.repository.AdminRepository;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
@@ -251,5 +252,16 @@ public class AdminQuery {
             throw new RestApiException(BatchErrorCode.BATCH_DELETE_FAILED);
         }
     }
+
+    public AdminScheduledResContentMetricResponse getCountAdminContentResJob() {
+        long totalRegister = adminContentRegisterJobRepository.countByStatus(BatchStatus.PENDING);
+        long totalUpdate = adminContentUpdateJobRepository.countByStatus(BatchStatus.PENDING);
+        long totalDelete = adminContentDeleteJobRepository.countByStatus(BatchStatus.PENDING);
+
+        long total = totalRegister + totalUpdate + totalDelete;
+        return new AdminScheduledResContentMetricResponse(total, totalRegister, totalUpdate,
+                totalDelete);
+    }
+
 
 }

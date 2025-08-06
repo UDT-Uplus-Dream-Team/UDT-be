@@ -29,6 +29,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -239,5 +240,12 @@ public interface AdminControllerApiSpec {
     })
     @DeleteMapping("/api/admin/batch/invalid")
     ResponseEntity<Void> deleteInvalidBatchJobs();
+
+    @Operation(summary = "배치 예정 작업 집계", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계를 얻을 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계 반환")
+    })
+    @GetMapping("/api/admin/batch/metrics/reservation")
+    public ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric();
 
 }
