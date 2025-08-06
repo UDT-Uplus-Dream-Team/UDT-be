@@ -22,6 +22,7 @@ import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import com.example.udtbe.domain.batch.util.BatchRetryProcessor;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -214,9 +215,14 @@ public class BatchConfig {
     @StepScope
     public ItemProcessor<AdminContentRegisterJob, AdminContentRegisterJob> contentRegisterProcessor() {
         BatchJobMetric metric = adminService.initMetric(BatchJobType.REGISTER);
-        batchJobMetricRepository.save(metric);
+
+        AtomicBoolean isSave = new AtomicBoolean(false);
         return item -> {
             if (item.getBatchJobMetricId() == null) {
+                if (!isSave.get()) {
+                    batchJobMetricRepository.save(metric);
+                    isSave.set(true);
+                }
                 item.setBatchJobMetricId(metric.getId());
             }
             return item;
@@ -227,9 +233,14 @@ public class BatchConfig {
     @StepScope
     public ItemProcessor<AdminContentUpdateJob, AdminContentUpdateJob> contentUpdateProcessor() {
         BatchJobMetric metric = adminService.initMetric(BatchJobType.UPDATE);
-        batchJobMetricRepository.save(metric);
+
+        AtomicBoolean isSave = new AtomicBoolean(false);
         return item -> {
             if (item.getBatchJobMetricId() == null) {
+                if (!isSave.get()) {
+                    batchJobMetricRepository.save(metric);
+                    isSave.set(true);
+                }
                 item.setBatchJobMetricId(metric.getId());
             }
             return item;
@@ -240,9 +251,14 @@ public class BatchConfig {
     @StepScope
     public ItemProcessor<AdminContentDeleteJob, AdminContentDeleteJob> contentDeleteProcessor() {
         BatchJobMetric metric = adminService.initMetric(BatchJobType.DELETE);
-        batchJobMetricRepository.save(metric);
+
+        AtomicBoolean isSave = new AtomicBoolean(false);
         return item -> {
             if (item.getBatchJobMetricId() == null) {
+                if (!isSave.get()) {
+                    batchJobMetricRepository.save(metric);
+                    isSave.set(true);
+                }
                 item.setBatchJobMetricId(metric.getId());
             }
             return item;
@@ -260,7 +276,7 @@ public class BatchConfig {
                 boolean success = batchRetryProcessor.processWithRetry(item, () -> {
                     AdminContentRegisterRequest request = AdminContentMapper.toContentRegisterRequest(
                             item);
-                    
+
                     if (item.getTitle().contains("에러")) {
                         try {
                             throw new Exception("안녕");
