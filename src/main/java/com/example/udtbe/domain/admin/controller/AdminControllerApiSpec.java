@@ -253,4 +253,9 @@ public interface AdminControllerApiSpec {
     @ApiResponse(useReturnTypeSchema = true)
     @PostMapping("/api/admin/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response);
+
+    @Operation(summary = "어드민 토큰 재발급 API", description = "토큰을 재발급한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/api/admin/reissue/token")
+    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response);
 }

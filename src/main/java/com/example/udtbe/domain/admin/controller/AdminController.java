@@ -228,5 +228,11 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.noContent().build();
     }
 
+    @Override
+    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response) {
+        adminAuthService.reissue(request, response);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }
