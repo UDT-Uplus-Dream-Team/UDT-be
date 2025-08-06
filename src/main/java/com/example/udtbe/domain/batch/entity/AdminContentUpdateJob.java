@@ -18,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.hibernate.annotations.Type;
 
 @Entity
 @Getter
+@Table(name = "admin_content_update_job")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminContentUpdateJob extends TimeBaseEntity {
 
@@ -95,6 +97,8 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     private int retryCount = 0;
 
     private int skipCount = 0;
+
+    private Long batchJobMetricId;
 
     @Builder(access = PRIVATE)
     private AdminContentUpdateJob(BatchStatus status, LocalDateTime scheduledAt,
@@ -178,6 +182,10 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
     public void finish() {
         finishedAt = LocalDateTime.now();
+    }
+
+    public void setBatchJobMetricId(Long batchJobMetricId) {
+        this.batchJobMetricId = batchJobMetricId;
     }
 
 }

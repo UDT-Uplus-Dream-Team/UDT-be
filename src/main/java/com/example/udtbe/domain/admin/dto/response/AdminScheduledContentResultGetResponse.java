@@ -4,14 +4,15 @@ import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import java.time.LocalDateTime;
 
-public record AdminScheduledContentResultResponse(
+public record AdminScheduledContentResultGetResponse(
 
         Long resultId,
         BatchJobType type,
         BatchJobStatus status,
         long totalRead,
-        long totalWrite,
-        long totalSkip,
+        long totalCompleted,
+        long totalInvalid,
+        long totalFailed,
         LocalDateTime startTime,
         LocalDateTime endTime
 ) {

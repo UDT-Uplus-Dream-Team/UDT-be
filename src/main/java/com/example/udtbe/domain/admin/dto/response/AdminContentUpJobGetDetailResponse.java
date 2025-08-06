@@ -2,10 +2,15 @@ package com.example.udtbe.domain.admin.dto.response;
 
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public record AdminContentUpJobGetDetailResponse(
+
+        Long batchJobMetricId,
+
+        BatchStatus status,
 
         Long contentId,
 

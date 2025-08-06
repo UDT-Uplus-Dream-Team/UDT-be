@@ -8,6 +8,7 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
@@ -27,7 +28,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +37,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -173,18 +173,19 @@ public interface AdminControllerApiSpec {
             @Valid @ModelAttribute AdminScheduledContentsRequest adminContentJobGetsRequest
     );
 
-    @Operation(summary = "배치 결과 목록 조회", description = "배치 집계 결과 목록을 조회한다.")
+    @Operation(summary = "배치 별 집계 결과 목록 조회", description = "배치 별 집계 결과 목록을 조회한다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "배치 결과 목록반환"),
+            @ApiResponse(responseCode = "200", description = "배치 별 결과 목록 반환"),
     })
     @GetMapping("/api/admin/batch/results")
-    ResponseEntity<List<AdminScheduledContentResultResponse>> getBatchResults();
+    ResponseEntity<CursorPageResponse<AdminScheduledContentResultGetResponse>> getBatchResults(
+            @Valid @ModelAttribute AdminScheduledContentResultGetsRequest request
+    );
 
-    @Operation(summary = "전체 배치 집계 결과 조회", description = "전체 배치 집계 결과를 조회한다.")
+    @Operation(summary = "전체 배치 작업 집계 결과 조회", description = "전체 배치 작업 집계 결과를 조회한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "전체 배치 집계 조회")
     })
-
     @GetMapping("/api/admin/batch/metrics")
     ResponseEntity<AdminScheduledContentMetricGetResponse> getBatchMetric();
 
@@ -221,6 +222,7 @@ public interface AdminControllerApiSpec {
     ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(
             @PathVariable(value = "jobId") Long jobId
     );
+
     @Operation(summary = "어드민 로그인", description = "백오피스에서 관리자 로그인을 한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "백오피스 관리자 로그인 성공"),

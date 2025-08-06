@@ -11,12 +11,17 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailRe
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.FeedbackStatistics;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +31,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdminContentMapper {
 
-    // 배치 관련 mapper 시작
     public static AdminContentRegisterJob toContentRegisterJob(AdminContentRegisterRequest request,
             Long memberId) {
 
@@ -163,26 +167,14 @@ public class AdminContentMapper {
         return new AdminContentDeleteResponse(jobId);
     }
 
-    public static Content toContentEntity(AdminContentRegisterRequest adminContentRegisterRequest) {
-        return Content.of(
-                adminContentRegisterRequest.title(),
-                adminContentRegisterRequest.description(),
-                adminContentRegisterRequest.posterUrl(),
-                adminContentRegisterRequest.backdropUrl(),
-                adminContentRegisterRequest.trailerUrl(),
-                adminContentRegisterRequest.openDate(),
-                adminContentRegisterRequest.runningTime(),
-                adminContentRegisterRequest.episode(),
-                adminContentRegisterRequest.rating()
-        );
-    }
-
     public static AdminContentRegJobGetDetailResponse toAdminContentRegJobDetailResponse(
             AdminContentRegisterJob job) {
         List<AdminCategoryDTO> categoryDTOs = new ArrayList<>(job.getCategories().values());
         List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
 
         return new AdminContentRegJobGetDetailResponse(
+                job.getBatchJobMetricId(),
+                job.getStatus(),
                 job.getTitle(),
                 job.getDescription(),
                 job.getPosterUrl(),
@@ -210,6 +202,8 @@ public class AdminContentMapper {
         List<AdminPlatformDTO> platformDTOs = new ArrayList<>(job.getPlatforms().values());
 
         return new AdminContentUpJobGetDetailResponse(
+                job.getBatchJobMetricId(),
+                job.getStatus(),
                 job.getContentId(),
                 job.getTitle(),
                 job.getDescription(),
@@ -236,6 +230,8 @@ public class AdminContentMapper {
             AdminContentDeleteJob job) {
 
         return new AdminContentDelJobGetDetailResponse(
+                job.getBatchJobMetricId(),
+                job.getStatus(),
                 job.getContentId(),
                 job.getErrorCode(),
                 job.getErrorMessage(),
@@ -244,7 +240,44 @@ public class AdminContentMapper {
         );
     }
 
-    // 배치 관련 끝---
+    public static BatchJobMetric initBatchJobMetric(BatchJobType batchJobType) {
+        return BatchJobMetric.of(
+                batchJobType,
+                BatchJobStatus.NOOP,
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+    }
+
+    public static AdminScheduledContentResultGetResponse toAdminScheduledContentResultGetResponse(
+            BatchJobMetric metric) {
+        return new AdminScheduledContentResultGetResponse(
+                metric.getId(),
+                metric.getType(),
+                metric.getStatus(),
+                metric.getTotalRead(),
+                metric.getTotalComplete(),
+                metric.getTotalInvalid(),
+                metric.getTotalFailed(),
+                metric.getStartTime(),
+                metric.getEndTime()
+        );
+    }
+
+    public static Content toContentEntity(AdminContentRegisterRequest adminContentRegisterRequest) {
+        return Content.of(
+                adminContentRegisterRequest.title(),
+                adminContentRegisterRequest.description(),
+                adminContentRegisterRequest.posterUrl(),
+                adminContentRegisterRequest.backdropUrl(),
+                adminContentRegisterRequest.trailerUrl(),
+                adminContentRegisterRequest.openDate(),
+                adminContentRegisterRequest.runningTime(),
+                adminContentRegisterRequest.episode(),
+                adminContentRegisterRequest.rating()
+        );
+    }
+
 
     public static List<AdminMemberGenreFeedbackDTO> toGenreFeedbackDtoList(
             List<FeedbackStatistics> stats) {

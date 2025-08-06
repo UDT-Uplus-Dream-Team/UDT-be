@@ -56,11 +56,3 @@ VALUES (1, 'NETFLIX', NOW(), NOW(), false),
        (6, 'WATCHA', NOW(), NOW(), false),
        (7, 'APPLE_TV', NOW(), NOW(), false);
 
--- 6) 배치 집계 메트릭 데이터 삽입
-INSERT INTO batch_job_metric (batch_job_metric_id, type, status, total_read, total_write,
-                              total_skip,
-                              start_time, end_time, created_at, updated_at)
-VALUES (1, 'REGISTER', 'NOOP', 0, 0, 0, null, null, NOW(), NOW()),
-       (2, 'UPDATE', 'NOOP', 0, 0, 0, null, null, NOW(), NOW()),
-       (3, 'DELETE', 'NOOP', 0, 0, 0, null, null, NOW(), NOW()),
-       (4, 'FEEDBACK', 'NOOP', 0, 0, 0, null, null, NOW(), NOW());
