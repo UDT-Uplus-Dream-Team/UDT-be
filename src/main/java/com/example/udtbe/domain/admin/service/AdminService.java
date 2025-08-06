@@ -518,13 +518,13 @@ public class AdminService {
     @Transactional(readOnly = true)
     public AdminContentDelJobGetDetailResponse getBatchDelJobDetails(Long jobId) {
         AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
-
         return AdminContentMapper.toAdminContentDelJobDetailResponse(job);
     }
 
     @Transactional
     public void deleteInvalidBatchJobs() {
         adminQuery.deleteInvalidBatchJobs();
+        allUpdateMetric();
     }
 
 

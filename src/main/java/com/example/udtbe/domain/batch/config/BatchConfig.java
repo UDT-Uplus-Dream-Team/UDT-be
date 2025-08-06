@@ -21,16 +21,19 @@ import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository
 import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import com.example.udtbe.domain.batch.util.BatchRetryProcessor;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.scope.context.StepSynchronizationManager;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
@@ -147,28 +150,64 @@ public class BatchConfig {
     @Bean
     @StepScope
     public ListItemReader<AdminContentRegisterJob> contentRegisterReader() {
-        List<AdminContentRegisterJob> pendingJobs = adminContentRegisterJobRepository.findByStatusIn(
-                List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING,
-                        BatchStatus.INVALID));
-        return new ListItemReader<>(pendingJobs);
+        StepExecution stepExecution = Objects.requireNonNull(
+                StepSynchronizationManager.getContext()).getStepExecution();
+        String type = stepExecution.getJobParameters().getString("type");
+
+        List<AdminContentRegisterJob> pendingJobs;
+        if (type.equals("failed")) {
+            pendingJobs = adminContentRegisterJobRepository.findByStatusIn(
+                    List.of(BatchStatus.FAILED, BatchStatus.RETRYING));
+            return new ListItemReader<>(pendingJobs);
+        } else if (type.equals("all")) {
+            pendingJobs = adminContentRegisterJobRepository.findByStatusIn(
+                    List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING,
+                            BatchStatus.INVALID));
+            return new ListItemReader<>(pendingJobs);
+        }
+        return new ListItemReader<>(List.of());
     }
 
     @Bean
     @StepScope
     public ListItemReader<AdminContentUpdateJob> contentUpdateReader() {
-        List<AdminContentUpdateJob> pendingJobs = adminContentUpdateJobRepository.findByStatusIn(
-                List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING,
-                        BatchStatus.INVALID));
-        return new ListItemReader<>(pendingJobs);
+        StepExecution stepExecution = Objects.requireNonNull(
+                StepSynchronizationManager.getContext()).getStepExecution();
+        String type = stepExecution.getJobParameters().getString("type");
+
+        List<AdminContentUpdateJob> pendingJobs;
+        if (type.equals("failed")) {
+            pendingJobs = adminContentUpdateJobRepository.findByStatusIn(
+                    List.of(BatchStatus.FAILED, BatchStatus.RETRYING));
+            return new ListItemReader<>(pendingJobs);
+        } else if (type.equals("all")) {
+            pendingJobs = adminContentUpdateJobRepository.findByStatusIn(
+                    List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING,
+                            BatchStatus.INVALID));
+            return new ListItemReader<>(pendingJobs);
+        }
+        return new ListItemReader<>(List.of());
     }
 
     @Bean
     @StepScope
     public ListItemReader<AdminContentDeleteJob> contentDeleteReader() {
-        List<AdminContentDeleteJob> pendingJobs = adminContentDeleteJobRepository.findByStatusIn(
-                List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING,
-                        BatchStatus.INVALID));
-        return new ListItemReader<>(pendingJobs);
+        StepExecution stepExecution = Objects.requireNonNull(
+                StepSynchronizationManager.getContext()).getStepExecution();
+        String type = stepExecution.getJobParameters().getString("type");
+
+        List<AdminContentDeleteJob> pendingJobs;
+        if (type.equals("failed")) {
+            pendingJobs = adminContentDeleteJobRepository.findByStatusIn(
+                    List.of(BatchStatus.FAILED, BatchStatus.RETRYING));
+            return new ListItemReader<>(pendingJobs);
+        } else if (type.equals("all")) {
+            pendingJobs = adminContentDeleteJobRepository.findByStatusIn(
+                    List.of(BatchStatus.PENDING, BatchStatus.FAILED, BatchStatus.RETRYING,
+                            BatchStatus.INVALID));
+            return new ListItemReader<>(pendingJobs);
+        }
+        return new ListItemReader<>(List.of());
     }
 
     @Bean
@@ -221,6 +260,15 @@ public class BatchConfig {
                 boolean success = batchRetryProcessor.processWithRetry(item, () -> {
                     AdminContentRegisterRequest request = AdminContentMapper.toContentRegisterRequest(
                             item);
+                    
+                    if (item.getTitle().contains("에러")) {
+                        try {
+                            throw new Exception("안녕");
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
                     adminQuery.validRegisterAndUpdateContent(request.categories(),
                             request.platforms(),
                             request.casts(), request.directors());
