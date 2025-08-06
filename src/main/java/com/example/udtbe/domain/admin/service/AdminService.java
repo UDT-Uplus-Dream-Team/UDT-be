@@ -385,13 +385,11 @@ public class AdminService {
         return new AdminCastsRegisterResponse(savedCastIds);
     }
 
-    @Transactional
     public CursorPageResponse<AdminCastsGetResponse> getCasts(
             AdminCastsGetRequest adminCastsGetRequest) {
         return adminQuery.getCasts(adminCastsGetRequest);
     }
 
-    @Transactional
     public AdminDirectorsRegisterResponse registerDirectors(
             AdminDirectorsRegisterRequest adminDirectorsRegisterRequest) {
 
@@ -521,6 +519,11 @@ public class AdminService {
         AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
 
         return AdminContentMapper.toAdminContentDelJobDetailResponse(job);
+    }
+
+    @Transactional
+    public void deleteInvalidBatchJobs() {
+        adminQuery.deleteInvalidBatchJobs();
     }
 
 }

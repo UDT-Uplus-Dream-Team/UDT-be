@@ -206,4 +206,10 @@ public class AdminController implements AdminControllerApiSpec {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+    @Override
+    public ResponseEntity<Void> deleteInvalidBatchJobs() {
+        adminService.deleteInvalidBatchJobs();
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
 }

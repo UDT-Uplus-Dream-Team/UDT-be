@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BatchRetryProcessor {
 
-    private static final int RETRY_LIMIT = 3; // 상수로 정의
+    private static final int RETRY_LIMIT = 3;
 
     private final StepStatsListener stepStatsListener;
     private final ThreadLocal<AtomicBoolean> systemFailureDetected = ThreadLocal.withInitial(
