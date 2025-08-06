@@ -36,6 +36,7 @@ import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -203,6 +204,7 @@ public class AdminController implements AdminControllerApiSpec {
         return ResponseEntity.status(HttpStatus.OK).body(adminContentDelJobGetDetailResponse);
     }
 
+    @Override
     public ResponseEntity<Void> signin(AdminSinginRequest request, HttpServletResponse response) {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -218,6 +220,12 @@ public class AdminController implements AdminControllerApiSpec {
     public ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric() {
         AdminScheduledResContentMetricResponse response = adminService.getScheduledResContentMetric();
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        adminAuthService.logout(request, response);
+        return ResponseEntity.noContent().build();
     }
 
 

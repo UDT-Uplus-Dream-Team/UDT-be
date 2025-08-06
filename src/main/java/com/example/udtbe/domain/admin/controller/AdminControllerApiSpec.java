@@ -36,6 +36,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -248,4 +249,8 @@ public interface AdminControllerApiSpec {
     @GetMapping("/api/admin/batch/metrics/reservation")
     public ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric();
 
+    @Operation(summary = "어드민 로그아웃 API", description = "로그아웃한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/api/admin/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response);
 }
