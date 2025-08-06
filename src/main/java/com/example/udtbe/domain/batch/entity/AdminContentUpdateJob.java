@@ -191,5 +191,4 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     public void setStatus(BatchStatus status) {
         this.status = status;
     }
-
 }

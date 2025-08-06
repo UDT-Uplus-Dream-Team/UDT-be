@@ -494,6 +494,31 @@ public class AdminService {
     }
 
     @Transactional
+
+        metricJob.update(
+                status,
+                dto.totalRead(),
+                dto.totalCompleted(),
+                dto.totalInvalid(),
+                dto.totalFailed(),
+                metricJob.getStartTime(),
+                metricJob.getEndTime()
+        );
+    }
+
+    @Transactional
+    public BatchJobMetric initMetric(BatchJobType type) {
+        return AdminContentMapper.initBatchJobMetric(type);
+    }
+
+    @Transactional
+    public CursorPageResponse<AdminScheduledContentResultGetResponse> getsScheduledResults(
+            AdminScheduledContentResultGetsRequest request) {
+        return adminContentJobRepositoryImpl.getScheduledContentResults(request.cursor(),
+                request.size());
+    }
+
+    @Transactional
     public AdminScheduledContentMetricGetResponse getScheduledMetric() {
         return adminContentJobRepositoryImpl.getScheduledContentMetrics();
     }
