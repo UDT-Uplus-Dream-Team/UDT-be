@@ -1,6 +1,6 @@
-package com.example.udtbe.domain.admin.dto.response;
+package com.example.udtbe.domain.admin.dto.common;
 
-public record AdminScheduledContentMetricGetResponse(
+public record BatchJobMetricDTO(
         long totalRead,
         long totalCompleted,
         long totalInvalid,

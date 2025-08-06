@@ -5,7 +5,7 @@ import com.example.udtbe.global.exception.code.EnumErrorCode;
 import java.util.Arrays;
 
 public enum BatchFilterType {
-    RESERVATION, FAILED;
+    PENDING, FAILED, INVALID;
 
     public static BatchFilterType from(String value) {
         return Arrays.stream(values())

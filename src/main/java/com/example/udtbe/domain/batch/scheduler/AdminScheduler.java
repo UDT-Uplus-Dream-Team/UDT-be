@@ -1,7 +1,7 @@
 package com.example.udtbe.domain.batch.scheduler;
 
+import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
-import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
 import com.example.udtbe.global.exception.RestApiException;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,9 @@ public class AdminScheduler {
     private final JobLauncher jobLauncher;
     private final Job contentBatchJob;
     private final LuceneIndexService luceneIndexService;
+    private final AdminService adminService;
 
-    @Scheduled(cron = TimeUtil.SCHEDULED_AT)
+    @Scheduled(cron = "0 0 4 * * *")
     @Retryable(retryFor = Exception.class, backoff = @Backoff(delay = 5000))
     public void runContentBatchJob() {
         try {
@@ -36,6 +37,8 @@ public class AdminScheduler {
                     .addLong("time", System.currentTimeMillis())
                     .toJobParameters();
             jobLauncher.run(contentBatchJob, jobParameters);
+            adminService.allUpdateMetric();
+            
         } catch (JobExecutionAlreadyRunningException e) {
             throw new RestApiException(BatchErrorCode.BATCH_ALREADY_RUNNING);
         } catch (JobRestartException e) {

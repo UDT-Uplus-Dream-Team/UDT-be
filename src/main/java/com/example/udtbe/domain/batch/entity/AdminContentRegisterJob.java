@@ -18,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.hibernate.annotations.Type;
 
 @Entity
 @Getter
+@Table(name = "admin_content_register_job")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminContentRegisterJob extends TimeBaseEntity {
 
@@ -90,9 +92,11 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
     private String errorMessage;
 
-    private Integer retryCount = 0;
+    private int retryCount = 0;
 
-    private Integer skipCount = 0;
+    private int skipCount = 0;
+
+    private Long batchJobMetricId;
 
     @Builder(access = PRIVATE)
     private AdminContentRegisterJob(BatchStatus status, Long memberId,
@@ -120,8 +124,6 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         this.directors = directors;
         this.casts = casts;
         this.countries = countries;
-        this.retryCount = 0;
-        this.skipCount = 0;
     }
 
     public static AdminContentRegisterJob of(BatchStatus batchStepStatus, Long memberId,
@@ -160,19 +162,11 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     }
 
     public void incrementRetryCount() {
-        this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
-    }
-
-    public void resetRetryCount() {
-        this.retryCount = 0;
+        this.retryCount += 1;
     }
 
     public void incrementSkipCount() {
-        this.skipCount = (this.skipCount == null ? 0 : this.skipCount) + 1;
-    }
-
-    public void resetSkipCount() {
-        this.skipCount = 0;
+        this.skipCount += 1;
     }
 
     private static LocalDateTime getScheduledAt() {
@@ -181,5 +175,9 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
     public void finish() {
         finishedAt = LocalDateTime.now();
+    }
+
+    public void setBatchJobMetricId(Long batchJobMetricId) {
+        this.batchJobMetricId = batchJobMetricId;
     }
 }

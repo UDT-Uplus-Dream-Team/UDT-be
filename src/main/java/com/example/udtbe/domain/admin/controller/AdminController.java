@@ -8,15 +8,19 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminSinginRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -24,7 +28,7 @@ import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
 import com.example.udtbe.domain.admin.service.AdminAuthService;
 import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
@@ -32,7 +36,6 @@ import com.example.udtbe.domain.batch.scheduler.FeedbackFullScanScheduler;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -163,8 +166,10 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<List<AdminScheduledContentResultResponse>> getBatchResults() {
-        List<AdminScheduledContentResultResponse> responses = adminService.getsScheduledResults();
+    public ResponseEntity<CursorPageResponse<AdminScheduledContentResultGetResponse>> getBatchResults(
+            AdminScheduledContentResultGetsRequest request) {
+        CursorPageResponse<AdminScheduledContentResultGetResponse> responses = adminService
+                .getsScheduledResults(request);
         return ResponseEntity.status(HttpStatus.OK).body(responses);
     }
 
@@ -176,6 +181,27 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
+    public ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchRegJobDetails(Long jobId) {
+        AdminContentRegJobGetDetailResponse response = adminService.getBatchRegisterJobDetails(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(Long jobId) {
+        AdminContentUpJobGetDetailResponse response = adminService.getBatchUpJobDetails(
+                jobId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(Long jobId) {
+        AdminContentDelJobGetDetailResponse adminContentDelJobGetDetailResponse = adminService.getBatchDelJobDetails(
+                jobId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(adminContentDelJobGetDetailResponse);
+    }
+
     public ResponseEntity<Void> signin(AdminSinginRequest request, HttpServletResponse response) {
         adminAuthService.signin(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

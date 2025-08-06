@@ -9,6 +9,8 @@ import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.listener.BatchSkipListener;
 import com.example.udtbe.domain.batch.listener.JobCompletionListener;
@@ -16,6 +18,7 @@ import com.example.udtbe.domain.batch.listener.StepStatsListener;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
+import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import com.example.udtbe.domain.batch.util.BatchRetryProcessor;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,12 +55,11 @@ public class BatchConfig {
     public static final String REGISTER_STEP = "contentRegisterStep";
     public static final String UPDATE_STEP = "contentUpdateStep";
     public static final String DELETE_STEP = "contentDeleteStep";
-    public static final String FEEDBACK_STEP = "feedbackStep";
     private static final int CHUNK_SIZE = 100;
-    private static final int RETRY_LIMIT = 3;
     private static final int SKIP_LIMIT = 200;
 
     private final JobRepository jobRepository;
+    private final BatchJobMetricRepository batchJobMetricRepository;
     private final PlatformTransactionManager transactionManager;
     private final AdminService adminService;
     private final AdminQuery adminQuery;
@@ -172,19 +174,40 @@ public class BatchConfig {
     @Bean
     @StepScope
     public ItemProcessor<AdminContentRegisterJob, AdminContentRegisterJob> contentRegisterProcessor() {
-        return item -> item;
+        BatchJobMetric metric = adminService.initMetric(BatchJobType.REGISTER);
+        batchJobMetricRepository.save(metric);
+        return item -> {
+            if (item.getBatchJobMetricId() == null) {
+                item.setBatchJobMetricId(metric.getId());
+            }
+            return item;
+        };
     }
 
     @Bean
     @StepScope
     public ItemProcessor<AdminContentUpdateJob, AdminContentUpdateJob> contentUpdateProcessor() {
-        return item -> item;
+        BatchJobMetric metric = adminService.initMetric(BatchJobType.UPDATE);
+        batchJobMetricRepository.save(metric);
+        return item -> {
+            if (item.getBatchJobMetricId() == null) {
+                item.setBatchJobMetricId(metric.getId());
+            }
+            return item;
+        };
     }
 
     @Bean
     @StepScope
     public ItemProcessor<AdminContentDeleteJob, AdminContentDeleteJob> contentDeleteProcessor() {
-        return item -> item;
+        BatchJobMetric metric = adminService.initMetric(BatchJobType.DELETE);
+        batchJobMetricRepository.save(metric);
+        return item -> {
+            if (item.getBatchJobMetricId() == null) {
+                item.setBatchJobMetricId(metric.getId());
+            }
+            return item;
+        };
     }
 
     @Bean

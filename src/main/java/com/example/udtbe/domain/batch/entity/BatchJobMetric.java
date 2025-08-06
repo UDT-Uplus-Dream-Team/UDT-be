@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,15 +23,14 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(name = "batch_job_metric")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BatchJobMetric extends TimeBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "admin_content_job_metric_id")
+    @Column(name = "batch_job_metric_id")
     private Long id;
-
-    private Long adminContentJobId;
 
     @Enumerated(EnumType.STRING)
     private BatchJobType type;
@@ -38,51 +38,46 @@ public class BatchJobMetric extends TimeBaseEntity {
     @Enumerated(EnumType.STRING)
     private BatchJobStatus status;
 
-    private long totalRead;
-    private long totalWrite;
-    private long totalSkip;
+    private long totalRead = 0;
+    private long totalComplete = 0;
+    private long totalInvalid = 0;
+    private long totalFailed = 0;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-
     @Builder(access = PRIVATE)
-    private BatchJobMetric(Long adminContentJobId, BatchJobType type, BatchJobStatus status,
-            long totalRead, long totalWrite, long totalSkip, LocalDateTime startTime,
+    private BatchJobMetric(BatchJobType type, BatchJobStatus status, LocalDateTime startTime,
             LocalDateTime endTime) {
-        this.adminContentJobId = adminContentJobId;
         this.type = type;
         this.status = status;
-        this.totalRead = totalRead;
-        this.totalWrite = totalWrite;
-        this.totalSkip = totalSkip;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    public static BatchJobMetric of(Long adminContentJobId, BatchJobType type,
-            BatchJobStatus status, long totalRead, long totalWrite, long totalSkip,
+    public static BatchJobMetric of(BatchJobType type, BatchJobStatus status,
             LocalDateTime startTime, LocalDateTime endTime) {
 
         return BatchJobMetric.builder()
-                .adminContentJobId(adminContentJobId)
                 .type(type)
                 .status(status)
-                .totalRead(totalRead)
-                .totalWrite(totalWrite)
-                .totalSkip(totalSkip)
                 .startTime(startTime)
                 .endTime(endTime)
                 .build();
     }
 
-    public void update(BatchJobStatus status, long totalRead, long totalWrite, long totalSkip,
-            LocalDateTime startTime, LocalDateTime endTime) {
+    public void update(BatchJobStatus status, long totalRead, long totalComplete, long totalInvalid,
+            long totalFailed, LocalDateTime startTime, LocalDateTime endTime) {
         this.status = status;
-        this.totalRead += totalRead;
-        this.totalWrite += totalWrite;
-        this.totalSkip += totalSkip;
+        this.totalRead = totalRead;
+        this.totalComplete = totalComplete;
+        this.totalInvalid = totalInvalid;
+        this.totalFailed = totalFailed;
         this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public void updateEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
 

@@ -1,17 +1,34 @@
 package com.example.udtbe.domain.batch.repository;
 
+import static com.example.udtbe.domain.batch.entity.QAdminContentDeleteJob.adminContentDeleteJob;
+import static com.example.udtbe.domain.batch.entity.QAdminContentRegisterJob.adminContentRegisterJob;
+import static com.example.udtbe.domain.batch.entity.QAdminContentUpdateJob.adminContentUpdateJob;
+import static com.example.udtbe.domain.batch.entity.QBatchJobMetric.batchJobMetric;
+
+import com.example.udtbe.domain.admin.dto.AdminContentMapper;
+import com.example.udtbe.domain.admin.dto.common.BatchJobMetricDTO;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import com.example.udtbe.global.exception.RestApiException;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -22,6 +39,8 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryCustom {
 
+    private final JPAQueryFactory jpaQueryFactory;
+
     @PersistenceContext
     private final EntityManager em;
 
@@ -30,7 +49,7 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
             int size,
             BatchFilterType type) {
 
-        Long jobId = Long.MAX_VALUE;
+        long jobId = Long.MAX_VALUE;
         LocalDateTime createdAt = LocalDateTime.now();
         String jobType = BatchJobType.REGISTER.name();
 
@@ -47,21 +66,23 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
 
         String statusCondition = "";
         if (BatchFilterType.FAILED.equals(type)) {
-            statusCondition = "status = 'FAILED' AND";
-        } else if (BatchFilterType.RESERVATION.equals(type)) {
-            statusCondition = "status NOT IN ('FAILED', 'COMPLETED') AND\n";
+            statusCondition = "status = 'FAILED' AND\n";
+        } else if (BatchFilterType.PENDING.equals(type)) {
+            statusCondition = "status = 'PENDING'  AND\n";
+        } else if (BatchFilterType.INVALID.equals(type)) {
+            statusCondition = "status = 'INVALID'  AND\n";
         }
 
         String sql = """
-                SELECT id, status, member_id, created_at, updated_at, finished_at, job_type
+                SELECT id, status, member_id, created_at, scheduled_at, finished_at, job_type
                 FROM (
-                    SELECT admin_content_register_job_id AS id, status, member_id, created_at, updated_at, finished_at, 'REGISTER' AS job_type
+                    SELECT admin_content_register_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'REGISTER' AS job_type
                     FROM admin_content_register_job
                     UNION ALL
-                    SELECT admin_content_update_job_id AS id, status, member_id, created_at, updated_at, finished_at, 'UPDATE' AS job_type
+                    SELECT admin_content_update_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'UPDATE' AS job_type
                     FROM admin_content_update_job
                     UNION ALL
-                    SELECT admin_content_delete_job_id AS id, status, member_id, created_at, updated_at, finished_at, 'DELETE' AS job_type
+                    SELECT admin_content_delete_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'DELETE' AS job_type
                     FROM admin_content_delete_job
                 ) AS jobs
                 WHERE (
@@ -112,4 +133,159 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
 
         return new CursorPageResponse<>(results, nextCursor, results.size() < size + 1);
     }
+
+    @Override
+    public BatchJobMetricDTO getContentRegisterJobMetrics(Long metricId) {
+
+        List<Tuple> counts = jpaQueryFactory
+                .select(adminContentRegisterJob.status, adminContentRegisterJob.id.count())
+                .from(adminContentRegisterJob)
+                .where(adminContentRegisterJob.status.in(
+                        BatchStatus.COMPLETED,
+                        BatchStatus.FAILED,
+                        BatchStatus.INVALID).and(
+                        adminContentRegisterJob.batchJobMetricId.eq(metricId)))
+                .groupBy(adminContentRegisterJob.status)
+                .fetch();
+
+        Map<BatchStatus, Long> countMap = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(adminContentRegisterJob.status),
+                        tuple -> Optional.ofNullable(tuple.get(adminContentRegisterJob.id.count()))
+                                .orElse(0L)
+                ));
+
+        long totalCompleted = countMap.getOrDefault(BatchStatus.COMPLETED, 0L);
+        long totalFailed = countMap.getOrDefault(BatchStatus.FAILED, 0L);
+        long totalInvalid = countMap.getOrDefault(BatchStatus.INVALID, 0L);
+        long totalRead = totalCompleted + totalFailed + totalInvalid;
+
+        return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
+    }
+
+
+    @Override
+    public BatchJobMetricDTO getContentUpdateJobMetrics(Long metricId) {
+
+        List<Tuple> counts = jpaQueryFactory
+                .select(adminContentUpdateJob.status, adminContentUpdateJob.id.count())
+                .from(adminContentUpdateJob)
+                .where(adminContentUpdateJob.status.in(
+                        BatchStatus.COMPLETED,
+                        BatchStatus.FAILED,
+                        BatchStatus.INVALID).and(
+                        adminContentUpdateJob.batchJobMetricId.eq(metricId)))
+                .groupBy(adminContentUpdateJob.status)
+                .fetch();
+
+        Map<BatchStatus, Long> countMap = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(adminContentUpdateJob.status),
+                        tuple -> Optional.ofNullable(tuple.get(adminContentUpdateJob.id.count()))
+                                .orElse(0L)
+                ));
+
+        long totalCompleted = countMap.getOrDefault(BatchStatus.COMPLETED, 0L);
+        long totalFailed = countMap.getOrDefault(BatchStatus.FAILED, 0L);
+        long totalInvalid = countMap.getOrDefault(BatchStatus.INVALID, 0L);
+        long totalRead = totalCompleted + totalFailed + totalInvalid;
+
+        return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
+    }
+
+    @Override
+    public BatchJobMetricDTO getContentDeleteJobMetrics(Long metricId) {
+
+        List<Tuple> counts = jpaQueryFactory
+                .select(adminContentDeleteJob.status, adminContentDeleteJob.id.count())
+                .from(adminContentDeleteJob)
+                .where(adminContentDeleteJob.status.in(
+                        BatchStatus.COMPLETED,
+                        BatchStatus.FAILED,
+                        BatchStatus.INVALID).and(
+                        adminContentDeleteJob.batchJobMetricId.eq(metricId)))
+                .groupBy(adminContentDeleteJob.status)
+                .fetch();
+
+        Map<BatchStatus, Long> countMap = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(adminContentDeleteJob.status),
+                        tuple -> Optional.ofNullable(tuple.get(adminContentDeleteJob.id.count()))
+                                .orElse(0L)
+                ));
+
+        long totalCompleted = countMap.getOrDefault(BatchStatus.COMPLETED, 0L);
+        long totalFailed = countMap.getOrDefault(BatchStatus.FAILED, 0L);
+        long totalInvalid = countMap.getOrDefault(BatchStatus.INVALID, 0L);
+        long totalRead = totalCompleted + totalFailed + totalInvalid;
+
+        return new BatchJobMetricDTO(totalRead, totalCompleted, totalInvalid, totalFailed);
+    }
+
+    @Override
+    public AdminScheduledContentMetricGetResponse getScheduledContentMetrics() {
+
+        Tuple result = jpaQueryFactory
+                .select(
+                        batchJobMetric.totalRead.sumBigInteger().coalesce(BigInteger.ZERO),
+                        batchJobMetric.totalComplete.sumBigInteger().coalesce(BigInteger.ZERO),
+                        batchJobMetric.totalInvalid.sumBigInteger().coalesce(BigInteger.ZERO),
+                        batchJobMetric.totalFailed.sumBigInteger().coalesce(BigInteger.ZERO)
+                )
+                .from(batchJobMetric)
+                .fetchOne();
+
+        long totalRead = Objects.requireNonNull(result.get(0, BigInteger.class)).longValue();
+        long totalComplete = Objects.requireNonNull(result.get(1, BigInteger.class)).longValue();
+        long totalInvalid = Objects.requireNonNull(result.get(2, BigInteger.class)).longValue();
+        long totalFailed = Objects.requireNonNull(result.get(3, BigInteger.class)).longValue();
+
+        return new AdminScheduledContentMetricGetResponse(
+                totalRead,
+                totalComplete,
+                totalInvalid,
+                totalFailed
+        );
+    }
+
+    @Override
+    public CursorPageResponse<AdminScheduledContentResultGetResponse> getScheduledContentResults(
+            String cursor, int size) {
+
+        Long cursorId;
+        if (!StringUtils.hasText(cursor)) {
+            cursorId = null;
+        } else {
+            try {
+                cursorId = Long.parseLong(cursor);
+            } catch (NumberFormatException e) {
+                throw new RestApiException(BatchErrorCode.CURSOR_BAD_REQUEST);
+            }
+        }
+
+        List<BatchJobMetric> results = jpaQueryFactory
+                .selectFrom(batchJobMetric)
+                .where(cursorId != null ? batchJobMetric.id.lt(cursorId) : null)
+                .orderBy(batchJobMetric.id.desc())
+                .limit(size + 1)
+                .fetch();
+
+        boolean hasNext = results.size() > size;
+        if (hasNext) {
+            results = results.subList(0, size);
+        }
+
+        List<AdminScheduledContentResultGetResponse> responses = results.stream()
+                .map(AdminContentMapper::toAdminScheduledContentResultGetResponse
+                )
+                .toList();
+
+        String nextCursor = hasNext && !results.isEmpty()
+                ? results.get(results.size() - 1).getId().toString()
+                : null;
+
+        return new CursorPageResponse<>(responses, nextCursor, hasNext);
+    }
+
+
 }

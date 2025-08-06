@@ -1,8 +1,6 @@
 package com.example.udtbe.domain.batch.listener;
 
-import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.config.BatchConfig;
-import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.event.BatchJobCompleteEvent;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class StepStatsListener implements StepExecutionListener {
 
-    private final AdminService adminService;
     private final ApplicationEventPublisher eventPublisher;
 
     // 커스텀 통계 추적
@@ -41,7 +38,6 @@ public class StepStatsListener implements StepExecutionListener {
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
-        BatchJobType batchJobType = determineBatchJobType(stepExecution.getStepName());
 
         long totalRead = stepExecution.getReadCount();
         long totalWrite = stepExecution.getWriteCount();
@@ -54,19 +50,6 @@ public class StepStatsListener implements StepExecutionListener {
 
         // 에러 정보 로깅
         logFailureExceptions(stepExecution);
-
-        BatchJobMetric metric = BatchJobMetric.of(
-                stepExecution.getJobExecutionId(),
-                batchJobType,
-                batchJobStatus,
-                totalRead,
-                totalWrite,
-                totalSkip,
-                stepExecution.getStartTime(),
-                stepExecution.getEndTime()
-        );
-
-        adminService.updateMetric(metric);
 
         if (BatchConfig.DELETE_STEP.equals(stepExecution.getStepName())) {
             publishBatchCompleteEvent(stepExecution, batchJobStatus, totalRead);
