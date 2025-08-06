@@ -87,6 +87,11 @@ public class AuthService {
 
     private void addToBlacklist(String accessToken) {
         Long expiration = tokenProvider.getExpiration(accessToken, new Date());
+
+        if (expiration <= 0) {
+            return;
+        }
+
         redisUtil.setValues(accessToken, BLACKLIST, Duration.ofMillis(expiration));
 
         if (!BLACKLIST.equals(redisUtil.getValues(accessToken))) {
