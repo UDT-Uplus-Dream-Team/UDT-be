@@ -151,13 +151,6 @@ public interface AdminControllerApiSpec {
             @Valid @RequestBody AdminDirectorsRegisterRequest adminDirectorsRegisterRequest
     );
 
-    @Operation(summary = "배치 스케쥴러 테스트용 API", description = "콘텐츠 등록/수정/삭제를 배치처리 한다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "배치 성공")
-    })
-    @PostMapping("/api/admin/contents/scheduler-test")
-    ResponseEntity<Void> schedulerTestContent();
-
     @Operation(summary = "감독 조회", description = "이름으로 감독을 검색한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "이름이 부분|완전 일치한 감독 목록을 반환"),
