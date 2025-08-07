@@ -20,7 +20,7 @@ public interface FileControllerApiSpec {
 
     @Operation(summary = "파일 업로드 API", description = "파일을 S3에 업로드 한다.")
     @ApiResponse(useReturnTypeSchema = true)
-    @PostMapping(value = "/api/files/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/api/admin/files/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UploadFilesResponseDto> uploadFromProfile(
             @RequestPart("files") @NotNull @Size(min = 1, max = 3) List<MultipartFile> files,
             @AuthenticationPrincipal Member member
