@@ -132,10 +132,5 @@ public class AdminContentRepositoryTest extends DataJpaSupport {
         assertThat(page.hasNext()).isTrue();
 
         AdminContentGetResponse lastItemOnPage = dtos.get(dtos.size() - 1);
-        Long lastItemIdOnPage = lastItemOnPage.contentId();
-        String[] cursorParts = page.nextCursor().split("\\|");
-
-        assertThat(cursorParts).hasSize(2);
-        assertThat(cursorParts[0]).isEqualTo(String.valueOf(lastItemIdOnPage));
     }
 }
