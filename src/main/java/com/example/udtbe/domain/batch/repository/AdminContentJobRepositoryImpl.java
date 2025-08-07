@@ -74,15 +74,15 @@ public class AdminContentJobRepositoryImpl implements AdminContentJobRepositoryC
         }
 
         String sql = """
-                SELECT id, status, member_id, created_at, scheduled_at, finished_at, job_type
+                SELECT id, status, admin_id, created_at, scheduled_at, finished_at, job_type
                 FROM (
-                    SELECT admin_content_register_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'REGISTER' AS job_type
+                    SELECT admin_content_register_job_id AS id, status, admin_id, created_at, scheduled_at, finished_at, 'REGISTER' AS job_type
                     FROM admin_content_register_job
                     UNION ALL
-                    SELECT admin_content_update_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'UPDATE' AS job_type
+                    SELECT admin_content_update_job_id AS id, status, admin_id, created_at, scheduled_at, finished_at, 'UPDATE' AS job_type
                     FROM admin_content_update_job
                     UNION ALL
-                    SELECT admin_content_delete_job_id AS id, status, member_id, created_at, scheduled_at, finished_at, 'DELETE' AS job_type
+                    SELECT admin_content_delete_job_id AS id, status, admin_id, created_at, scheduled_at, finished_at, 'DELETE' AS job_type
                     FROM admin_content_delete_job
                 ) AS jobs
                 WHERE (
