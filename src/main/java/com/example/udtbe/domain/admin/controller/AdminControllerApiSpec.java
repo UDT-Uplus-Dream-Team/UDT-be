@@ -8,14 +8,19 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminSigninRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -23,17 +28,20 @@ import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
-import com.example.udtbe.domain.member.entity.Member;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.global.dto.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,7 +58,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/registerjob")
     ResponseEntity<AdminContentRegisterResponse> registerContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @Valid @RequestBody AdminContentRegisterRequest adminContentRegisterRequest
     );
 
@@ -62,7 +70,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/updatejob/{contentId}")
     ResponseEntity<AdminContentUpdateResponse> updateContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @PathVariable(name = "contentId") Long contentId,
             @Valid @RequestBody AdminContentUpdateRequest adminContentUpdateRequest
     );
@@ -74,7 +82,7 @@ public interface AdminControllerApiSpec {
     })
     @PostMapping("/api/admin/contents/deletejob/{contentId}")
     ResponseEntity<AdminContentDeleteResponse> deleteContent(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Admin admin,
             @PathVariable(name = "contentId") Long contentId
     );
 
@@ -95,7 +103,6 @@ public interface AdminControllerApiSpec {
             @PathVariable(name = "contentId") Long contentId
     );
 
-
     @Operation(summary = "유저 목록 조회", description = "유저 목록 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저 목록 및 유저별 피드백 합계 정보 반환")
     @GetMapping("/api/admin/users")
@@ -103,6 +110,12 @@ public interface AdminControllerApiSpec {
             @ModelAttribute @Valid AdminMemberListGetRequest adminMemberListGetRequest
     );
 
+    @Operation(summary = "Feedback 통계 전체 동기화", description = "풀 스캔으로 전체 Feedback 통계를 동기화 요청합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "풀 스캔 동기화 요청이 정상 접수되었습니다.")
+    })
+    @PostMapping("/api/admin/feedback/full-scan")
+    ResponseEntity<Void> triggerFullScan();
 
     @Operation(summary = "유저 장르별 피드백 지표 상세 조회", description = "유저의 장르별 피드백 정보를 조회합니다.")
     @ApiResponse(responseCode = "200", description = "유저의 장르별 피드백 정보 반환")
@@ -163,21 +176,21 @@ public interface AdminControllerApiSpec {
             @Valid @ModelAttribute AdminScheduledContentsRequest adminContentJobGetsRequest
     );
 
-    @Operation(summary = "배치 결과 목록 조회", description = "배치 집계 결과 목록을 조회한다.")
+    @Operation(summary = "배치 별 집계 결과 목록 조회", description = "배치 별 집계 결과 목록을 조회한다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "배치 결과 목록반환"),
+            @ApiResponse(responseCode = "200", description = "배치 별 결과 목록 반환"),
     })
     @GetMapping("/api/admin/batch/results")
-    ResponseEntity<List<AdminScheduledContentResultResponse>> getBatchResults();
+    ResponseEntity<CursorPageResponse<AdminScheduledContentResultGetResponse>> getBatchResults(
+            @Valid @ModelAttribute AdminScheduledContentResultGetsRequest request
+    );
 
-    @Operation(summary = "전체 배치 집계 결과 조회", description = "전체 배치 집계 결과를 조회한다.")
+    @Operation(summary = "전체 배치 작업 집계 결과 조회", description = "전체 배치 작업 집계 결과를 조회한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "전체 배치 집계 조회")
     })
-
     @GetMapping("/api/admin/batch/metrics")
     ResponseEntity<AdminScheduledContentMetricGetResponse> getBatchMetric();
-
 
     @Operation(summary = "콘텐츠 카테고리 지표 조회", description = "콘텐츠 카테고리 별 비율 정보를 가져온다.")
     @ApiResponses({
@@ -185,5 +198,71 @@ public interface AdminControllerApiSpec {
     })
     @GetMapping("/api/admin/metrics/categories")
     ResponseEntity<AdminContentCategoryMetricResponse> getContentCategoryMetric();
-  
+
+    @Operation(summary = "배치 등록 작업 상세보기", description = "등록 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "등록 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/registerjob/{jobId}")
+    ResponseEntity<AdminContentRegJobGetDetailResponse> getBatchRegJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
+
+    @Operation(summary = "배치 수정 작업 상세보기", description = "수정 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/updatejob/{jobId}")
+    ResponseEntity<AdminContentUpJobGetDetailResponse> getBatchUpJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
+
+    @Operation(summary = "삭제 배치 작업 상세보기", description = "삭제 배치 작업 상세를 볼 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제 배치 작업 상세 반환"),
+    })
+    @GetMapping("/api/admin/batch/contents/deletejob/{jobId}")
+    ResponseEntity<AdminContentDelJobGetDetailResponse> getBatchDelJobDetails(
+            @PathVariable(value = "jobId") Long jobId
+    );
+
+    @Operation(summary = "어드민 로그인", description = "백오피스에서 관리자 로그인을 한다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "백오피스 관리자 로그인 성공"),
+    })
+    @PostMapping("/api/admin/signin")
+    ResponseEntity<Void> signin(@RequestBody @Valid AdminSigninRequest request,
+            HttpServletResponse response);
+
+
+    @Operation(summary = "INVALID 상태 배치 작업 전체 삭제", description = "모든 INVALID 상태의 배치 작업(등록/수정/삭제)을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제된 작업 건수 정보 반환"),
+    })
+    @DeleteMapping("/api/admin/batch/invalid")
+    ResponseEntity<Void> deleteInvalidBatchJobs();
+
+    @Operation(summary = "배치 예정 작업 집계", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계를 얻을 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "콘텐츠 등록/수정/삭제에 대한 배치 예정 작업 집계 반환")
+    })
+    @GetMapping("/api/admin/batch/metrics/reservation")
+    ResponseEntity<AdminScheduledResContentMetricResponse> getScheduledResContentMetric();
+
+    @Operation(summary = "배치 작업 실패에 대한 재시도", description = "배치 작업 실패에 대한 재시도를 할 수 있다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "배치 작업 재시도")
+    })
+    @PostMapping("/api/admin/batch")
+    ResponseEntity<Void> retryFailedContents();
+
+    @Operation(summary = "어드민 로그아웃 API", description = "로그아웃한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/api/admin/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response);
+
+    @Operation(summary = "어드민 토큰 재발급 API", description = "토큰을 재발급한다.")
+    @ApiResponse(useReturnTypeSchema = true)
+    @PostMapping("/api/admin/reissue/token")
+    public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response);
 }

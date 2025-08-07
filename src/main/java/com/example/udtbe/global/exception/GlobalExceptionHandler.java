@@ -30,7 +30,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RestApiException.class)
     public ResponseEntity<Object> handleCustomException(RestApiException e) {
         ErrorCode errorCode = e.getErrorCode();
-        putLogContext(errorCode); // MDC 등록
+        putLogContext(errorCode);
         log.warn("[API 예외] {}: {}", errorCode.name(), errorCode.getMessage());
         return handleExceptionInternal(errorCode);
     }

@@ -27,7 +27,7 @@ public class TokenExceptionFilter extends OncePerRequestFilter {
 
             log.warn("JWT 검증 실패로 인한 예외 발생 : {}", e.getMessage());
 
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);  // 401 Unauthorized
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 

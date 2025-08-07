@@ -5,6 +5,7 @@ import com.example.udtbe.domain.admin.dto.AdminMemberMapper;
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminMemberGenreFeedbackDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
+import com.example.udtbe.domain.admin.dto.common.BatchJobMetricDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminContentGetsRequest;
@@ -13,14 +14,18 @@ import com.example.udtbe.domain.admin.dto.request.AdminContentUpdateRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminDirectorsRegisterRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminMemberListGetRequest;
+import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentResultGetsRequest;
 import com.example.udtbe.domain.admin.dto.request.AdminScheduledContentsRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentDelJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentDeleteResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentRegJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentRegisterResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminContentUpJobGetDetailResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentUpdateResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
@@ -28,17 +33,21 @@ import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
 import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
 import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobStatus;
+import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
 import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
 import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
-import com.example.udtbe.domain.batch.repository.JobMetricRepository;
+import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import com.example.udtbe.domain.content.dto.CastMapper;
 import com.example.udtbe.domain.content.dto.DirectorMapper;
 import com.example.udtbe.domain.content.entity.Cast;
@@ -72,7 +81,10 @@ import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.service.MemberQuery;
 import com.example.udtbe.global.dto.CursorPageResponse;
+import com.example.udtbe.global.exception.RestApiException;
+import com.example.udtbe.global.exception.code.EnumErrorCode;
 import com.example.udtbe.global.log.annotation.LogReturn;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -104,15 +116,15 @@ public class AdminService {
     private final AdminContentMapper adminContentMapper;
     private final AdminContentJobRepositoryImpl adminContentJobRepositoryImpl;
     private final FeedbackStatisticsRepositoryImpl feedbackStatisticsRepositoryImpl;
-    private final JobMetricRepository jobMetricRepository;
+    private final BatchJobMetricRepository batchJobMetricRepository;
 
 
     @Transactional
     @LogReturn
-    public AdminContentRegisterResponse registerBulkContent(Member member,
+    public AdminContentRegisterResponse registerBulkContent(Admin admin,
             AdminContentRegisterRequest request) {
         AdminContentRegisterJob job = AdminContentMapper.toContentRegisterJob(request,
-                member.getId());
+                admin.getId());
 
         adminContentRegisterJobRepository.save(job);
         return AdminContentMapper.toContentRegisterResponse(job.getId());
@@ -120,19 +132,19 @@ public class AdminService {
 
     @Transactional
     @LogReturn
-    public AdminContentUpdateResponse updateBulkContent(Member member, Long contentId,
+    public AdminContentUpdateResponse updateBulkContent(Admin admin, Long contentId,
             AdminContentUpdateRequest request) {
         AdminContentUpdateJob job = AdminContentMapper.toContentUpdateJob(request, contentId,
-                member.getId());
+                admin.getId());
         adminContentUpdateJobRepository.save(job);
         return AdminContentMapper.toContentUpdateResponse(job.getId());
     }
 
     @Transactional
     @LogReturn
-    public AdminContentDeleteResponse deleteBulkContent(Member member, Long contentId) {
+    public AdminContentDeleteResponse deleteBulkContent(Admin admin, Long contentId) {
         AdminContentDeleteJob job = AdminContentMapper.toContentDeleteJob(contentId,
-                member.getId());
+                admin.getId());
         adminContentDeleteJobRepository.save(job);
         return AdminContentMapper.toContentDeleteResponse(job.getId());
     }
@@ -250,7 +262,7 @@ public class AdminService {
             }
         }
 
-        ContentMetadata metadata = adminQuery.findContentMetadateByContentId(contentId);
+        ContentMetadata metadata = adminQuery.findContentMetadataByContentId(contentId);
         List<String> categoryTags = request.categories().stream()
                 .map(AdminCategoryDTO::categoryType)
                 .toList();
@@ -268,7 +280,7 @@ public class AdminService {
         Content content = adminQuery.findAndValidContentByContentId(contentId);
         content.delete(true);
         deleteContentRelation(content);
-        ContentMetadata contentMetadata = adminQuery.findContentMetadateByContentId(contentId);
+        ContentMetadata contentMetadata = adminQuery.findContentMetadataByContentId(contentId);
         contentMetadata.delete(true);
     }
 
@@ -403,6 +415,7 @@ public class AdminService {
         return adminQuery.getDirectors(adminDirectorsGetRequest);
     }
 
+    @Transactional(readOnly = true)
     public CursorPageResponse<AdminScheduledContentResponse> getBatchJobs(
             AdminScheduledContentsRequest request) {
         BatchFilterType type = BatchFilterType.from(request.type());
@@ -411,46 +424,113 @@ public class AdminService {
     }
 
     @Transactional
-    public void updateMetric(BatchJobMetric metric) {
-        BatchJobMetric adminContentJobMetric = adminQuery.findAdminContentJobMetric(
-                metric.getType());
+    public void allUpdateMetric() {
+        List<BatchJobMetric> metrics = batchJobMetricRepository.findAll();
+        metrics.forEach(metric -> {
+            updateMetric(metric.getId());
+        });
+    }
 
-        adminContentJobMetric.update(metric.getStatus(), metric.getTotalRead(),
-                metric.getTotalWrite(), metric.getTotalSkip(), metric.getStartTime(),
-                metric.getEndTime());
+    private void updateMetric(Long metricJobId) {
+        BatchJobMetric metricJob = adminQuery.findAdminContentJobMetric(
+                metricJobId);
+
+        BatchJobMetricDTO dto;
+
+        if (metricJob.getType().equals(BatchJobType.REGISTER)) {
+            dto = adminContentJobRepositoryImpl.getContentRegisterJobMetrics(metricJobId);
+        } else if (metricJob.getType().equals(BatchJobType.UPDATE)) {
+            dto = adminContentJobRepositoryImpl.getContentUpdateJobMetrics(metricJobId);
+        } else if (metricJob.getType().equals(BatchJobType.DELETE)) {
+            dto = adminContentJobRepositoryImpl.getContentDeleteJobMetrics(metricJobId);
+        } else {
+            throw new RestApiException(EnumErrorCode.BATCH_JOB_TYPE_BAD_REQUEST);
+        }
+
+        BatchJobStatus status;
+
+        if (dto.totalRead() == 0) {
+            batchJobMetricRepository.deleteById(metricJobId);
+            return;
+        }
+
+        if (metricJob.getTotalRead() != dto.totalRead()
+                || metricJob.getTotalFailed() != dto.totalFailed()
+                || metricJob.getTotalInvalid() != dto.totalInvalid()) {
+            metricJob.updateEndTime(LocalDateTime.now());
+        }
+
+        if (dto.totalRead() == dto.totalCompleted()) {
+            status = BatchJobStatus.COMPLETED;
+        } else if (dto.totalRead() == dto.totalFailed() || dto.totalRead() == dto.totalInvalid()) {
+            status = BatchJobStatus.FAILED;
+        } else {
+            status = BatchJobStatus.PARTIAL_COMPLETED;
+        }
+
+        metricJob.update(
+                status,
+                dto.totalRead(),
+                dto.totalCompleted(),
+                dto.totalInvalid(),
+                dto.totalFailed(),
+                metricJob.getStartTime(),
+                metricJob.getEndTime()
+        );
     }
 
     @Transactional
-    public List<AdminScheduledContentResultResponse> getsScheduledResults() {
-        List<BatchJobMetric> metrics = jobMetricRepository.findAllByOrderByIdAsc();
+    public BatchJobMetric initMetric(BatchJobType type) {
+        return AdminContentMapper.initBatchJobMetric(type);
+    }
 
-        return metrics.stream().map(m ->
-                new AdminScheduledContentResultResponse(
-                        m.getId(),
-                        m.getType(),
-                        m.getStatus(),
-                        m.getTotalRead(),
-                        m.getTotalWrite(),
-                        m.getTotalSkip(),
-                        m.getStartTime(),
-                        m.getEndTime()
-                )
-        ).toList();
+    @Transactional
+    public CursorPageResponse<AdminScheduledContentResultGetResponse> getsScheduledResults(
+            AdminScheduledContentResultGetsRequest request) {
+        return adminContentJobRepositoryImpl.getScheduledContentResults(request.cursor(),
+                request.size());
     }
 
     @Transactional
     public AdminScheduledContentMetricGetResponse getScheduledMetric() {
-        List<BatchJobMetric> metrics = jobMetricRepository.findAll();
-
-        long totalRead = metrics.stream().mapToLong(BatchJobMetric::getTotalRead).sum();
-        long totalWrite = metrics.stream().mapToLong(BatchJobMetric::getTotalWrite).sum();
-        long totalSkip = metrics.stream().mapToLong(BatchJobMetric::getTotalSkip).sum();
-
-        return new AdminScheduledContentMetricGetResponse(totalRead, totalWrite, totalSkip);
+        return adminContentJobRepositoryImpl.getScheduledContentMetrics();
     }
 
+    @Transactional
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
         return adminQuery.getContentCategoryMetric();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminContentRegJobGetDetailResponse getBatchRegisterJobDetails(Long jobId) {
+        AdminContentRegisterJob job = adminQuery.findAdminContentRegisterJobById(jobId);
+
+        return AdminContentMapper.toAdminContentRegJobDetailResponse(job);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminContentUpJobGetDetailResponse getBatchUpJobDetails(Long jobId) {
+        AdminContentUpdateJob job = adminQuery.findAdminContentUpdateJobById(jobId);
+
+        return AdminContentMapper.toAdminContentUpdateJobDetailResponse(job);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminContentDelJobGetDetailResponse getBatchDelJobDetails(Long jobId) {
+        AdminContentDeleteJob job = adminQuery.findAdminContentDelJobById(jobId);
+        return AdminContentMapper.toAdminContentDelJobDetailResponse(job);
+    }
+
+    @Transactional
+    public void deleteInvalidBatchJobs() {
+        adminQuery.deleteInvalidBatchJobs();
+        allUpdateMetric();
+    }
+
+
+    @Transactional(readOnly = true)
+    public AdminScheduledResContentMetricResponse getScheduledResContentMetric() {
+        return adminQuery.getCountAdminContentResJob();
     }
 
 }

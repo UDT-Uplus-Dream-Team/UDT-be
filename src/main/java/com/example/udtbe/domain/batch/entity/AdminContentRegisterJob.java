@@ -18,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.hibernate.annotations.Type;
 
 @Entity
 @Getter
+@Table(name = "admin_content_register_job")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminContentRegisterJob extends TimeBaseEntity {
 
@@ -45,7 +47,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
     private LocalDateTime finishedAt;
 
-    private Long memberId;
+    private Long adminId;
 
     private String title;
 
@@ -86,8 +88,18 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
     @Column(name = "countries")
     private List<String> countries;
 
+    private String errorCode;
+
+    private String errorMessage;
+
+    private int retryCount = 0;
+
+    private int skipCount = 0;
+
+    private Long batchJobMetricId;
+
     @Builder(access = PRIVATE)
-    private AdminContentRegisterJob(BatchStatus status, Long memberId,
+    private AdminContentRegisterJob(BatchStatus status, Long adminId,
             LocalDateTime scheduledAt,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl,
@@ -97,7 +109,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
 
         this.status = status;
         this.scheduledAt = scheduledAt;
-        this.memberId = memberId;
+        this.adminId = adminId;
         this.title = title;
         this.description = description;
         this.posterUrl = posterUrl;
@@ -114,7 +126,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentRegisterJob of(BatchStatus batchStepStatus, Long memberId,
+    public static AdminContentRegisterJob of(BatchStatus batchStepStatus, Long adminId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
@@ -122,7 +134,7 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         return AdminContentRegisterJob.builder()
                 .status(batchStepStatus)
                 .scheduledAt(getScheduledAt())
-                .memberId(memberId)
+                .adminId(adminId)
                 .title(title)
                 .description(description)
                 .posterUrl(posterUrl)
@@ -144,11 +156,28 @@ public class AdminContentRegisterJob extends TimeBaseEntity {
         this.status = status;
     }
 
+    public void setError(String errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount += 1;
+    }
+
+    public void incrementSkipCount() {
+        this.skipCount += 1;
+    }
+
     private static LocalDateTime getScheduledAt() {
         return TimeUtil.getScheduledAt();
     }
 
     public void finish() {
         finishedAt = LocalDateTime.now();
+    }
+
+    public void setBatchJobMetricId(Long batchJobMetricId) {
+        this.batchJobMetricId = batchJobMetricId;
     }
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(name = "admin_content_delete_job")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminContentDeleteJob extends TimeBaseEntity {
 
@@ -36,25 +38,36 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
     private LocalDateTime finishedAt;
 
-    private Long memberId;
+    private Long adminId;
 
     private Long contentId;
 
+    private String errorCode;
+
+    private String errorMessage;
+
+    private int retryCount = 0;
+
+    private int skipCount = 0;
+
+    private Long batchJobMetricId;
 
     @Builder(access = PRIVATE)
-    private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long memberId,
+    private AdminContentDeleteJob(BatchStatus status, LocalDateTime scheduledAt, Long adminId,
             Long contentId) {
         this.status = status;
         this.scheduledAt = scheduledAt;
-        this.memberId = memberId;
+        this.adminId = adminId;
         this.contentId = contentId;
+        this.retryCount = 0;
+        this.skipCount = 0;
     }
 
-    public static AdminContentDeleteJob of(BatchStatus status, Long memberId, Long contentId) {
+    public static AdminContentDeleteJob of(BatchStatus status, Long adminId, Long contentId) {
         return AdminContentDeleteJob.builder()
                 .status(status)
                 .scheduledAt(getScheduledAt())
-                .memberId(memberId)
+                .adminId(adminId)
                 .contentId(contentId)
                 .build();
     }
@@ -63,6 +76,18 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
         this.status = status;
     }
 
+    public void setError(String errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount += 1;
+    }
+
+    public void incrementSkipCount() {
+        this.skipCount += 1;
+    }
 
     private static LocalDateTime getScheduledAt() {
         return TimeUtil.getScheduledAt();
@@ -70,6 +95,10 @@ public class AdminContentDeleteJob extends TimeBaseEntity {
 
     public void finish() {
         finishedAt = LocalDateTime.now();
+    }
+
+    public void setBatchJobMetricId(Long batchJobMetricId) {
+        this.batchJobMetricId = batchJobMetricId;
     }
 }
 

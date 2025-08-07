@@ -10,11 +10,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.udtbe.common.fixture.BatchJobMetricFixture;
 import com.example.udtbe.common.fixture.MemberFixture;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminCastDetailsDTO;
@@ -35,17 +35,18 @@ import com.example.udtbe.domain.admin.dto.response.AdminContentGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsRegisterResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMemberInfoGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminMembersGetResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentMetricGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResponse;
-import com.example.udtbe.domain.admin.dto.response.AdminScheduledContentResultResponse;
 import com.example.udtbe.domain.admin.service.AdminQuery;
 import com.example.udtbe.domain.admin.service.AdminService;
-import com.example.udtbe.domain.batch.entity.BatchJobMetric;
+import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
+import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
+import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.enums.BatchFilterType;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
+import com.example.udtbe.domain.batch.exception.BatchErrorCode;
 import com.example.udtbe.domain.batch.repository.AdminContentJobRepositoryImpl;
-import com.example.udtbe.domain.batch.repository.JobMetricRepository;
+import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -118,7 +119,7 @@ public class AdminServiceTest {
     @Mock
     private FeedbackStatisticsRepository feedbackStatisticsRepository;
     @Mock
-    private JobMetricRepository jobMetricRepository;
+    private BatchJobMetricRepository batchJobMetricRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -264,7 +265,7 @@ public class AdminServiceTest {
         ContentMetadata metadata = mock(ContentMetadata.class);
 
         given(adminQuery.findContentByContentId(id)).willReturn(content);
-        given(adminQuery.findContentMetadateByContentId(id))
+        given(adminQuery.findContentMetadataByContentId(id))
                 .willReturn(metadata);
 
         AdminContentUpdateRequest adminContentUpdateRequest = new AdminContentUpdateRequest(
@@ -323,7 +324,7 @@ public class AdminServiceTest {
                 .mapToInt(dto -> dto.genres().size()).sum();
         assertAll(
                 () -> verify(adminQuery).findContentByContentId(eq(id)),
-                () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
+                () -> verify(adminQuery).findContentMetadataByContentId(eq(id)),
                 () -> verify(content).update(
                         eq(adminContentUpdateRequest.title()),
                         eq(adminContentUpdateRequest.description()),
@@ -493,7 +494,7 @@ public class AdminServiceTest {
         Content content = mock(Content.class);
         ContentMetadata metadata = mock(ContentMetadata.class);
         given(adminQuery.findAndValidContentByContentId(id)).willReturn(content);
-        given(adminQuery.findContentMetadateByContentId(id))
+        given(adminQuery.findContentMetadataByContentId(id))
                 .willReturn(metadata);
 
         // when
@@ -511,7 +512,7 @@ public class AdminServiceTest {
                 () -> verify(contentPlatformRepository).deleteAllByContent(content),
                 () -> verify(contentDirectorRepository).deleteAllByContent(content),
 
-                () -> verify(adminQuery).findContentMetadateByContentId(eq(id)),
+                () -> verify(adminQuery).findContentMetadataByContentId(eq(id)),
                 () -> verify(metadata).delete(eq(true))
         );
     }
@@ -709,66 +710,77 @@ public class AdminServiceTest {
     }
 
 
-    @DisplayName("배치 작업의 메트릭을 업데이트할 수 있다.")
+    @DisplayName("배치 등록 작업의 상세 정보를 조회할 수 있다.")
     @Test
-    void updateMetric() {
+    void getBatchRegisterJobDetail() {
         // given
-        BatchJobMetric metric = BatchJobMetricFixture.completedJob(1L,
-                BatchJobType.DELETE, 100);
-        BatchJobMetric findMetric = mock(BatchJobMetric.class);
-
-        given(adminQuery.findAdminContentJobMetric(metric.getType())).willReturn(findMetric);
+        Long jobId = 1L;
+        AdminContentRegisterJob job = mock(AdminContentRegisterJob.class);
+        given(adminQuery.findAdminContentRegisterJobById(jobId)).willReturn(job);
 
         // when
-        adminService.updateMetric(metric);
+        adminService.getBatchRegisterJobDetails(jobId);
 
         // then
-        verify(findMetric).update(metric.getStatus(), metric.getTotalRead(),
-                metric.getTotalWrite(), metric.getTotalSkip(), metric.getStartTime(),
-                metric.getEndTime());
+        verify(adminQuery).findAdminContentRegisterJobById(jobId);
     }
 
-    @DisplayName("배치 작업 결과 목록을 조회할 수 있다.")
+    @DisplayName("배치 수정 작업의 상세 정보를 조회할 수 있다.")
     @Test
-    void getsScheduledResults() {
+    void getBatchUpdateJobDetail() {
         // given
-        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
-                BatchJobType.REGISTER, 100);
-        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
-                BatchJobType.UPDATE, 100, 40);
-        List<BatchJobMetric> metrics = List.of(metric1, metric2);
-        given(jobMetricRepository.findAllByOrderByIdAsc()).willReturn(metrics);
+        Long jobId = 1L;
+        AdminContentUpdateJob job = mock(AdminContentUpdateJob.class);
+        given(adminQuery.findAdminContentUpdateJobById(jobId)).willReturn(job);
 
         // when
-        List<AdminScheduledContentResultResponse> responses = adminService.getsScheduledResults();
+        adminService.getBatchUpJobDetails(jobId);
 
         // then
-        assertThat(responses).hasSize(2);
-        assertThat(responses.get(0).resultId()).isEqualTo(metric1.getId());
-        assertThat(responses.get(1).resultId()).isEqualTo(metric2.getId());
+        verify(adminQuery).findAdminContentUpdateJobById(jobId);
     }
 
-    @DisplayName("배치 작업 메트릭을 조회할 수 있다.")
+    @DisplayName("배치 삭제 작업의 상세 정보를 조회할 수 있다.")
     @Test
-    void getScheduledMetric() {
+    void getBatchDeleteJobDetail() {
         // given
-        BatchJobMetric metric1 = BatchJobMetricFixture.completedJob(1L,
-                BatchJobType.DELETE, 100);
-
-        BatchJobMetric metric2 = BatchJobMetricFixture.partialCompetedJob(2L,
-                BatchJobType.UPDATE, 50, 10);
-
-        List<BatchJobMetric> metrics = List.of(metric1, metric2);
-        given(jobMetricRepository.findAll()).willReturn(metrics);
+        Long jobId = 1L;
+        AdminContentDeleteJob job = mock(AdminContentDeleteJob.class);
+        given(adminQuery.findAdminContentDelJobById(jobId)).willReturn(job);
 
         // when
-        AdminScheduledContentMetricGetResponse response = adminService.getScheduledMetric();
+        adminService.getBatchDelJobDetails(jobId);
 
         // then
-        assertThat(response.totalRead()).isEqualTo(metric1.getTotalRead() + metric2.getTotalRead());
-        assertThat(response.totalWrite()).isEqualTo(
-                metric1.getTotalWrite() + metric2.getTotalWrite());
-        assertThat(response.totalSkip()).isEqualTo(metric1.getTotalSkip() + metric2.getTotalSkip());
+        verify(adminQuery).findAdminContentDelJobById(jobId);
+    }
+
+    @Test
+    @DisplayName("INVALID 상태 배치 작업 삭제 성공")
+    void deleteInvalidBatchJobs_Success() {
+        // when
+        adminService.deleteInvalidBatchJobs();
+
+        // then
+        then(adminQuery).should(times(1)).deleteInvalidBatchJobs();
+    }
+
+    @Test
+    @DisplayName("INVALID 상태 배치 작업 삭제 실패 시 예외 전파")
+    void deleteInvalidBatchJobs_Failure_ThrowsException() {
+        // given
+        RestApiException expectedException = new RestApiException(
+                BatchErrorCode.BATCH_DELETE_FAILED);
+        doThrow(expectedException).when(adminQuery).deleteInvalidBatchJobs();
+
+        // when & then
+        assertThatThrownBy(() -> adminService.deleteInvalidBatchJobs())
+                .isInstanceOf(RestApiException.class)
+                .hasMessage(BatchErrorCode.BATCH_DELETE_FAILED.getMessage())
+                .extracting(e -> ((RestApiException) e).getErrorCode())
+                .isEqualTo(BatchErrorCode.BATCH_DELETE_FAILED);
+
+        then(adminQuery).should(times(1)).deleteInvalidBatchJobs();
     }
 }
 

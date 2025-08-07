@@ -20,13 +20,7 @@ public class FeedbackStatisticsQuery {
     private final FeedbackStatisticsRepository feedbackStatisticsRepository;
 
     public List<FeedbackStatistics> findByMemberOrThrow(Long memberId) {
-        List<FeedbackStatistics> rows =
-                feedbackStatisticsRepository.findByMemberIdAndIsDeletedFalse(memberId);
-
-        if (rows.isEmpty()) {
-            throw new RestApiException(FeedbackErrorCode.FEEDBACK_STATISTICS_NOT_FOUND);
-        }
-        return rows;
+        return feedbackStatisticsRepository.findByMemberIdAndIsDeletedFalse(memberId);
     }
 
     public List<FeedbackStatistics> findByMember(Long memberId) {

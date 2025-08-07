@@ -163,7 +163,6 @@ public class ContentFixture {
                 "12세이상관람가", LocalDateTime.of(2021, 12, 15, 0, 0), 148);
     }
 
-    // === Helper 메서드 ===
 
     private static Content createMovieWithId(Long id, String title, String description,
             String rating, LocalDateTime openDate, int runningTime) {
@@ -181,8 +180,6 @@ public class ContentFixture {
         ReflectionTestUtils.setField(content, "id", id);
         return content;
     }
-
-    // === 모든 영화 리스트 반환 ===
 
     public static List<Content> allTestMovies() {
         return List.of(

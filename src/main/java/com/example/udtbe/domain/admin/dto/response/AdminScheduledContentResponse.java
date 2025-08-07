@@ -9,7 +9,7 @@ public record AdminScheduledContentResponse(
         BatchStatus status,
         Long memberId,
         LocalDateTime createdAt,
-        LocalDateTime updateAt,
+        LocalDateTime scheduledAt,
         LocalDateTime finishedAt,
         BatchJobType jobType
 ) {

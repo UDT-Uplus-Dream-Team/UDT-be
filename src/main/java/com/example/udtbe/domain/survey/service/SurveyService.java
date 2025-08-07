@@ -48,7 +48,7 @@ public class SurveyService {
         surveyQuery.save(survey);
 
         member.updateRole(ROLE_USER);
-        authQuery.save(member);
+        authQuery.saveMember(member);
 
         cookieUtil.deleteCookie(response);
 
