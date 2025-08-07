@@ -135,6 +135,9 @@ public class AdminQuery {
     }
 
     private void validCastByCastId(Long castId) {
+        if (castId == null) {
+            return;
+        }
         Cast cast = castRepository.findById(castId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CAST_NOT_FOUND)
         );
@@ -145,6 +148,9 @@ public class AdminQuery {
     }
 
     private void validDirectorByDirectorId(Long directorId) {
+        if (directorId == null) {
+            return;
+        }
         Director director = directorRepository.findById(directorId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
         );
