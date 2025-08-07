@@ -104,6 +104,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(
                 Arrays.asList(
                         "https://www.banditbool.com",
+                        "https://admin.banditbool.com",
                         "https://banditbool.com",
                         "https://dev.banditbool.com",
                         "http://localhost:3000",
