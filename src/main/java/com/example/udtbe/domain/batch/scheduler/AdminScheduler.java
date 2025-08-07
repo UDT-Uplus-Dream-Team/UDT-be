@@ -1,7 +1,7 @@
 package com.example.udtbe.domain.batch.scheduler;
 
+import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
-import com.example.udtbe.domain.batch.util.TimeUtil;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
 import com.example.udtbe.global.exception.RestApiException;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,6 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -28,15 +27,19 @@ public class AdminScheduler {
     private final JobLauncher jobLauncher;
     private final Job contentBatchJob;
     private final LuceneIndexService luceneIndexService;
+    private final AdminService adminService;
 
-    @Scheduled(cron = TimeUtil.SCHEDULED_AT)
+    @Scheduled(cron = "0 0 4 * * *")
     @Retryable(retryFor = Exception.class, backoff = @Backoff(delay = 5000))
     public void runContentBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
+                    .addString("type", "all")
                     .toJobParameters();
             jobLauncher.run(contentBatchJob, jobParameters);
+            adminService.allUpdateMetric();
+            
         } catch (JobExecutionAlreadyRunningException e) {
             throw new RestApiException(BatchErrorCode.BATCH_ALREADY_RUNNING);
         } catch (JobRestartException e) {
@@ -48,24 +51,9 @@ public class AdminScheduler {
         }
     }
 
-    @Scheduled(cron = "0 0 6 * * ?")
-    public void rebuildLuceneIndex() {
-        log.info("===== 새벽 6시 Lucene 인덱스 리빌드 시작 =====");
-        try {
-            rebuildLuceneIndexWithRetry();
-            log.info("===== 새벽 6시 Lucene 인덱스 리빌드 완료 =====");
-        } catch (Exception e) {
-            log.error("Lucene 인덱스 리빌드 최종 실패", e);
-        }
-    }
 
     @Retryable(retryFor = Exception.class, backoff = @Backoff(delay = 5000))
     public void rebuildLuceneIndexWithRetry() {
         luceneIndexService.buildIndexOnStartup();
-    }
-
-    @Recover
-    public void recover(Exception e) {
-        throw new RestApiException(BatchErrorCode.SCHEDULER_ERROR);
     }
 }

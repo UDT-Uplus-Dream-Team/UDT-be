@@ -18,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.hibernate.annotations.Type;
 
 @Entity
 @Getter
+@Table(name = "admin_content_update_job")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AdminContentUpdateJob extends TimeBaseEntity {
 
@@ -45,7 +47,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
     private LocalDateTime finishedAt;
 
-    private Long memberId;
+    private Long adminId;
 
     private Long contentId;
 
@@ -88,9 +90,19 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
     @Column(name = "countries")
     private List<String> countries;
 
+    private String errorCode;
+
+    private String errorMessage;
+
+    private int retryCount = 0;
+
+    private int skipCount = 0;
+
+    private Long batchJobMetricId;
+
     @Builder(access = PRIVATE)
     private AdminContentUpdateJob(BatchStatus status, LocalDateTime scheduledAt,
-            Long memberId,
+            Long adminId,
             Long contentId, String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
             Map<String, AdminCategoryDTO> categories, Map<String, AdminPlatformDTO> platforms,
@@ -98,7 +110,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
 
         this.status = status;
         this.scheduledAt = scheduledAt;
-        this.memberId = memberId;
+        this.adminId = adminId;
         this.contentId = contentId;
         this.title = title;
         this.description = description;
@@ -116,7 +128,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.countries = countries;
     }
 
-    public static AdminContentUpdateJob of(BatchStatus status, Long memberId,
+    public static AdminContentUpdateJob of(BatchStatus status, Long adminId,
             Long contentId,
             String title, String description, String posterUrl, String backdropUrl,
             String trailerUrl, LocalDateTime openDate, int runningTime, int episode, String rating,
@@ -126,7 +138,7 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         return AdminContentUpdateJob.builder()
                 .status(status)
                 .scheduledAt(getScheduledAt())
-                .memberId(memberId)
+                .adminId(adminId)
                 .contentId(contentId)
                 .title(title)
                 .description(description)
@@ -149,12 +161,31 @@ public class AdminContentUpdateJob extends TimeBaseEntity {
         this.status = status;
     }
 
+    public void setError(String errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount += 1;
+    }
+
+
+    public void incrementSkipCount() {
+        this.skipCount += 1;
+    }
+
+
     private static LocalDateTime getScheduledAt() {
         return TimeUtil.getScheduledAt();
     }
 
     public void finish() {
         finishedAt = LocalDateTime.now();
+    }
+
+    public void setBatchJobMetricId(Long batchJobMetricId) {
+        this.batchJobMetricId = batchJobMetricId;
     }
 
 }

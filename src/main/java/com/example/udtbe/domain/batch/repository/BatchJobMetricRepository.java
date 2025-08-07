@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface JobMetricRepository extends
+public interface BatchJobMetricRepository extends
         JpaRepository<BatchJobMetric, Long> {
 
     @Query("SELECT j FROM BatchJobMetric j ORDER BY j.id ASC")

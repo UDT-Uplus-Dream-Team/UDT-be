@@ -21,9 +21,9 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (keyword != null && !keyword.isEmpty() && keyword.trim().length() > 0) {
-            builder.or(member.name.containsIgnoreCase(keyword))
-                    .and(member.email.containsIgnoreCase(keyword));
+        if (StringUtils.hasText(keyword)) {
+            builder.and(member.name.containsIgnoreCase(keyword))
+                    .or(member.email.containsIgnoreCase(keyword));
         }
 
         if (StringUtils.hasText(cursor)) {

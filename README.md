@@ -72,9 +72,7 @@
 > 5. **OTT 콘텐츠 필터링해서 보기**
 
 ## ERD
-<img width="928" height="520" alt="udt_erd" src="https://github.com/user-attachments/assets/e51a8a65-b8a8-4600-9e92-4d72c066c945" />
-
-## 서비스 요청 흐름도
+<img width="3261" height="2122" alt="V3 (1)" src="https://github.com/user-attachments/assets/59fd3a7e-b114-47c2-9725-eba2ce1439a0" />
 
 
 ## 시스템 아키텍처

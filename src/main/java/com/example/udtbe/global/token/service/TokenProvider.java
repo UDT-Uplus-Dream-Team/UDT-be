@@ -3,6 +3,7 @@ package com.example.udtbe.global.token.service;
 import static com.example.udtbe.global.token.exception.TokenErrorCode.INVALID_TOKEN;
 import static com.example.udtbe.global.token.exception.TokenErrorCode.MALFORMED_TOKEN;
 
+import com.example.udtbe.domain.admin.entity.Admin;
 import com.example.udtbe.domain.auth.service.AuthQuery;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.global.exception.RestApiException;
@@ -60,8 +61,7 @@ public class TokenProvider {
     public void generateRefreshToken(Member findMember, CustomOauth2User authentication, Date now) {
         String refreshToken = generateToken(findMember, authentication, REFRESH_TOKEN_EXPIRE_TIME,
                 now);
-
-        // redis Refresh 저장
+        
         redisUtil.setValues("RT:" + authentication.getEmail(), refreshToken,
                 Duration.ofMillis(REFRESH_TOKEN_EXPIRE_TIME));
     }
@@ -73,6 +73,31 @@ public class TokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(findMember.getId()))
+                .claim(ROLE_KEY, authorities)
+                .issuedAt(now)
+                .expiration(expiredTime)
+                .signWith(secretKey, Jwts.SIG.HS512)
+                .compact();
+    }
+
+    public String generateAccessToken(Admin admin, CustomOauth2User authentication, Date now) {
+        return generateToken(admin.getId(), authentication, ACCESS_TOKEN_EXPIRE_TIME, now);
+    }
+
+    public void generateRefreshToken(Admin admin, CustomOauth2User authentication, Date now) {
+        String refreshToken = generateToken(admin.getId(), authentication,
+                REFRESH_TOKEN_EXPIRE_TIME, now);
+        redisUtil.setValues("RT:" + authentication.getEmail(), refreshToken,
+                Duration.ofMillis(REFRESH_TOKEN_EXPIRE_TIME));
+    }
+
+    private String generateToken(Long id, CustomOauth2User authentication, long tokenExpireTime,
+            Date now) {
+        Date expiredTime = createExpiredDateWithTokenType(now, tokenExpireTime);
+        String authorities = getAuthorities(authentication);
+
+        return Jwts.builder()
+                .subject(String.valueOf(id))
                 .claim(ROLE_KEY, authorities)
                 .issuedAt(now)
                 .expiration(expiredTime)
@@ -96,6 +121,16 @@ public class TokenProvider {
 
         String subject = claims.getSubject();
         Member principal = authQuery.getMemberById(Long.valueOf(subject));
+
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+
+    public Authentication getAdminAuthentication(String token) {
+        Claims claims = parseToken(token);
+        List<SimpleGrantedAuthority> authorities = getAuthorities(claims);
+
+        String subject = claims.getSubject();
+        Admin principal = authQuery.getAdminById(Long.valueOf(subject));
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
@@ -148,6 +183,13 @@ public class TokenProvider {
 
         String subject = claims.getSubject();
         return authQuery.getMemberById(Long.valueOf(subject));
+    }
+
+    public Admin getAdminAllowExpired(String token) {
+        Claims claims = parseToken(token);
+
+        String subject = claims.getSubject();
+        return authQuery.getAdminById(Long.valueOf(subject));
     }
 
     public String getMemberId(String token) {

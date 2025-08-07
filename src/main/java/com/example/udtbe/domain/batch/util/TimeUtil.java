@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 public class TimeUtil {
 
 
-    public static final String SCHEDULED_AT = "0 0 4 * * ?";
     public static final int SCHEDULED_HOUR = 4;
     public static final int SCHEDULED_MINUTE = 0;
     public static final int SCHEDULED_SECOND = 0;

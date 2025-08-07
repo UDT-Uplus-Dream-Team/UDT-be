@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 
+import com.example.udtbe.domain.admin.service.AdminService;
 import com.example.udtbe.domain.batch.scheduler.AdminScheduler;
 import com.example.udtbe.domain.content.service.LuceneIndexService;
 import com.example.udtbe.global.exception.RestApiException;
@@ -38,6 +39,9 @@ class AdminSchedulerTest {
     private JobLauncher jobLauncher;
 
     @Mock
+    private AdminService adminService;
+
+    @Mock
     private Job contentBatchJob;
 
     @InjectMocks
@@ -49,7 +53,6 @@ class AdminSchedulerTest {
         // given
         given(jobLauncher.run(any(Job.class), any(JobParameters.class)))
                 .willReturn(new JobExecution(1L));
-
         // when
         adminScheduler.runContentBatchJob();
 

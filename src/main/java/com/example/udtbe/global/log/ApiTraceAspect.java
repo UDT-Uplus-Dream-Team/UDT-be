@@ -41,7 +41,8 @@ public class ApiTraceAspect {
 
     @Pointcut("execution(* com.example.udtbe..service..*(..)) && " +
             "!within(com.example.udtbe.global.security.service..*) && " +
-            "!within(com.example.udtbe.global.token.service..*)")
+            "!within(com.example.udtbe.global.token.service..*) && " +
+            "!within(com.example.udtbe.domain.file..*)")
     public void servicePointcut() {
     }
 

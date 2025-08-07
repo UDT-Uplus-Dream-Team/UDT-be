@@ -102,6 +102,7 @@ class AuthServiceTest {
         final String email = "test@naver.com";
         final String token = "testtesttesttest";
         final String reissueToken = "reissueToken";
+        final String BLACKLIST = "black_list_token";
 
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         MockHttpServletResponse mockResponse = new MockHttpServletResponse();
@@ -113,7 +114,7 @@ class AuthServiceTest {
         given(cookieUtil.createCookie(anyString())).willReturn(
                 new Cookie("Authorization", reissueToken));
         given(tokenProvider.getMemberAllowExpired(anyString())).willReturn(principal);
-        given(redisUtil.getValues(anyString())).willReturn(reissueToken);
+        given(redisUtil.getValues(anyString())).willReturn(reissueToken).willReturn(BLACKLIST);
         given(tokenProvider.generateAccessToken(
                 any(Member.class),
                 any(CustomOauth2User.class),
@@ -170,7 +171,7 @@ class AuthServiceTest {
         member.updateLastLoginAt(LocalDateTime.now());
         given(authQuery.getOptionalMemberByEmail(anyString()))
                 .willReturn(Optional.ofNullable(member));
-        given(authQuery.save(any(Member.class))).willReturn(member);
+        given(authQuery.saveMember(any(Member.class))).willReturn(member);
         willDoNothing()
                 .given(tokenStore)
                 .deleteRefreshTokenIfExists(any(Member.class));

@@ -10,5 +10,4 @@ public interface FeedbackStatisticsChanger {
             GenreType genre,
             FeedbackType type,
             int countChange);
-
 }

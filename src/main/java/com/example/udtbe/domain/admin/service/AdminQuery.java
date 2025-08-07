@@ -1,5 +1,7 @@
 package com.example.udtbe.domain.admin.service;
 
+import static com.example.udtbe.domain.admin.exception.AdminErrorCode.ADMIN_NOT_FOUND;
+
 import com.example.udtbe.domain.admin.dto.common.AdminCategoryDTO;
 import com.example.udtbe.domain.admin.dto.common.AdminPlatformDTO;
 import com.example.udtbe.domain.admin.dto.request.AdminCastsGetRequest;
@@ -7,10 +9,19 @@ import com.example.udtbe.domain.admin.dto.request.AdminDirectorsGetRequest;
 import com.example.udtbe.domain.admin.dto.response.AdminCastsGetResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminContentCategoryMetricResponse;
 import com.example.udtbe.domain.admin.dto.response.AdminDirectorsGetResponse;
+import com.example.udtbe.domain.admin.dto.response.AdminScheduledResContentMetricResponse;
+import com.example.udtbe.domain.admin.entity.Admin;
+import com.example.udtbe.domain.admin.repository.AdminRepository;
+import com.example.udtbe.domain.batch.entity.AdminContentDeleteJob;
+import com.example.udtbe.domain.batch.entity.AdminContentRegisterJob;
+import com.example.udtbe.domain.batch.entity.AdminContentUpdateJob;
 import com.example.udtbe.domain.batch.entity.BatchJobMetric;
-import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
+import com.example.udtbe.domain.batch.entity.enums.BatchStatus;
 import com.example.udtbe.domain.batch.exception.BatchErrorCode;
-import com.example.udtbe.domain.batch.repository.JobMetricRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentDeleteJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentRegisterJobRepository;
+import com.example.udtbe.domain.batch.repository.AdminContentUpdateJobRepository;
+import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
@@ -49,7 +60,11 @@ public class AdminQuery {
     private final CastRepository castRepository;
     private final DirectorRepository directorRepository;
     private final CountryRepository countryRepository;
-    private final JobMetricRepository jobMetricRepository;
+    private final BatchJobMetricRepository batchJobMetricRepository;
+    private final AdminContentRegisterJobRepository adminContentRegisterJobRepository;
+    private final AdminContentUpdateJobRepository adminContentUpdateJobRepository;
+    private final AdminContentDeleteJobRepository adminContentDeleteJobRepository;
+    private final AdminRepository adminRepository;
 
 
     public void validContentByContentId(Long contentId) {
@@ -82,7 +97,10 @@ public class AdminQuery {
     }
 
     private void validCategoryByCategoryType(CategoryType categoryType) {
-        if (!categoryRepository.existsCategoryByCategoryType(categoryType)) {
+        Category category = categoryRepository.findByCategoryType(categoryType).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND)
+        );
+        if (category.isDeleted()) {
             throw new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND);
         }
     }
@@ -93,26 +111,50 @@ public class AdminQuery {
             Category category = categoryRepository.findByCategoryType(categoryType).orElseThrow(()
                     -> new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND)
             );
-            if (!genreRepository.existsGenreByGenreTypeAndCategory(genreType, category)) {
+            if (category.isDeleted()) {
+                throw new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND);
+            }
+            Genre genre = genreRepository.findByGenreTypeAndCategory(genreType,
+                    category).orElseThrow(() ->
+                    new RestApiException(ContentErrorCode.GENRE_NOT_FOUND)
+            );
+            if (genre.isDeleted()) {
                 throw new RestApiException(ContentErrorCode.GENRE_NOT_FOUND);
             }
+
         });
     }
 
     private void validPlatformByPlatformType(PlatformType platformType) {
-        if (!platformRepository.existsPlatformByPlatformType(platformType)) {
+        Platform platform = platformRepository.findByPlatformType(platformType).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND)
+        );
+        if (platform.isDeleted()) {
             throw new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND);
         }
     }
 
     private void validCastByCastId(Long castId) {
-        if (!castRepository.existsById(castId)) {
+        if (castId == null) {
+            return;
+        }
+        Cast cast = castRepository.findById(castId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.CAST_NOT_FOUND)
+        );
+        if (cast.isDeleted()) {
             throw new RestApiException(ContentErrorCode.CAST_NOT_FOUND);
         }
+
     }
 
     private void validDirectorByDirectorId(Long directorId) {
-        if (!directorRepository.existsById(directorId)) {
+        if (directorId == null) {
+            return;
+        }
+        Director director = directorRepository.findById(directorId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
+        );
+        if (director.isDeleted()) {
             throw new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND);
         }
     }
@@ -124,7 +166,7 @@ public class AdminQuery {
         );
     }
 
-    public ContentMetadata findContentMetadateByContentId(Long contentId) {
+    public ContentMetadata findContentMetadataByContentId(Long contentId) {
         return contentMetadataRepository.findByContent_Id(contentId).orElseThrow(() ->
                 new RestApiException(ContentErrorCode.CONTENT_METADATA_NOT_FOUND)
         );
@@ -194,8 +236,8 @@ public class AdminQuery {
         return directorRepository.getDirectors(adminDirectorsGetRequest);
     }
 
-    public BatchJobMetric findAdminContentJobMetric(BatchJobType batchJobType) {
-        return jobMetricRepository.findAdminContentJobMetricByType(batchJobType)
+    public BatchJobMetric findAdminContentJobMetric(Long contentJobMetricId) {
+        return batchJobMetricRepository.findById(contentJobMetricId)
                 .orElseThrow(()
                         -> new RestApiException(BatchErrorCode.ADMIN_CONTENT_JOB_METRIC)
                 );
@@ -204,5 +246,49 @@ public class AdminQuery {
     public AdminContentCategoryMetricResponse getContentCategoryMetric() {
         return contentRepository.getContentCategoryMetric();
     }
+
+    public AdminContentRegisterJob findAdminContentRegisterJobById(Long jobId) {
+        return adminContentRegisterJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_REGISTER_JOB_NOT_FOUND)
+        );
+    }
+
+    public AdminContentUpdateJob findAdminContentUpdateJobById(Long jobId) {
+        return adminContentUpdateJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_UPDATE_JOB_NOT_FOUND)
+        );
+    }
+
+    public AdminContentDeleteJob findAdminContentDelJobById(Long jobId) {
+        return adminContentDeleteJobRepository.findById(jobId).orElseThrow(() ->
+                new RestApiException(BatchErrorCode.ADMIN_CONTENT_DELETE_JOB_NOT_FOUND)
+        );
+    }
+
+    public Admin getAdmin(String email) {
+        return adminRepository.findByEmail(email)
+                .orElseThrow(() -> new RestApiException(ADMIN_NOT_FOUND));
+    }
+
+    public void deleteInvalidBatchJobs() {
+        try {
+            adminContentRegisterJobRepository.deleteByStatus(BatchStatus.INVALID);
+            adminContentUpdateJobRepository.deleteByStatus(BatchStatus.INVALID);
+            adminContentDeleteJobRepository.deleteByStatus(BatchStatus.INVALID);
+        } catch (Exception e) {
+            throw new RestApiException(BatchErrorCode.BATCH_DELETE_FAILED);
+        }
+    }
+
+    public AdminScheduledResContentMetricResponse getCountAdminContentResJob() {
+        long totalRegister = adminContentRegisterJobRepository.countByStatus(BatchStatus.PENDING);
+        long totalUpdate = adminContentUpdateJobRepository.countByStatus(BatchStatus.PENDING);
+        long totalDelete = adminContentDeleteJobRepository.countByStatus(BatchStatus.PENDING);
+
+        long total = totalRegister + totalUpdate + totalDelete;
+        return new AdminScheduledResContentMetricResponse(total, totalRegister, totalUpdate,
+                totalDelete);
+    }
+
 
 }
