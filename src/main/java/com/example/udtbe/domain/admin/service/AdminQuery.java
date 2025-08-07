@@ -97,7 +97,10 @@ public class AdminQuery {
     }
 
     private void validCategoryByCategoryType(CategoryType categoryType) {
-        if (!categoryRepository.existsCategoryByCategoryType(categoryType)) {
+        Category category = categoryRepository.findByCategoryType(categoryType).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND)
+        );
+        if (category.isDeleted()) {
             throw new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND);
         }
     }
@@ -108,26 +111,44 @@ public class AdminQuery {
             Category category = categoryRepository.findByCategoryType(categoryType).orElseThrow(()
                     -> new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND)
             );
-            if (!genreRepository.existsGenreByGenreTypeAndCategory(genreType, category)) {
+            if (category.isDeleted()) {
+                throw new RestApiException(ContentErrorCode.CATEGORY_NOT_FOUND);
+            }
+            Genre genre = genreRepository.findByGenreTypeAndCategory(genreType,
+                    category).orElseThrow(() ->
+                    new RestApiException(ContentErrorCode.GENRE_NOT_FOUND)
+            );
+            if (genre.isDeleted()) {
                 throw new RestApiException(ContentErrorCode.GENRE_NOT_FOUND);
             }
+
         });
     }
 
     private void validPlatformByPlatformType(PlatformType platformType) {
-        if (!platformRepository.existsPlatformByPlatformType(platformType)) {
+        Platform platform = platformRepository.findByPlatformType(platformType).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND)
+        );
+        if (platform.isDeleted()) {
             throw new RestApiException(ContentErrorCode.PLATFORM_NOT_FOUND);
         }
     }
 
     private void validCastByCastId(Long castId) {
-        if (!castRepository.existsById(castId)) {
+        Cast cast = castRepository.findById(castId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.CAST_NOT_FOUND)
+        );
+        if (cast.isDeleted()) {
             throw new RestApiException(ContentErrorCode.CAST_NOT_FOUND);
         }
+
     }
 
     private void validDirectorByDirectorId(Long directorId) {
-        if (!directorRepository.existsById(directorId)) {
+        Director director = directorRepository.findById(directorId).orElseThrow(() ->
+                new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND)
+        );
+        if (director.isDeleted()) {
             throw new RestApiException(ContentErrorCode.DIRECTOR_NOT_FOUND);
         }
     }
