@@ -277,14 +277,6 @@ public class BatchConfig {
                     AdminContentRegisterRequest request = AdminContentMapper.toContentRegisterRequest(
                             item);
 
-                    if (item.getTitle().contains("에러")) {
-                        try {
-                            throw new Exception("안녕");
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-
                     adminQuery.validRegisterAndUpdateContent(request.categories(),
                             request.platforms(),
                             request.casts(), request.directors());
