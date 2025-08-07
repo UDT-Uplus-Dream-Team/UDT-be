@@ -133,17 +133,50 @@
 <img width="200" height="260" alt="feedback_view" src="https://github.com/user-attachments/assets/3e722ec5-b061-450b-bdb3-c4b83d644955" />
 <img width="200" height="260" alt="saved" src="https://github.com/user-attachments/assets/a23eae93-a498-4c10-8503-eddf93c5582c" />
 
-### 7️⃣ 관리자 모드
+## 백오피스 기능 소개
+### 7️⃣ 관리자 유저 관리 모드
+👉 관리자는 유저의 정보를 확인할 수있다.<br><br>
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/7d2321c9-ce40-403e-b128-8036cfffc0aa" />
+<br><br>
 
-👉 관리자는 ADMIN 페이지에서 콘텐츠를 등록/수정/삭제할 수 있다.
+👉 관리자는 유저의 피드백 집계를 확인할 수있다.<br><br>
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/f1c119d7-a0b9-447a-b1a3-fa8d58dcaf69" />
+
+
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/6f066a09-908a-4b99-ae76-843085b11d47" />
+
+
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/3da85874-92cc-4434-bfc6-fdb9e50d1fe6" />
+
+
+### 7️⃣ 관리자 콘텐츠 관리 모드
+👉 관리자는 ADMIN 페이지에서 콘텐츠 목록을 확인할 수 있다.<br>
+👉 관리자는 ADMIN 페이지에서 콘텐츠 수정 및 삭제를 확인할 수 있다.<br>
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/59406b4d-0ebb-4606-9956-55df50dc0faf" />
 <br>
+
+👉 관리자는 ADMIN 페이지에서 콘텐츠를 등록 시 배치 예정 목록에 등록할 수 있다.<br>
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/62273712-55fa-4dad-b804-2e87d1c49cc9" />
+<br>
+👉 관리자는 출연진/감독을 등록하거나 검색할 수 있다. <br>
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/07ad3cb1-8c8c-41bd-b41a-e456c8342030" />
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/0fcc57f9-6ef7-444b-88a4-e364eec9fc04" />
 <br>
 
-### (개발 진행 중) 관리자 기능 고도화
+### 7️⃣ 관리자 콘텐츠 배치 관리 모드
+👉 관리자는 등록/삭제/수정한 콘텐츠의 배치 예정/결과목록을 확인할 수 있다. <br>
+👉 관리자는 등록/삭제/수정한 콘텐츠의 배치 예정/결과집계 확인할 수 있다. <br>
+<br>
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/7aa9a478-1f15-499c-984d-123e467139ec" />
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/83bfdfc0-9060-4c25-ace2-285dc9325db2" />
+<img width="400" height="300" alt="image" src="https://github.com/user-attachments/assets/57f4ad44-41f3-495e-868d-486fdaa55f0b" />
+<br>
 
-👉 관리자는 삭제/수정한 콘텐츠의 목록을 확인할 수 있다. <br>
-👉 관리자는 유저의 피드백 현황을 확인할 수 있다. <br>
-👉 관리자는 탐색하기 페이지의 추천 콘텐츠 리스트를 관리할 수 있다. <br>
+
+👉 관리자는 등록/삭제/수정한 콘텐츠의 배치 상세정보를 확인할 수 있다. <br>
+<img width="2940" height="1600" alt="image" src="https://github.com/user-attachments/assets/fb43f3cc-7152-47c3-8106-a72072640680" />
+
+
 
 
 # Team Rules
