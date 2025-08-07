@@ -35,7 +35,8 @@ public class ApiTraceAspect {
     private final TokenProvider tokenProvider;
     private final CookieUtil cookieUtil;
 
-    @Pointcut("execution(* com.example.udtbe..controller..*(..))")
+    @Pointcut("execution(* com.example.udtbe..controller..*(..)) &&" +
+            "!within(com.example.udtbe.domain.file..*)")
     public void controllerPointcut() {
     }
 
