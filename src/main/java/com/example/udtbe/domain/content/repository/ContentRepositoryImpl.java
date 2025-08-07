@@ -176,7 +176,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 
         Long cursorId = null;
 
-        if (Objects.nonNull(cursor)) {
+        if (Objects.nonNull(cursor) && !cursor.isBlank()) {
             cursorId = Long.parseLong(cursor);
         }
 
