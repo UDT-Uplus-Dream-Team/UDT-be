@@ -141,12 +141,6 @@ public class AdminController implements AdminControllerApiSpec {
     }
 
     @Override
-    public ResponseEntity<Void> schedulerTestContent() {
-        adminScheduler.runContentBatchJob();
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @Override
     public ResponseEntity<CursorPageResponse<AdminDirectorsGetResponse>> getDirectors(
             AdminDirectorsGetRequest adminDirectorsGetRequest) {
         CursorPageResponse<AdminDirectorsGetResponse> response =
