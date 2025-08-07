@@ -175,12 +175,9 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
             int size, String categoryType) {
 
         Long cursorId = null;
-        LocalDateTime cursorOpenDate = null;
 
-        if (Objects.nonNull(cursor) && cursor.contains(DELIMITER)) {
-            String[] parts = cursor.split("\\|");
-            cursorId = Long.parseLong(parts[0]);
-            cursorOpenDate = LocalDateTime.parse(parts[1]);
+        if (Objects.nonNull(cursor)) {
+            cursorId = Long.parseLong(cursor);
         }
 
         List<Long> contentIds = queryFactory
@@ -188,9 +185,12 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .from(content)
                 .leftJoin(content.contentCategories, contentCategory)
                 .leftJoin(contentCategory.category, category)
-                .where(complexCursorFilter(cursorOpenDate, cursorId), deletedFilter(),
-                        categoryFilter(categoryType))
-                .orderBy(content.openDate.desc(), content.id.desc())
+                .where(
+                        cursorId != null ? content.id.lt(cursorId) : null,
+                        deletedFilter(),
+                        categoryFilter(categoryType)
+                )
+                .orderBy(content.id.desc())
                 .limit(size + 1)
                 .fetch();
 
@@ -201,7 +201,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
                 .leftJoin(content.contentPlatforms, contentPlatform)
                 .leftJoin(contentPlatform.platform, platform)
                 .where(content.id.in(contentIds))
-                .orderBy(content.openDate.desc(), content.id.desc())
+                .orderBy(content.id.desc())
                 .transform(
                         groupBy(content.id).list(
                                 new QAdminContentGetResponse(
@@ -222,12 +222,9 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
             contentAdminGetResponses.remove(contentAdminGetResponses.size() - 1);
         }
 
-        String nextCursor = hasNext ?
-                contentAdminGetResponses.get(contentAdminGetResponses.size() - 1).contentId()
-                        + DELIMITER
-                        + fetchOpenDate(
-                        contentAdminGetResponses.get(contentAdminGetResponses.size() - 1)
-                                .contentId())
+        String nextCursor = hasNext
+                ? String.valueOf(
+                contentAdminGetResponses.get(contentAdminGetResponses.size() - 1).contentId())
                 : null;
 
         return new CursorPageResponse<>(contentAdminGetResponses, nextCursor, hasNext);
