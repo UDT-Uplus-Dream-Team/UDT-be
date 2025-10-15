@@ -13,12 +13,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.udtbe.common.fixture.CastFixture;
-import com.example.udtbe.common.fixture.CategoryFixture;
 import com.example.udtbe.common.fixture.ContentCastFixture;
 import com.example.udtbe.common.fixture.ContentCategoryFixture;
 import com.example.udtbe.common.fixture.ContentCountryFixture;
@@ -26,25 +23,17 @@ import com.example.udtbe.common.fixture.ContentDirectorFixture;
 import com.example.udtbe.common.fixture.ContentFixture;
 import com.example.udtbe.common.fixture.ContentGenreFixture;
 import com.example.udtbe.common.fixture.ContentPlatformFixture;
-import com.example.udtbe.common.fixture.CountryFixture;
-import com.example.udtbe.common.fixture.DirectorFixture;
-import com.example.udtbe.common.fixture.GenreFixture;
-import com.example.udtbe.common.fixture.PlatformFixture;
 import com.example.udtbe.common.support.ApiSupport;
-import com.example.udtbe.domain.content.controller.ContentController;
 import com.example.udtbe.domain.content.entity.Cast;
 import com.example.udtbe.domain.content.entity.Category;
 import com.example.udtbe.domain.content.entity.Content;
-import com.example.udtbe.domain.content.entity.ContentCast;
-import com.example.udtbe.domain.content.entity.ContentCategory;
-import com.example.udtbe.domain.content.entity.ContentCountry;
-import com.example.udtbe.domain.content.entity.ContentDirector;
-import com.example.udtbe.domain.content.entity.ContentGenre;
-import com.example.udtbe.domain.content.entity.ContentPlatform;
 import com.example.udtbe.domain.content.entity.Country;
 import com.example.udtbe.domain.content.entity.Director;
 import com.example.udtbe.domain.content.entity.Genre;
 import com.example.udtbe.domain.content.entity.Platform;
+import com.example.udtbe.domain.content.entity.enums.CategoryType;
+import com.example.udtbe.domain.content.entity.enums.GenreType;
+import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.repository.CastRepository;
 import com.example.udtbe.domain.content.repository.CategoryRepository;
 import com.example.udtbe.domain.content.repository.ContentCastRepository;
@@ -61,19 +50,27 @@ import com.example.udtbe.domain.content.repository.PlatformRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
+@Sql(scripts = {
+        "classpath:cast-test.sql",
+        "classpath:category-test.sql",
+        "classpath:country-test.sql",
+        "classpath:director-test.sql",
+        "classpath:genre-test.sql",
+        "classpath:platform-test.sql",
+},
+        executionPhase = ExecutionPhase.BEFORE_TEST_CLASS)
 class ContentControllerTest extends ApiSupport {
-
-    @Autowired
-    ContentController contentController;
 
     @Autowired
     ContentRepository contentRepository;
@@ -114,12 +111,13 @@ class ContentControllerTest extends ApiSupport {
     @Autowired
     ContentDirectorRepository contentDirectorRepository;
 
+    @Autowired
+    PlatformTransactionManager tm;
+
     @AfterEach
     void tearDown() {
         contentPlatformRepository.deleteAllInBatch();
         contentCountryRepository.deleteAllInBatch();
-        platformRepository.deleteAllInBatch();
-        countryRepository.deleteAllInBatch();
         contentRepository.deleteAllInBatch();
     }
 
@@ -127,90 +125,89 @@ class ContentControllerTest extends ApiSupport {
     @Test
     void getFilteredContents_V1() throws Exception {
         // given
+        final String kor = "한국";
+        final String usa = "미국";
+        final String jap = "일본";
         final String koreaMovie = "한국영화";
         final String usaMovie = "미국영화";
         final String japanMovie = "일본영화";
         final String ratingAll = "전체 관람가";
         final String rating12 = "12세 이상";
         final String rating15 = "15세 이상";
-        final String rating18 = "청소년 관람불가";
         final int year2020 = 2020;
         final int year2021 = 2021;
-        final int year2022 = 2022;
-        final int year2023 = 2023;
-        final int year2024 = 2024;
 
-        List<Country> savedCountries = countryRepository.saveAll(CountryFixture.countries());
-        List<Platform> savedPlatforms = platformRepository.saveAll(PlatformFixture.platforms());
-        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
-        List<Genre> savedGenres = genreRepository.saveAll(
-                GenreFixture.genres(savedCategories.get(0)));
+        TransactionTemplate tx = new TransactionTemplate(tm);
+        tx.execute(status -> {
+            Country KR = countryRepository.findByCountryName(kor).orElseThrow();
+            Country US = countryRepository.findByCountryName(usa).orElseThrow();
+            Country JP = countryRepository.findByCountryName(jap).orElseThrow();
 
-        List<Content> contents = new ArrayList<>();
-        initContent(contents, koreaMovie + "1", year2020, ratingAll);
-        initContent(contents, koreaMovie + "2", year2022, rating15);
-        initContent(contents, koreaMovie + "3", year2021, rating18);
-        initContent(contents, usaMovie + "1", year2024, rating15);
-        initContent(contents, usaMovie + "2", year2023, rating15);
-        initContent(contents, usaMovie + "3", year2021, rating12);
-        initContent(contents, japanMovie + "1", year2024, rating18);
-        initContent(contents, japanMovie + "2", year2024, ratingAll);
-        initContent(contents, japanMovie + "3", year2022, rating12);
+            Platform NETFLIX = platformRepository.findByPlatformType(PlatformType.NETFLIX)
+                    .orElseThrow();
+            Platform DISNEY_PLUS = platformRepository.findByPlatformType(PlatformType.DISNEY_PLUS)
+                    .orElseThrow();
+            Category MOVIE = categoryRepository.findByCategoryType(CategoryType.MOVIE)
+                    .orElseThrow();
 
-        List<Content> savedContents = contentRepository.saveAll(contents);
+            Genre ACTION = genreRepository.findByGenreTypeAndCategory(GenreType.ACTION, MOVIE)
+                    .orElseThrow();
+            Genre SF = genreRepository.findByGenreTypeAndCategory(GenreType.SF, MOVIE)
+                    .orElseThrow();
+            Genre ADVENTURE = genreRepository.findByGenreTypeAndCategory(GenreType.ADVENTURE, MOVIE)
+                    .orElseThrow();
 
-        List<ContentCountry> contentCountries = new ArrayList<>();
-        initContentCountry(contentCountries, savedContents.get(0), savedCountries.get(0));
-        initContentCountry(contentCountries, savedContents.get(1), savedCountries.get(0));
-        initContentCountry(contentCountries, savedContents.get(2), savedCountries.get(0));
-        initContentCountry(contentCountries, savedContents.get(3), savedCountries.get(3));
-        initContentCountry(contentCountries, savedContents.get(4), savedCountries.get(3));
-        initContentCountry(contentCountries, savedContents.get(5), savedCountries.get(3));
-        initContentCountry(contentCountries, savedContents.get(6), savedCountries.get(1));
-        initContentCountry(contentCountries, savedContents.get(7), savedCountries.get(1));
-        initContentCountry(contentCountries, savedContents.get(8), savedCountries.get(1));
-        contentCountryRepository.saveAll(contentCountries);
+            Content in1 = contentRepository.save(ContentFixture.content(
+                    usaMovie + "3", LocalDateTime.of(year2021, 1, 1, 0, 0), rating12)
+            );
+            Content in2 = contentRepository.save(ContentFixture.content(
+                    koreaMovie + "1", LocalDateTime.of(year2020, 1, 1, 0, 0), ratingAll)
+            );
+            Content out1 = contentRepository.save(ContentFixture.content(
+                    japanMovie + "1", LocalDateTime.of(year2021, 1, 1, 0, 0), rating12)
+            );
+            Content out2 = contentRepository.save(ContentFixture.content(
+                    usaMovie + "1", LocalDateTime.of(year2021, 1, 1, 0, 0), rating15)
+            );
 
-        List<ContentPlatform> contentPlatforms = new ArrayList<>();
-        initContentPlatform(contentPlatforms, savedContents.get(0), savedPlatforms.get(0));
-        initContentPlatform(contentPlatforms, savedContents.get(0), savedPlatforms.get(4));
-        initContentPlatform(contentPlatforms, savedContents.get(1), savedPlatforms.get(1));
-        initContentPlatform(contentPlatforms, savedContents.get(2), savedPlatforms.get(0));
-        initContentPlatform(contentPlatforms, savedContents.get(2), savedPlatforms.get(3));
-        initContentPlatform(contentPlatforms, savedContents.get(2), savedPlatforms.get(5));
-        initContentPlatform(contentPlatforms, savedContents.get(3), savedPlatforms.get(1));
-        initContentPlatform(contentPlatforms, savedContents.get(4), savedPlatforms.get(2));
-        initContentPlatform(contentPlatforms, savedContents.get(5), savedPlatforms.get(4));
-        initContentPlatform(contentPlatforms, savedContents.get(6), savedPlatforms.get(3));
-        initContentPlatform(contentPlatforms, savedContents.get(7), savedPlatforms.get(5));
-        initContentPlatform(contentPlatforms, savedContents.get(8), savedPlatforms.get(6));
-        contentPlatformRepository.saveAll(contentPlatforms);
+            contentCountryRepository.saveAll(
+                    List.of(
+                            ContentCountryFixture.contentCountry(in1, US),
+                            ContentCountryFixture.contentCountry(in2, KR),
+                            ContentCountryFixture.contentCountry(out1, JP),
+                            ContentCountryFixture.contentCountry(out2, US)
+                    )
+            );
 
-        List<ContentCategory> contentCategories = new ArrayList<>();
-        initContentCategory(contentCategories, savedContents.get(0), savedCategories.get(0));
-        initContentCategory(contentCategories, savedContents.get(1), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(2), savedCategories.get(2));
-        initContentCategory(contentCategories, savedContents.get(3), savedCategories.get(3));
-        initContentCategory(contentCategories, savedContents.get(4), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(5), savedCategories.get(0));
-        initContentCategory(contentCategories, savedContents.get(6), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(7), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(8), savedCategories.get(0));
-        contentCategoryRepository.saveAll(contentCategories);
+            contentPlatformRepository.saveAll(
+                    List.of(
+                            ContentPlatformFixture.contentPlatform(in1, DISNEY_PLUS),
+                            ContentPlatformFixture.contentPlatform(in2, NETFLIX),
+                            ContentPlatformFixture.contentPlatform(out1, NETFLIX),
+                            ContentPlatformFixture.contentPlatform(out2, NETFLIX)
+                    )
+            );
 
-        List<ContentGenre> contentGenres = new ArrayList<>();
-        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(0));
-        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(2));
-        initContentGenre(contentGenres, savedContents.get(1), savedGenres.get(12));
-        initContentGenre(contentGenres, savedContents.get(2), savedGenres.get(13));
-        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(12));
-        initContentGenre(contentGenres, savedContents.get(4), savedGenres.get(10));
-        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(3));
-        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(5));
-        initContentGenre(contentGenres, savedContents.get(6), savedGenres.get(6));
-        initContentGenre(contentGenres, savedContents.get(7), savedGenres.get(0));
-        initContentGenre(contentGenres, savedContents.get(8), savedGenres.get(3));
-        contentGenreRepository.saveAll(contentGenres);
+            contentCategoryRepository.saveAll(
+                    List.of(
+                            ContentCategoryFixture.contentCategory(in1, MOVIE),
+                            ContentCategoryFixture.contentCategory(in2, MOVIE),
+                            ContentCategoryFixture.contentCategory(out1, MOVIE),
+                            ContentCategoryFixture.contentCategory(out2, MOVIE)
+                    )
+            );
+
+            contentGenreRepository.saveAll(
+                    List.of(
+                            ContentGenreFixture.contentGenre(in1, ACTION),
+                            ContentGenreFixture.contentGenre(in2, SF),
+                            ContentGenreFixture.contentGenre(out1, ACTION),
+                            ContentGenreFixture.contentGenre(out2, ADVENTURE)
+                    )
+            );
+
+            return null;
+        });
 
         // when  // then
         mockMvc.perform(get("/api/contents")
@@ -238,90 +235,95 @@ class ContentControllerTest extends ApiSupport {
     @Test
     void getFilteredContents_V2() throws Exception {
         // given
+        final String kor = "한국";
+        final String usa = "미국";
+        final String jap = "일본";
         final String koreaMovie = "한국영화";
         final String usaMovie = "미국영화";
         final String japanMovie = "일본영화";
         final String ratingAll = "전체 관람가";
         final String rating12 = "12세 이상";
         final String rating15 = "15세 이상";
-        final String rating18 = "청소년 관람불가";
         final int year2020 = 2020;
         final int year2021 = 2021;
-        final int year2022 = 2022;
-        final int year2023 = 2023;
-        final int year2024 = 2024;
+        final Content[] holder = new Content[2];
 
-        List<Country> savedCountries = countryRepository.saveAll(CountryFixture.countries());
-        List<Platform> savedPlatforms = platformRepository.saveAll(PlatformFixture.platforms());
-        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
-        List<Genre> savedGenres = genreRepository.saveAll(
-                GenreFixture.genres(savedCategories.get(0)));
+        TransactionTemplate tx = new TransactionTemplate(tm);
+        tx.execute(status -> {
+            Country KR = countryRepository.findByCountryName(kor).orElseThrow();
+            Country US = countryRepository.findByCountryName(usa).orElseThrow();
+            Country JP = countryRepository.findByCountryName(jap).orElseThrow();
 
-        List<Content> contents = new ArrayList<>();
-        initContent(contents, koreaMovie + "1", year2020, ratingAll);
-        initContent(contents, koreaMovie + "2", year2022, rating15);
-        initContent(contents, koreaMovie + "3", year2021, rating18);
-        initContent(contents, usaMovie + "1", year2024, rating15);
-        initContent(contents, usaMovie + "2", year2023, rating15);
-        initContent(contents, usaMovie + "3", year2021, rating12);
-        initContent(contents, japanMovie + "1", year2024, rating18);
-        initContent(contents, japanMovie + "2", year2024, ratingAll);
-        initContent(contents, japanMovie + "3", year2022, rating12);
+            Platform NETFLIX = platformRepository.findByPlatformType(PlatformType.NETFLIX)
+                    .orElseThrow();
+            Platform DISNEY_PLUS = platformRepository.findByPlatformType(PlatformType.DISNEY_PLUS)
+                    .orElseThrow();
+            Category MOVIE = categoryRepository.findByCategoryType(CategoryType.MOVIE)
+                    .orElseThrow();
 
-        List<Content> savedContents = contentRepository.saveAll(contents);
+            Genre ACTION = genreRepository.findByGenreTypeAndCategory(GenreType.ACTION, MOVIE)
+                    .orElseThrow();
+            Genre SF = genreRepository.findByGenreTypeAndCategory(GenreType.SF, MOVIE)
+                    .orElseThrow();
+            Genre ADVENTURE = genreRepository.findByGenreTypeAndCategory(GenreType.ADVENTURE, MOVIE)
+                    .orElseThrow();
 
-        List<ContentCountry> contentCountries = new ArrayList<>();
-        initContentCountry(contentCountries, savedContents.get(0), savedCountries.get(0));
-        initContentCountry(contentCountries, savedContents.get(1), savedCountries.get(0));
-        initContentCountry(contentCountries, savedContents.get(2), savedCountries.get(0));
-        initContentCountry(contentCountries, savedContents.get(3), savedCountries.get(3));
-        initContentCountry(contentCountries, savedContents.get(4), savedCountries.get(3));
-        initContentCountry(contentCountries, savedContents.get(5), savedCountries.get(3));
-        initContentCountry(contentCountries, savedContents.get(6), savedCountries.get(1));
-        initContentCountry(contentCountries, savedContents.get(7), savedCountries.get(1));
-        initContentCountry(contentCountries, savedContents.get(8), savedCountries.get(1));
-        contentCountryRepository.saveAll(contentCountries);
+            Content in1 = contentRepository.save(ContentFixture.content(
+                    usaMovie + "3", LocalDateTime.of(year2021, 1, 1, 0, 0), rating12)
+            );
+            Content in2 = contentRepository.save(ContentFixture.content(
+                    koreaMovie + "1", LocalDateTime.of(year2020, 1, 1, 0, 0), ratingAll)
+            );
+            Content out1 = contentRepository.save(ContentFixture.content(
+                    japanMovie + "1", LocalDateTime.of(year2021, 1, 1, 0, 0), rating12)
+            );
+            Content out2 = contentRepository.save(ContentFixture.content(
+                    usaMovie + "1", LocalDateTime.of(year2021, 1, 1, 0, 0), rating15)
+            );
 
-        List<ContentPlatform> contentPlatforms = new ArrayList<>();
-        initContentPlatform(contentPlatforms, savedContents.get(0), savedPlatforms.get(0));
-        initContentPlatform(contentPlatforms, savedContents.get(0), savedPlatforms.get(4));
-        initContentPlatform(contentPlatforms, savedContents.get(1), savedPlatforms.get(1));
-        initContentPlatform(contentPlatforms, savedContents.get(2), savedPlatforms.get(0));
-        initContentPlatform(contentPlatforms, savedContents.get(2), savedPlatforms.get(3));
-        initContentPlatform(contentPlatforms, savedContents.get(2), savedPlatforms.get(5));
-        initContentPlatform(contentPlatforms, savedContents.get(3), savedPlatforms.get(1));
-        initContentPlatform(contentPlatforms, savedContents.get(4), savedPlatforms.get(2));
-        initContentPlatform(contentPlatforms, savedContents.get(5), savedPlatforms.get(4));
-        initContentPlatform(contentPlatforms, savedContents.get(6), savedPlatforms.get(3));
-        initContentPlatform(contentPlatforms, savedContents.get(7), savedPlatforms.get(5));
-        initContentPlatform(contentPlatforms, savedContents.get(8), savedPlatforms.get(6));
-        contentPlatformRepository.saveAll(contentPlatforms);
+            holder[0] = in1;
+            holder[1] = in2;
 
-        List<ContentCategory> contentCategories = new ArrayList<>();
-        initContentCategory(contentCategories, savedContents.get(0), savedCategories.get(0));
-        initContentCategory(contentCategories, savedContents.get(1), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(2), savedCategories.get(2));
-        initContentCategory(contentCategories, savedContents.get(3), savedCategories.get(3));
-        initContentCategory(contentCategories, savedContents.get(4), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(5), savedCategories.get(0));
-        initContentCategory(contentCategories, savedContents.get(6), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(7), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(8), savedCategories.get(0));
-        contentCategoryRepository.saveAll(contentCategories);
+            contentCountryRepository.saveAll(
+                    List.of(
+                            ContentCountryFixture.contentCountry(in1, US),
+                            ContentCountryFixture.contentCountry(in2, KR),
+                            ContentCountryFixture.contentCountry(out1, JP),
+                            ContentCountryFixture.contentCountry(out2, US)
+                    )
+            );
 
-        List<ContentGenre> contentGenres = new ArrayList<>();
-        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(0));
-        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(2));
-        initContentGenre(contentGenres, savedContents.get(1), savedGenres.get(12));
-        initContentGenre(contentGenres, savedContents.get(2), savedGenres.get(13));
-        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(12));
-        initContentGenre(contentGenres, savedContents.get(4), savedGenres.get(10));
-        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(3));
-        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(5));
-        initContentGenre(contentGenres, savedContents.get(6), savedGenres.get(6));
-        initContentGenre(contentGenres, savedContents.get(7), savedGenres.get(0));
-        initContentGenre(contentGenres, savedContents.get(8), savedGenres.get(3));
-        contentGenreRepository.saveAll(contentGenres);
+            contentPlatformRepository.saveAll(
+                    List.of(
+                            ContentPlatformFixture.contentPlatform(in1, DISNEY_PLUS),
+                            ContentPlatformFixture.contentPlatform(in2, NETFLIX),
+                            ContentPlatformFixture.contentPlatform(out1, NETFLIX),
+                            ContentPlatformFixture.contentPlatform(out2, NETFLIX)
+                    )
+            );
+
+            contentCategoryRepository.saveAll(
+                    List.of(
+                            ContentCategoryFixture.contentCategory(in1, MOVIE),
+                            ContentCategoryFixture.contentCategory(in2, MOVIE),
+                            ContentCategoryFixture.contentCategory(out1, MOVIE),
+                            ContentCategoryFixture.contentCategory(out2, MOVIE)
+                    )
+            );
+
+            contentGenreRepository.saveAll(
+                    List.of(
+                            ContentGenreFixture.contentGenre(in1, ACTION),
+                            ContentGenreFixture.contentGenre(in2, SF),
+                            ContentGenreFixture.contentGenre(out1, ACTION),
+                            ContentGenreFixture.contentGenre(out2, ADVENTURE)
+                    )
+            );
+
+            return null;
+        });
+
+        String expectedNextCursor = holder[0].getId() + "|" + holder[0].getOpenDate();
 
         // when  // then
         mockMvc.perform(get("/api/contents")
@@ -339,9 +341,7 @@ class ContentControllerTest extends ApiSupport {
                 .andExpect(jsonPath("$.item").isArray())
                 .andExpect(jsonPath("$.item.length()").value(1))
                 .andExpect(jsonPath("$.item[0].title").value(usaMovie + "3"))
-                .andExpect(jsonPath("$.nextCursor").value(
-                        savedContents.get(5).getId() + "|" + savedContents.get(5).getOpenDate())
-                )
+                .andExpect(jsonPath("$.nextCursor").value(expectedNextCursor))
                 .andExpect(jsonPath("$.hasNext").value(true))
         ;
     }
@@ -350,85 +350,120 @@ class ContentControllerTest extends ApiSupport {
     @Test
     void getContentDetails() throws Exception {
         // given
-        final String title = "세부 콘텐츠 조회";
-        final LocalDateTime openDate = LocalDateTime.of(2025, 7, 15, 14, 0);
-        final String rating = "전체 관람가";
-        Content savedContent = contentRepository.save(
-                ContentFixture.content(title, openDate, rating));
+        final String kor = "한국";
+        final String usa = "미국";
+        final String koreaMovie = "한국영화";
+        final String usaMovie = "미국영화";
+        final String rating12 = "12세 이상";
+        final int year2020 = 2020;
+        final Content[] holder = new Content[2];
 
-        List<Platform> savedPlatforms = platformRepository.saveAll(PlatformFixture.platforms());
-        List<ContentPlatform> contentPlatforms = new ArrayList<>();
-        initContentPlatform(contentPlatforms, savedContent, savedPlatforms.get(3));
-        initContentPlatform(contentPlatforms, savedContent, savedPlatforms.get(6));
-        contentPlatformRepository.saveAll(contentPlatforms);
+        TransactionTemplate tx = new TransactionTemplate(tm);
+        tx.execute(status -> {
+            Country KR = countryRepository.findByCountryName(kor).orElseThrow();
+            Country US = countryRepository.findByCountryName(usa).orElseThrow();
 
-        List<Cast> savedCasts = castRepository.saveAll(CastFixture.casts());
-        List<ContentCast> contentCasts = new ArrayList<>();
-        initContentCasts(contentCasts, savedContent, savedCasts.get(0));
-        initContentCasts(contentCasts, savedContent, savedCasts.get(1));
-        initContentCasts(contentCasts, savedContent, savedCasts.get(2));
-        contentCastRepository.saveAll(contentCasts);
+            Platform NETFLIX = platformRepository.findByPlatformType(PlatformType.NETFLIX)
+                    .orElseThrow();
+            Platform DISNEY_PLUS = platformRepository.findByPlatformType(PlatformType.DISNEY_PLUS)
+                    .orElseThrow();
+            Category MOVIE = categoryRepository.findByCategoryType(CategoryType.MOVIE)
+                    .orElseThrow();
+            Genre ACTION = genreRepository.findByGenreTypeAndCategory(GenreType.ACTION, MOVIE)
+                    .orElseThrow();
 
-        List<Director> savedDirector = directorRepository.saveAll(DirectorFixture.directors());
-        List<ContentDirector> contentDirectors = new ArrayList<>();
-        initContentDirectors(contentDirectors, savedContent, savedDirector.get(3));
-        contentDirectorRepository.saveAll(contentDirectors);
+            Cast cast01 = castRepository.findByCastNameAndCastImageUrl("출연진01",
+                    "https://example.com/images/cast-01.jpg").orElseThrow();
+            Cast cast02 = castRepository.findByCastNameAndCastImageUrl("출연진02",
+                    "https://example.com/images/cast-02.jpg").orElseThrow();
 
-        List<Country> savedCountries = countryRepository.saveAll(CountryFixture.countries());
-        List<ContentCountry> contentCountries = new ArrayList<>();
-        initContentCountry(contentCountries, savedContent, savedCountries.get(0));
-        initContentCountry(contentCountries, savedContent, savedCountries.get(3));
-        contentCountryRepository.saveAll(contentCountries);
+            Director director01 = directorRepository.findByDirectorName("감독01").orElseThrow();
+            Director director02 = directorRepository.findByDirectorName("감독02").orElseThrow();
 
-        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
-        List<ContentCategory> contentCategories = new ArrayList<>();
-        initContentCategory(contentCategories, savedContent, savedCategories.get(0));
-        contentCategoryRepository.saveAll(contentCategories);
+            Content in = contentRepository.save(ContentFixture.content(
+                    koreaMovie, LocalDateTime.of(year2020, 1, 1, 0, 0), rating12)
+            );
+            Content out = contentRepository.save(ContentFixture.content(
+                    usaMovie, LocalDateTime.of(year2020, 1, 1, 0, 0), rating12)
+            );
 
-        List<Genre> savedGenres = genreRepository.saveAll(
-                GenreFixture.genres(savedCategories.get(0)));
-        List<ContentGenre> contentGenres = new ArrayList<>();
-        initContentGenre(contentGenres, savedContent, savedGenres.get(0));
-        initContentGenre(contentGenres, savedContent, savedGenres.get(1));
-        initContentGenre(contentGenres, savedContent, savedGenres.get(2));
-        contentGenreRepository.saveAll(contentGenres);
+            holder[0] = in;
+            holder[1] = out;
+
+            contentCountryRepository.saveAll(
+                    List.of(
+                            ContentCountryFixture.contentCountry(in, KR),
+                            ContentCountryFixture.contentCountry(out, US)
+                    )
+            );
+
+            contentPlatformRepository.saveAll(
+                    List.of(
+                            ContentPlatformFixture.contentPlatform(in, DISNEY_PLUS),
+                            ContentPlatformFixture.contentPlatform(out, NETFLIX)
+                    )
+            );
+
+            contentCategoryRepository.saveAll(
+                    List.of(
+                            ContentCategoryFixture.contentCategory(in, MOVIE),
+                            ContentCategoryFixture.contentCategory(out, MOVIE)
+                    )
+            );
+
+            contentGenreRepository.saveAll(
+                    List.of(
+                            ContentGenreFixture.contentGenre(in, ACTION),
+                            ContentGenreFixture.contentGenre(out, ACTION)
+                    )
+            );
+
+            contentCastRepository.saveAll(
+                    List.of(
+                            ContentCastFixture.contentCast(in, cast01),
+                            ContentCastFixture.contentCast(out, cast02)
+                    )
+            );
+
+            contentDirectorRepository.saveAll(
+                    List.of(
+                            ContentDirectorFixture.contentDirector(in, director01),
+                            ContentDirectorFixture.contentDirector(out, director02)
+                    )
+            );
+
+            return null;
+        });
 
         // when  // then
-        mockMvc.perform(get("/api/contents/{contentId}", savedContent.getId())
+        mockMvc.perform(get("/api/contents/{contentId}", holder[0].getId())
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember)
                 )
-                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.contentId").value(savedContent.getId()))
-                .andExpect(jsonPath("$.title").value(title))
-                .andExpect(jsonPath("$.openDate", startsWith(openDate.toString())))
-                .andExpect(jsonPath("$.rating").value(rating))
-                .andExpect(jsonPath("$.platforms[0].platformType").value("웨이브"))
-                .andExpect(jsonPath("$.platforms[1].platformType").value("애플티비"))
-                .andExpect(jsonPath("$.casts[0].castName").value("마동석"))
-                .andExpect(jsonPath("$.casts[1].castName").value("황정민"))
-                .andExpect(jsonPath("$.casts[2].castName").value("토니스타크"))
-                .andExpect(jsonPath("$.directors", contains("김원석")))
-                .andExpect(jsonPath("$.countries", contains("한국", "미국")))
+                .andExpect(jsonPath("$.contentId").value(holder[0].getId()))
+                .andExpect(jsonPath("$.title").value(koreaMovie))
+                .andExpect(jsonPath("$.openDate", startsWith(String.valueOf(year2020))))
+                .andExpect(jsonPath("$.rating").value(rating12))
+                .andExpect(jsonPath("$.platforms[0].platformType").value("디즈니+"))
+                .andExpect(jsonPath("$.casts[0].castName").value("출연진01"))
+                .andExpect(jsonPath("$.directors", contains("감독01")))
+                .andExpect(jsonPath("$.countries", contains("한국")))
                 .andExpect(jsonPath("$.categories", contains("영화")))
-                .andExpect(jsonPath("$.genres", contains("액션", "판타지", "SF")))
+                .andExpect(jsonPath("$.genres", contains("액션")))
         ;
     }
 
     @DisplayName("존재하지 않은 콘텐츠를 조회할 수 없다.")
     @Test
     void throwExceptionWhenContentIsNotExist() throws Exception {
-
-        Content content = ContentFixture.content("존재하지 않는 콘텐츠", "존재하지 않는 콘텐츠입니다.");
-        ReflectionTestUtils.setField(content, "id", 100L);
+        final Long contentId = 1L;
 
         // when  // then
-        mockMvc.perform(get("/api/contents/{contentId}", content.getId())
+        mockMvc.perform(get("/api/contents/{contentId}", contentId)
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember)
                 )
-                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("CONTENT_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("콘텐츠를 찾을 수 없습니다."))
@@ -439,40 +474,69 @@ class ContentControllerTest extends ApiSupport {
     @Test
     void getWeeklyRecommendedContents() throws Exception {
         // given
+        final Content[] holder = new Content[7];
 
-        List<Content> contents = new ArrayList<>();
-        contents.add(ContentFixture.content("버라이어티", "버라이어티"));
-        contents.add(ContentFixture.content("코미디", "코미디"));
-        contents.add(ContentFixture.content("액션", "액션"));
-        contents.add(ContentFixture.content("어드벤처", "어드벤처"));
-        contents.add(ContentFixture.content("범죄", "범죄"));
-        contents.add(ContentFixture.content("스릴러", "스릴러"));
-        contents.add(ContentFixture.content("멜로/로맨스", "멜로/로맨스"));
-        contents.add(ContentFixture.content("다큐멘터리", "다큐멘터리"));
+        TransactionTemplate tx = new TransactionTemplate(tm);
+        tx.execute(status -> {
+            Content in1 = contentRepository.save(ContentFixture.content("버라이어티", "버라이어티"));
+            Content in2 = contentRepository.save(ContentFixture.content("코미디", "코미디"));
+            Content in3 = contentRepository.save(ContentFixture.content("어드벤처", "어드벤처"));
+            Content in4 = contentRepository.save(ContentFixture.content("범죄", "범죄"));
+            Content in5 = contentRepository.save(ContentFixture.content("스릴러", "스릴러"));
+            Content in6 = contentRepository.save(ContentFixture.content("멜로/로맨스", "멜로/로맨스"));
+            Content in7 = contentRepository.save(ContentFixture.content("다큐멘터리", "다큐멘터리"));
 
-        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
-        List<Content> savedContents = contentRepository.saveAll(contents);
-        List<Genre> savedGenres = genreRepository.saveAll(
-                GenreFixture.genres(savedCategories.get(0)));
+            Category MOVIE = categoryRepository.findByCategoryType(CategoryType.MOVIE)
+                    .orElseThrow();
+            Category DRAMA = categoryRepository.findByCategoryType(CategoryType.DRAMA)
+                    .orElseThrow();
 
-        List<ContentGenre> contentGenres = new ArrayList<>();
-        initContentGenre(contentGenres, savedContents.get(0), savedGenres.get(19));
-        initContentGenre(contentGenres, savedContents.get(1), savedGenres.get(7));
-        initContentGenre(contentGenres, savedContents.get(2), savedGenres.get(0));
-        initContentGenre(contentGenres, savedContents.get(3), savedGenres.get(5));
-        initContentGenre(contentGenres, savedContents.get(4), savedGenres.get(14));
-        initContentGenre(contentGenres, savedContents.get(5), savedGenres.get(3));
-        initContentGenre(contentGenres, savedContents.get(6), savedGenres.get(9));
-        initContentGenre(contentGenres, savedContents.get(7), savedGenres.get(13));
-        contentGenreRepository.saveAll(contentGenres);
+            Genre VARIETY2 = genreRepository.findByGenreTypeAndCategory(GenreType.VARIETY, DRAMA)
+                    .orElseThrow();
+            Genre COMEDY = genreRepository.findByGenreTypeAndCategory(GenreType.COMEDY, MOVIE)
+                    .orElseThrow();
+            Genre ADVENTURE = genreRepository.findByGenreTypeAndCategory(GenreType.ADVENTURE, MOVIE)
+                    .orElseThrow();
+            Genre CRIME = genreRepository.findByGenreTypeAndCategory(GenreType.CRIME, MOVIE)
+                    .orElseThrow();
+            Genre THRILLER = genreRepository.findByGenreTypeAndCategory(GenreType.THRILLER, MOVIE)
+                    .orElseThrow();
+            Genre ROMANCE = genreRepository.findByGenreTypeAndCategory(GenreType.ROMANCE, MOVIE)
+                    .orElseThrow();
+            Genre DOCUMENTARY = genreRepository.findByGenreTypeAndCategory(GenreType.DOCUMENTARY,
+                            MOVIE)
+                    .orElseThrow();
+
+            contentGenreRepository.saveAll(
+                    List.of(
+                            ContentGenreFixture.contentGenre(in1, VARIETY2),
+                            ContentGenreFixture.contentGenre(in2, COMEDY),
+                            ContentGenreFixture.contentGenre(in3, ADVENTURE),
+                            ContentGenreFixture.contentGenre(in4, CRIME),
+                            ContentGenreFixture.contentGenre(in5, THRILLER),
+                            ContentGenreFixture.contentGenre(in6, ROMANCE),
+                            ContentGenreFixture.contentGenre(in7, DOCUMENTARY)
+                    )
+            );
+
+            holder[0] = in1;
+            holder[1] = in2;
+            holder[2] = in3;
+            holder[3] = in4;
+            holder[4] = in5;
+            holder[5] = in6;
+            holder[6] = in7;
+
+            return null;
+        });
 
         DayOfWeek today = LocalDate.now().getDayOfWeek();
         Map<DayOfWeek, List<Long>> expectedContentIdsByGenre = Map.of(
-                MONDAY, List.of(savedContents.get(1).getId(), savedContents.get(0).getId()),
-                TUESDAY, List.of(savedContents.get(3).getId(), savedContents.get(2).getId()),
-                WEDNESDAY, List.of(savedContents.get(5).getId(), savedContents.get(4).getId()),
-                FRIDAY, List.of(savedContents.get(6).getId()),
-                SATURDAY, List.of(savedContents.get(7).getId())
+                MONDAY, List.of(holder[0].getId(), holder[1].getId()),
+                TUESDAY, List.of(holder[2].getId()),
+                WEDNESDAY, List.of(holder[3].getId(), holder[4].getId()),
+                FRIDAY, List.of(holder[5].getId()),
+                SATURDAY, List.of(holder[6].getId())
         );
 
         List<Long> expectedIds = expectedContentIdsByGenre.getOrDefault(today, List.of());
@@ -484,7 +548,6 @@ class ContentControllerTest extends ApiSupport {
                             .contentType(APPLICATION_JSON)
                             .cookie(accessTokenOfMember)
                     )
-                    .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(4))
             ;
@@ -494,13 +557,13 @@ class ContentControllerTest extends ApiSupport {
                             .contentType(APPLICATION_JSON)
                             .cookie(accessTokenOfMember)
                     )
-                    .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[*].contentId", containsInAnyOrder(
                             expectedIds.stream()
                                     .map(Long::intValue)
                                     .toArray()
-                    )));
+                    )))
+            ;
         }
     }
 
@@ -508,73 +571,41 @@ class ContentControllerTest extends ApiSupport {
     @Test
     void getRecentContents() throws Exception {
         // given
-        List<Content> contents = List.of(
-                ContentFixture.content("버라이어티", "버라이어티"),
-                ContentFixture.content("코미디", "코미디"),
-                ContentFixture.content("액션", "액션")
-        );
-        List<Category> savedCategories = categoryRepository.saveAll(CategoryFixture.categories());
-        List<Content> savedContents = contentRepository.saveAll(contents);
+        final String koreaMovie = "한국영화";
+        final String rating12 = "12세 이상";
+        final int year2020 = 2020;
+        final int year2021 = 2021;
+        final int year2022 = 2021;
+        final Content[] holder = new Content[3];
 
-        List<ContentCategory> contentCategories = new ArrayList<>();
-        initContentCategory(contentCategories, savedContents.get(0), savedCategories.get(0));
-        initContentCategory(contentCategories, savedContents.get(1), savedCategories.get(1));
-        initContentCategory(contentCategories, savedContents.get(2), savedCategories.get(2));
+        TransactionTemplate tx = new TransactionTemplate(tm);
+        tx.execute(status -> {
+            Content in1 = contentRepository.save(contentRepository.save(ContentFixture.content(
+                    koreaMovie + "1", LocalDateTime.of(year2020, 1, 1, 0, 0), rating12)
+            ));
+            Content in2 = contentRepository.save(contentRepository.save(ContentFixture.content(
+                    koreaMovie + "2", LocalDateTime.of(year2021, 1, 1, 0, 0), rating12)
+            ));
+            Content in3 = contentRepository.save(contentRepository.save(ContentFixture.content(
+                    koreaMovie + "3", LocalDateTime.of(year2022, 1, 1, 0, 0), rating12)
+            ));
 
-        contentCategoryRepository.saveAll(contentCategories);
+            holder[0] = in1;
+            holder[1] = in2;
+            holder[2] = in3;
+
+            return null;
+        });
 
         // when // then
         mockMvc.perform(get("/api/contents/recent")
                         .param("size", "2")
                         .contentType(APPLICATION_JSON)
                         .cookie(accessTokenOfMember))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].title").value("액션"))
-                .andExpect(jsonPath("$[0].posterUrl").exists())
-                .andExpect(jsonPath("$[0].categories").isArray())
-                .andExpect(jsonPath("$[0].categories",
-                        contains(savedCategories.get(2).getCategoryType().getType())))
-                .andExpect(jsonPath("$[1].title").value("코미디"))
-                .andExpect(jsonPath("$[1].posterUrl").exists())
-                .andExpect(jsonPath("$[1].categories").isArray())
-                .andExpect(jsonPath("$[1].categories",
-                        contains(savedCategories.get(1).getCategoryType().getType())));
-    }
-
-    private void initContentDirectors(List<ContentDirector> contentDirectors, Content content,
-            Director director) {
-        contentDirectors.add(ContentDirectorFixture.contentDirector(content, director));
-    }
-
-    private void initContentCasts(List<ContentCast> contentCasts, Content content,
-            Cast cast) {
-        contentCasts.add(ContentCastFixture.contentCast(content, cast));
-    }
-
-
-    private void initContent(List<Content> contents, String title, int year, String rating) {
-        contents.add(ContentFixture.content(title, LocalDateTime.of(year, 1, 1, 0, 0), rating));
-    }
-
-    private void initContentCountry(List<ContentCountry> contentCountries,
-            Content content, Country country) {
-        contentCountries.add(ContentCountryFixture.contentCountry(content, country));
-    }
-
-    private void initContentPlatform(List<ContentPlatform> contentPlatforms,
-            Content content, Platform platform) {
-        contentPlatforms.add(ContentPlatformFixture.contentPlatform(content, platform));
-    }
-
-    private void initContentCategory(List<ContentCategory> contentCategories,
-            Content content, Category category) {
-        contentCategories.add(ContentCategoryFixture.contentCategory(content, category));
-    }
-
-    private void initContentGenre(List<ContentGenre> contentGenres,
-            Content content, Genre genre) {
-        contentGenres.add(ContentGenreFixture.contentGenre(content, genre));
+                .andExpect(jsonPath("$[0].title").value(koreaMovie + "3"))
+                .andExpect(jsonPath("$[1].title").value(koreaMovie + "2"))
+        ;
     }
 }
