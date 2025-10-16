@@ -44,7 +44,6 @@ class SurveyControllerTest extends ApiSupport {
     @AfterEach
     void tearDown() {
         surveyRepository.deleteAll();
-        memberRepository.deleteAll();
     }
 
     @DisplayName("설문조사를 저장한다.")

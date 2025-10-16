@@ -37,7 +37,6 @@ class MemberControllerTest extends ApiSupport {
     @AfterEach
     void tearDown() {
         surveyRepository.deleteAll();
-        memberRepository.deleteAll();
     }
 
     @DisplayName("마이페이지에서 회원 선호 장르를 수정한다.")
