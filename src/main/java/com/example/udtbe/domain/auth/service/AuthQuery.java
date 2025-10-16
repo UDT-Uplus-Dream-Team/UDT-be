@@ -41,8 +41,8 @@ public class AuthQuery {
     }
 
     public void deleteAll() {
-        memberRepository.deleteAll();
-        adminRepository.deleteAll();
+        memberRepository.deleteAllInBatch();
+        adminRepository.deleteAllInBatch();
     }
 
     public boolean existsByEmail(String email) {
