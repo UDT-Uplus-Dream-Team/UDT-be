@@ -16,7 +16,8 @@ import jakarta.servlet.http.Cookie;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class ApiSupport extends TestContainerSupport {
 
     protected Admin loginAdmin;
@@ -49,14 +51,14 @@ public abstract class ApiSupport extends TestContainerSupport {
         return objectMapper.writeValueAsString(object);
     }
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         authQuery.deleteAll();
         setUpMembers();
     }
 
     public void setUpMembers() {
-        if (!Objects.isNull(loginAdmin) && !Objects.isNull(loginMember) && Objects.isNull(
+        if (!Objects.isNull(loginAdmin) && !Objects.isNull(loginMember) && !Objects.isNull(
                 loginTempMember)) {
             return;
         }
