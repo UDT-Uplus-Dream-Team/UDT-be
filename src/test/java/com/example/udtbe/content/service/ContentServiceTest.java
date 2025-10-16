@@ -15,10 +15,8 @@ import com.example.udtbe.domain.content.entity.CuratedContent;
 import com.example.udtbe.domain.content.exception.ContentErrorCode;
 import com.example.udtbe.domain.content.service.ContentQuery;
 import com.example.udtbe.domain.content.service.ContentService;
-import com.example.udtbe.domain.content.util.PopularContentStore;
 import com.example.udtbe.domain.member.entity.Member;
 import com.example.udtbe.domain.member.entity.enums.Role;
-import com.example.udtbe.global.config.WeeklyGenrePolicyProperties;
 import com.example.udtbe.global.exception.RestApiException;
 import java.util.Arrays;
 import java.util.List;
@@ -37,12 +35,6 @@ class ContentServiceTest {
 
     @Mock
     private ContentQuery contentQuery;
-
-    @Mock
-    private WeeklyGenrePolicyProperties weeklyGenrePolicyProperties;
-
-    @Mock
-    private PopularContentStore popularContentStore;
 
     @InjectMocks
     private ContentService contentService;

@@ -67,7 +67,6 @@ import com.example.udtbe.domain.content.repository.ContentGenreRepository;
 import com.example.udtbe.domain.content.repository.ContentMetadataRepository;
 import com.example.udtbe.domain.content.repository.ContentPlatformRepository;
 import com.example.udtbe.domain.content.repository.ContentRepository;
-import com.example.udtbe.domain.content.repository.FeedbackStatisticsRepository;
 import com.example.udtbe.domain.content.repository.FeedbackStatisticsRepositoryImpl;
 import com.example.udtbe.domain.content.service.FeedbackStatisticsQuery;
 import com.example.udtbe.domain.member.entity.Member;
@@ -117,10 +116,7 @@ public class AdminServiceTest {
     @Mock
     private FeedbackStatisticsRepositoryImpl feedbackStatisticsRepositoryImpl;
     @Mock
-    private FeedbackStatisticsRepository feedbackStatisticsRepository;
-    @Mock
     private BatchJobMetricRepository batchJobMetricRepository;
-
     @InjectMocks
     private AdminService adminService;
 
