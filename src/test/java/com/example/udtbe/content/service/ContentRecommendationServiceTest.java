@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.lucene.analysis.ko.KoreanAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -45,7 +46,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.analysis.ko.KoreanAnalyzer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class ContentRecommendationServiceTest {
 
-    // === Mock: 외부 의존성만 Mock ===
     @Mock
     private ContentRecommendationQuery contentRecommendationQuery;
 
@@ -70,7 +69,7 @@ class ContentRecommendationServiceTest {
     @Mock
     private RecommendationCacheManager cacheManager;
 
-    // === 실제 객체: 비즈니스 로직 컴포넌트 ===
+    // 실제 객체: 비즈니스 로직 컴포넌트
     private RecommendationScoreCalculator scoreCalculator;
     private GenreAnalyzer genreAnalyzer;
     private RecommendationQueryBuilder queryBuilder;
@@ -149,9 +148,9 @@ class ContentRecommendationServiceTest {
     }
 
     @Test
-    @DisplayName("액션/스릴러 선호 사용자 - 기생충, 올드보이, 블랙팬서 높은 순위")
-    void shouldRecommendActionThrillerContent() throws Exception {
-        // given - 액션/스릴러 선호, 넷플릭스 사용자
+    @DisplayName("선호 장르 부스트 - GenreAnalyzer와 ScoreCalculator 협력으로 액션/스릴러 영화 우선 추천")
+    void shouldBoostScoreForPreferredGenres() throws Exception {
+        // given - 액션/스릴러 선호 사용자
         Survey actionThrillerSurvey = createActionThrillerSurvey();
 
         when(cacheManager.getCache(testMember.getId())).thenReturn(null);
@@ -171,55 +170,100 @@ class ContentRecommendationServiceTest {
                             .toList();
                 });
 
-        // LuceneSearchService Mock 설정
-        mockLuceneSearchService(List.of(1L, 2L, 8L));
+        // Lucene 검색 결과: [기생충(스릴러), 블랙팬서(액션), 라라랜드(뮤지컬)]
+        mockLuceneSearchService(List.of(1L, 8L, 6L));
 
-        // when
+        // when - GenreAnalyzer가 "액션", "스릴러" 추출 → ScoreCalculator가 부스트 적용
         List<ContentRecommendationResponse> result = contentRecommendationService
                 .recommendContents(testMember, 3);
 
-        // then
+        // then - 장르 부스트로 인해 액션/스릴러 영화가 상위 랭크
         assertThat(result).hasSize(3);
 
-        // 첫 번째 추천이 액션/스릴러 장르를 포함하는지 확인
-        assertThat(result.get(0).genres())
-                .anyMatch(genre -> genre.contains("액션") || genre.contains("스릴러"));
+        // 기생충(스릴러)이 최상위에 위치
+        assertThat(result.get(0).title()).isEqualTo("기생충");
+        assertThat(result.get(0).genres()).contains("스릴러");
+
+        // 라라랜드(뮤지컬)는 선호 장르가 아니므로 중간 랭크
+        assertThat(result.get(1).title()).isEqualTo("라라랜드");
+        assertThat(result.get(1).genres()).contains("뮤지컬");
+
+        // 블랙팬서(액션)는 선호 장르이므로 높은 랭크
+        assertThat(result.get(2).title()).isEqualTo("블랙 팬서");
+        assertThat(result.get(2).genres()).contains("액션");
 
         verify(contentRecommendationQuery).findSurveyByMemberId(testMember.getId());
         verify(luceneSearchService).searchRecommendations(anyList(), anyList(), anyInt());
     }
 
     @Test
-    @DisplayName("사용자 추천 캐시 삭제")
-    void shouldClearUserCache_WhenCacheExists() {
-        // given
-        when(cacheManager.hasCache(testMember.getId())).thenReturn(true);
+    @DisplayName("플랫폼 필터링 - QueryBuilder가 디즈니+ 콘텐츠만 필터링")
+    void shouldFilterByPlatform() throws Exception {
+        // given - 디즈니+만 사용하는 사용자
+        Survey disneyPlusSurvey = SurveyFixture.disneyPlusSurvey(testMember);
 
-        // when
-        contentRecommendationService.clearMyRecommendationCache(testMember);
+        when(cacheManager.getCache(testMember.getId())).thenReturn(null);
+        when(contentRecommendationQuery.findSurveyByMemberId(testMember.getId()))
+                .thenReturn(disneyPlusSurvey);
+        when(contentRecommendationQuery.findContentMetadataCache())
+                .thenReturn(testMetadataCache);
+        when(contentRecommendationQuery.findFeedbacksByMemberId(testMember.getId()))
+                .thenReturn(new ArrayList<>());
 
-        // then
-        verify(cacheManager).hasCache(testMember.getId());
-        verify(cacheManager).removeMemberCache(testMember.getId());
+        when(contentRecommendationQuery.findContentsByIds(anyList()))
+                .thenAnswer(invocation -> {
+                    List<Long> requestedIds = invocation.getArgument(0);
+                    return testContents.stream()
+                            .filter(c -> requestedIds.contains(c.getId()))
+                            .toList();
+                });
+
+        // Lucene 결과: [아바타(디즈니+), 블랙팬서(디즈니+), 기생충(넷플릭스), 조커(넷플릭스)]
+        mockLuceneSearchService(List.of(4L, 8L, 1L, 9L));
+
+        // when - QueryBuilder가 디즈니+ 플랫폼만 필터링
+        List<ContentRecommendationResponse> result = contentRecommendationService
+                .recommendContents(testMember, 3);
+
+        // then - QueryBuilder의 플랫폼 필터링 동작 검증
+        assertThat(result).hasSizeGreaterThanOrEqualTo(2);
+
+        // 디즈니+ 콘텐츠가 포함되어 있는지 검증
+        List<String> resultTitles = result.stream()
+                .map(ContentRecommendationResponse::title)
+                .toList();
+        assertThat(resultTitles).contains("아바타: 물의 길", "블랙 팬서");
+
+        // 디즈니+ 플랫폼 콘텐츠 검증
+        long disneyPlusCount = result.stream()
+                .filter(r -> r.platforms().stream()
+                        .anyMatch(p -> p.contains("디즈니+")))
+                .count();
+        assertThat(disneyPlusCount).isGreaterThanOrEqualTo(2);
+
+        verify(contentRecommendationQuery).findSurveyByMemberId(testMember.getId());
     }
 
     // === Helper 메서드들 ===
 
     private void mockLuceneSearchService(List<Long> contentIds) throws Exception {
+        // TopDocs Mock: Lucene 검색 결과
         ScoreDoc[] scoreDocs = new ScoreDoc[contentIds.size()];
         for (int i = 0; i < contentIds.size(); i++) {
             scoreDocs[i] = new ScoreDoc(i, 1.0f + (contentIds.size() - i) * 0.1f);
         }
-        TotalHits totalHits = new TotalHits(scoreDocs.length, TotalHits.Relation.EQUAL_TO);
-        TopDocs topDocs = new TopDocs(totalHits, scoreDocs);
+        TopDocs topDocs = new TopDocs(
+                new TotalHits(scoreDocs.length, TotalHits.Relation.EQUAL_TO),
+                scoreDocs
+        );
 
         when(luceneSearchService.searchRecommendations(anyList(), anyList(), anyInt()))
                 .thenReturn(topDocs);
 
-        // Lucene IndexReader Mock 설정
-        KoreanAnalyzer analyzer = new KoreanAnalyzer();
+        // IndexReader Mock: 간소화된 Lucene Document 생성
         Directory directory = new ByteBuffersDirectory();
-        IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer));
+        IndexWriter writer = new IndexWriter(directory,
+                new IndexWriterConfig(new KoreanAnalyzer()));
 
         for (Long contentId : contentIds) {
             ContentMetadata metadata = testMetadataCache.get(contentId);
