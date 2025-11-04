@@ -8,6 +8,7 @@ import com.example.udtbe.domain.batch.entity.BatchJobMetric;
 import com.example.udtbe.domain.batch.entity.enums.BatchJobType;
 import com.example.udtbe.domain.batch.repository.BatchJobMetricRepository;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,11 @@ class BatchJobMetricRepositoryTest extends DataJpaSupport {
 
     @Autowired
     private BatchJobMetricRepository batchJobMetricRepository;
+
+    @BeforeEach
+    void cleanUp() {
+        batchJobMetricRepository.deleteAllInBatch();
+    }
 
     @DisplayName("배치 작업 메트릭을 저장하고 조회할 수 있다.")
     @Test
