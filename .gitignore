@@ -45,6 +45,13 @@ out/
 
 !/src/main/resources/data.sql
 !/src/test/resources/data-test.sql
+!/src/test/resources/cast-test.sql
+!/src/test/resources/category-test.sql
+!/src/test/resources/country-test.sql
+!/src/test/resources/director-test.sql
+!/src/test/resources/genre-test.sql
+!/src/test/resources/platform-test.sql
+!/src/test/resources/genre-test.sql
 !/src/main/resources/batch.sql
 !/src/test/resources/batch-test.sql
 
