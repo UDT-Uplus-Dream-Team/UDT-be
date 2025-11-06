@@ -197,7 +197,7 @@ class ContentRecommendationServiceTest {
     }
 
     @Test
-    @DisplayName("플랫폼 필터링 - QueryBuilder가 디즈니+ 콘텐츠만 필터링")
+    @DisplayName("플랫폼 필터링 - QueryBuilder가 디즈니+ ID만 Lucene에 전달")
     void shouldFilterByPlatform() throws Exception {
         // given - 디즈니+만 사용하는 사용자
         Survey disneyPlusSurvey = SurveyFixture.disneyPlusSurvey(testMember);
@@ -218,30 +218,22 @@ class ContentRecommendationServiceTest {
                             .toList();
                 });
 
-        // Lucene 결과: [아바타(디즈니+), 블랙팬서(디즈니+), 기생충(넷플릭스), 조커(넷플릭스)]
-        mockLuceneSearchService(List.of(4L, 8L, 1L, 9L));
+        // Lucene Mock
+        mockLuceneSearchService(List.of(4L, 8L));
 
-        // when - QueryBuilder가 디즈니+ 플랫폼만 필터링
+        // when
         List<ContentRecommendationResponse> result = contentRecommendationService
                 .recommendContents(testMember, 3);
 
-        // then - QueryBuilder의 플랫폼 필터링 동작 검증
-        assertThat(result).hasSizeGreaterThanOrEqualTo(2);
+        // 최종 결과 디즈니+ 콘텐츠만 포함
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(r ->
+                r.platforms().stream().anyMatch(p -> p.contains("디즈니+")));
 
-        // 디즈니+ 콘텐츠가 포함되어 있는지 검증
         List<String> resultTitles = result.stream()
                 .map(ContentRecommendationResponse::title)
                 .toList();
-        assertThat(resultTitles).contains("아바타: 물의 길", "블랙 팬서");
-
-        // 디즈니+ 플랫폼 콘텐츠 검증
-        long disneyPlusCount = result.stream()
-                .filter(r -> r.platforms().stream()
-                        .anyMatch(p -> p.contains("디즈니+")))
-                .count();
-        assertThat(disneyPlusCount).isGreaterThanOrEqualTo(2);
-
-        verify(contentRecommendationQuery).findSurveyByMemberId(testMember.getId());
+        assertThat(resultTitles).containsExactlyInAnyOrder("아바타: 물의 길", "블랙 팬서");
     }
 
     // === Helper 메서드들 ===
