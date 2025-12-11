@@ -1,14 +1,10 @@
 package com.example.udtbe.domain.content.service;
 
-import com.example.udtbe.domain.content.dto.ContentRecommendationMapper;
 import com.example.udtbe.domain.content.dto.common.ContentRecommendationDTO;
 import com.example.udtbe.domain.content.dto.response.ContentRecommendationResponse;
-import com.example.udtbe.domain.content.entity.Content;
 import com.example.udtbe.domain.content.entity.ContentMetadata;
 import com.example.udtbe.domain.content.entity.Feedback;
-import com.example.udtbe.domain.content.entity.enums.FeedbackType;
 import com.example.udtbe.domain.content.entity.enums.GenreType;
-import com.example.udtbe.domain.content.entity.enums.PlatformType;
 import com.example.udtbe.domain.content.exception.RecommendContentErrorCode;
 import com.example.udtbe.domain.content.util.MemberRecommendationCache;
 import com.example.udtbe.domain.content.util.RecommendationCacheManager;
@@ -17,16 +13,11 @@ import com.example.udtbe.domain.survey.entity.Survey;
 import com.example.udtbe.global.exception.RestApiException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.document.Document;
@@ -37,7 +28,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +38,10 @@ public class ContentRecommendationService {
     private final LuceneIndexService luceneIndexService;
     private final LuceneSearchService luceneSearchService;
     private final RecommendationCacheManager cacheManager;
+    private final RecommendationScoreCalculator scoreCalculator;
+    private final GenreAnalyzer genreAnalyzer;
+    private final RecommendationQueryBuilder queryBuilder;
+    private final RecommendationResponseBuilder responseBuilder;
 
     @Transactional(readOnly = true)
     public List<ContentRecommendationResponse> recommendContents(Member member, int limit) {
@@ -84,7 +78,7 @@ public class ContentRecommendationService {
 
         // TODO: 모든 ContentMetadata 한 번에 조회하여 캐시 생성 , 추후 메모리 분석 및 성능 개선의 여지가 농후
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
-        List<Long> platformFilteredContentIds = getPlatformFilteredContentIds(
+        List<Long> platformFilteredContentIds = queryBuilder.getPlatformFilteredContentIds(
                 memberSurvey.getPlatformTag(), metadataCache);
 
         if (isCurated) {
@@ -101,8 +95,10 @@ public class ContentRecommendationService {
             Map<Long, ContentMetadata> metadataCache, List<Long> platformFilteredContentIds)
             throws IOException, ParseException {
 
-        List<String> feedbackBasedGenres = extractPreferredGenresFromFeedback(member,
-                metadataCache);
+        List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
+                member.getId());
+        List<String> feedbackBasedGenres = genreAnalyzer.extractPreferredGenresFromFeedback(
+                feedbacks, metadataCache);
         List<String> surveyGenres = GenreType.toKoreanTypes(memberSurvey.getGenreTag());
         TopDocs topDocs = luceneSearchService.searchCuratedRecommendations(
                 platformFilteredContentIds, feedbackBasedGenres, limit);
@@ -115,7 +111,8 @@ public class ContentRecommendationService {
                 .limit(limit)
                 .toList();
 
-        return buildResponseFromRecommendations(sortedRecommendations, metadataCache);
+        return responseBuilder.buildResponseFromRecommendations(sortedRecommendations,
+                metadataCache);
     }
 
     private List<ContentRecommendationResponse> executeRegularRecommendation(
@@ -149,33 +146,29 @@ public class ContentRecommendationService {
             List<ContentRecommendationDTO> recommendations = new ArrayList<>();
             debugTopDocs(topDocs, searcher);
 
-            Map<String, Float> feedbackScores = calculateGenreFeedbackScores(member, metadataCache,
-                    Optional.empty());
+            List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
+                    member.getId());
+            Map<String, Float> feedbackScores = scoreCalculator.calculateGenreFeedbackScores(
+                    feedbacks, metadataCache, Optional.empty());
 
-            Map<String, Float> contentTagGenreScores = calculateContentTagGenreScores(contentTagIds,
-                    metadataCache);
+            Map<String, Float> contentTagGenreScores = scoreCalculator.calculateContentTagGenreScores(
+                    contentTagIds, metadataCache);
 
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.storedFields().document(scoreDoc.doc);
                 Long contentId = Long.valueOf(doc.get("contentId"));
 
-                Set<String> docGenres = parseGenreTags(doc.get("genreTag"));
+                Set<String> docGenres = genreAnalyzer.parseGenreTags(doc.get("genreTag"));
 
-                float luceneScore = scoreDoc.score * 3.0f;
-                float feedbackScore = calculateGenreFeedbackBoost(docGenres, feedbackScores);
                 float finalScore;
-
                 if (isCurated) {
-                    float feedbackGenreBoost = calculateGenreBoost(docGenres, primaryGenres);
-                    float surveyGenreBoost = calculateGenreBoost(docGenres, secondaryGenres);
-                    finalScore =
-                            luceneScore + feedbackGenreBoost * 2.0f + surveyGenreBoost
-                                    + feedbackScore;
+                    finalScore = scoreCalculator.calculateCuratedScore(
+                            scoreDoc.score, docGenres, primaryGenres, secondaryGenres,
+                            feedbackScores);
                 } else {
-                    float genreBoost = calculateGenreBoost(docGenres, primaryGenres);
-                    float contentTagBoost = calculateContentTagBoost(docGenres,
+                    finalScore = scoreCalculator.calculateRegularScore(
+                            scoreDoc.score, docGenres, primaryGenres, feedbackScores,
                             contentTagGenreScores);
-                    finalScore = luceneScore + genreBoost * 2.0f + feedbackScore + contentTagBoost;
                 }
 
                 recommendations.add(new ContentRecommendationDTO(contentId, finalScore));
@@ -184,196 +177,6 @@ public class ContentRecommendationService {
             return recommendations;
         }
     }
-
-    private List<String> extractPreferredGenresFromFeedback(Member member,
-            Map<Long, ContentMetadata> metadataCache) {
-
-        Map<String, Float> genreScores = calculateGenreFeedbackScores(member, metadataCache,
-                Optional.of(20));
-
-        List<String> preferredGenres = genreScores.entrySet().stream()
-                .filter(entry -> entry.getValue() > 0.0f)
-                .sorted(Map.Entry.<String, Float>comparingByValue().reversed())
-                .limit(3)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
-
-        if (preferredGenres.isEmpty()) {
-            List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
-                    member.getId());
-            preferredGenres = extractFallbackGenresFromRecentLikes(feedbacks, metadataCache);
-            log.info("선호 장르가 없어 최근 좋아요 기반 장르 사용: {}", preferredGenres);
-        } else {
-            log.info("추출된 선호 장르: {}", preferredGenres);
-        }
-
-        return preferredGenres;
-    }
-
-    private List<Long> getPlatformFilteredContentIds(List<String> platformTags,
-            Map<Long, ContentMetadata> metadataCache) {
-        if (platformTags == null || platformTags.isEmpty()) {
-            return new ArrayList<>(metadataCache.keySet());
-        }
-
-        List<String> koreanPlatformTags = PlatformType.toKoreanTypes(platformTags);
-
-        if (koreanPlatformTags.isEmpty()) {
-            log.warn("플랫폼 태그 변환 실패 - 모든 콘텐츠 반환");
-            return new ArrayList<>(metadataCache.keySet());
-        }
-
-        Set<Long> contentIds = new HashSet<>();
-        for (String koreanPlatformTag : koreanPlatformTags) {
-            if (StringUtils.hasText(koreanPlatformTag)) {
-                for (Map.Entry<Long, ContentMetadata> entry : metadataCache.entrySet()) {
-                    ContentMetadata metadata = entry.getValue();
-                    if (metadata.getPlatformTag() != null &&
-                            metadata.getPlatformTag().contains(koreanPlatformTag)) {
-                        contentIds.add(entry.getKey());
-                    }
-                }
-            }
-        }
-
-        return new ArrayList<>(contentIds);
-    }
-
-    private float calculateGenreBoost(Set<String> docGenres, List<String> memberGenres) {
-        if (memberGenres == null || memberGenres.isEmpty() || docGenres.isEmpty()) {
-            return 0.0f;
-        }
-
-        float boost = 0.0f;
-        for (String memberGenre : memberGenres) {
-            if (StringUtils.hasText(memberGenre)) {
-                String targetGenre = memberGenre.trim();
-                if (docGenres.contains(targetGenre)) {
-                    boost += 1.0f;
-                }
-            }
-        }
-        return boost;
-    }
-
-    private float calculateGenreFeedbackBoost(Set<String> docGenres,
-            Map<String, Float> genreScores) {
-        if (docGenres.isEmpty()) {
-            return 0.0f;
-        }
-
-        float boost = 0.0f;
-        for (String genre : docGenres) {
-            boost += genreScores.getOrDefault(genre, 0.0f);
-        }
-        return boost;
-    }
-
-    private float calculateContentTagBoost(Set<String> docGenres,
-            Map<String, Float> contentTagGenreScores) {
-        if (docGenres.isEmpty() || contentTagGenreScores.isEmpty()) {
-            return 0.0f;
-        }
-
-        float boost = 0.0f;
-        for (String docGenre : docGenres) {
-            boost += contentTagGenreScores.getOrDefault(docGenre, 0.0f);
-        }
-        return boost;
-    }
-
-    private Map<String, Float> calculateContentTagGenreScores(List<Long> contentTagIds,
-            Map<Long, ContentMetadata> metadataCache) {
-        Map<String, Float> genreScores = new HashMap<>();
-
-        if (contentTagIds == null || contentTagIds.isEmpty()) {
-            return genreScores;
-        }
-
-        for (Long contentId : contentTagIds) {
-            ContentMetadata metadata = metadataCache.get(contentId);
-            if (metadata != null && metadata.getGenreTag() != null) {
-                for (String genre : metadata.getGenreTag()) {
-                    if (StringUtils.hasText(genre)) {
-                        genre = genre.trim();
-                        genreScores.put(genre, genreScores.getOrDefault(genre, 0.0f) + 1.0f);
-                    }
-                }
-            }
-        }
-
-        return genreScores;
-    }
-
-    private Set<String> parseGenreTags(String genreTag) {
-        if (genreTag == null || genreTag.trim().isEmpty()) {
-            return Set.of();
-        }
-
-        return Arrays.stream(genreTag.split(","))
-                .map(String::trim)
-                .filter(genre -> !genre.isEmpty())
-                .collect(Collectors.toSet());
-    }
-
-    private Map<String, Float> calculateGenreFeedbackScores(Member member,
-            Map<Long, ContentMetadata> metadataCache, Optional<Integer> recentFeedbackLimit) {
-        Map<String, Float> genreScores = new HashMap<>();
-
-        List<Feedback> feedbacks = contentRecommendationQuery.findFeedbacksByMemberId(
-                member.getId());
-        if (feedbacks == null || feedbacks.isEmpty()) {
-            return genreScores;
-        }
-
-        List<Feedback> targetFeedbacks;
-        targetFeedbacks = recentFeedbackLimit.map(limit -> feedbacks.stream()
-                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt()))
-                .limit(limit)
-                .toList()).orElse(feedbacks);
-
-        for (Feedback feedback : targetFeedbacks) {
-            if (!feedback.isDeleted()) {
-                Long contentId = feedback.getContent().getId();
-                ContentMetadata metadata = metadataCache.get(contentId);
-
-                if (metadata != null && metadata.getGenreTag() != null) {
-                    float score = switch (feedback.getFeedbackType()) {
-                        case LIKE -> 1.0f;
-                        case DISLIKE -> -1.0f;
-                        case UNINTERESTED -> 0.2f;
-                    };
-
-                    for (String genre : metadata.getGenreTag()) {
-                        if (StringUtils.hasText(genre)) {
-                            genre = genre.trim();
-                            float oldScore = genreScores.getOrDefault(genre, 0.0f);
-                            float newScore = oldScore + score;
-                            genreScores.put(genre, newScore);
-                        }
-                    }
-                }
-            }
-        }
-
-        return genreScores;
-    }
-
-
-    private List<String> extractFallbackGenresFromRecentLikes(List<Feedback> feedbacks,
-            Map<Long, ContentMetadata> metadataCache) {
-        return feedbacks.stream()
-                .filter(f -> !f.isDeleted() && f.getFeedbackType() == FeedbackType.LIKE)
-                .sorted((f1, f2) -> f2.getCreatedAt().compareTo(f1.getCreatedAt()))
-                .limit(20)
-                .map(f -> metadataCache.get(f.getContent().getId()))
-                .filter(Objects::nonNull)
-                .flatMap(m -> m.getGenreTag().stream())
-                .distinct()
-                .limit(3)
-                .toList();
-    }
-
 
     private List<ContentRecommendationResponse> getCachedRecommendations(
             MemberRecommendationCache cache) {
@@ -386,7 +189,7 @@ public class ContentRecommendationService {
         debugCachedRecommendations(nextBatch, cache);
 
         Map<Long, ContentMetadata> metadataCache = contentRecommendationQuery.findContentMetadataCache();
-        return buildResponseFromRecommendations(nextBatch, metadataCache);
+        return responseBuilder.buildResponseFromRecommendations(nextBatch, metadataCache);
     }
 
     private List<ContentRecommendationResponse> buildRegularRecommendationResponse(
@@ -407,29 +210,7 @@ public class ContentRecommendationService {
 
         cacheManager.putCache(memberId, remainingRecommendations);
 
-        return buildResponseFromRecommendations(firstBatch, metadataCache);
-    }
-
-    private List<ContentRecommendationResponse> buildResponseFromRecommendations(
-            List<ContentRecommendationDTO> recommendations,
-            Map<Long, ContentMetadata> metadataCache) {
-
-        List<Long> recommendedContentIds = recommendations.stream()
-                .map(ContentRecommendationDTO::contentId)
-                .toList();
-
-        List<Content> contents = contentRecommendationQuery.findContentsByIds(
-                recommendedContentIds);
-        List<ContentMetadata> metadataList = contents.stream()
-                .map(content -> metadataCache.get(content.getId()))
-                .filter(Objects::nonNull)
-                .toList();
-
-        for (Content content : contents) {
-            log.info("추출된 순서 : {}", content.getTitle());
-        }
-
-        return ContentRecommendationMapper.toResponseList(contents, metadataList);
+        return responseBuilder.buildResponseFromRecommendations(firstBatch, metadataCache);
     }
 
     private void debugTopDocs(TopDocs topDocs, IndexSearcher searcher) throws IOException {
